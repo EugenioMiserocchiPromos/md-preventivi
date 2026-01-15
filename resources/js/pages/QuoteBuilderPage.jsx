@@ -9,6 +9,7 @@ import {
   updateQuoteItem,
   updateQuoteItemComponent,
   upsertQuoteItemPose,
+  updateQuotePricing,
 } from '../api/client';
 
 const defaultPose = {
@@ -413,13 +414,30 @@ export default function QuoteBuilderPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [pricingForm, setPricingForm] = useState({
+    discount_type: 'none',
+    discount_value: '',
+    vat_rate: '',
+  });
+  const [pricingSaving, setPricingSaving] = useState(false);
+  const [pricingError, setPricingError] = useState(null);
 
   const loadQuote = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetchQuote(quoteId);
-      setQuote(response.data ?? response);
+      const data = response.data ?? response;
+      setQuote(data);
+      setPricingForm({
+        discount_type: data.discount_type ?? 'none',
+        discount_value:
+          data.discount_value !== null && data.discount_value !== undefined
+            ? String(data.discount_value)
+            : '',
+        vat_rate:
+          data.vat_rate !== null && data.vat_rate !== undefined ? String(data.vat_rate) : '',
+      });
     } catch (err) {
       setError(err?.message || 'Errore nel caricamento preventivo.');
     } finally {
@@ -512,6 +530,52 @@ export default function QuoteBuilderPage() {
     return [...quote.items].sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
   }, [quote]);
 
+  const totals = quote
+    ? {
+        subtotal: Number(quote.subtotal ?? 0),
+        discount_amount: Number(quote.discount_amount ?? 0),
+        taxable_total: Number(quote.taxable_total ?? 0),
+        vat_amount: Number(quote.vat_amount ?? 0),
+        grand_total: Number(quote.grand_total ?? 0),
+      }
+    : null;
+
+  const formatMoney = (value) => value.toFixed(2);
+
+  const handlePricingSubmit = async (event) => {
+    event.preventDefault();
+    if (!quote) return;
+
+    setPricingSaving(true);
+    setPricingError(null);
+
+    const payload = {
+      discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
+      discount_value:
+        pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
+      vat_rate: pricingForm.vat_rate === '' ? null : Number(pricingForm.vat_rate),
+    };
+
+    try {
+      const response = await updateQuotePricing(quote.id, payload);
+      const data = response.data ?? response;
+      setQuote(data);
+      setPricingForm({
+        discount_type: data.discount_type ?? 'none',
+        discount_value:
+          data.discount_value !== null && data.discount_value !== undefined
+            ? String(data.discount_value)
+            : '',
+        vat_rate:
+          data.vat_rate !== null && data.vat_rate !== undefined ? String(data.vat_rate) : '',
+      });
+    } catch (err) {
+      setPricingError(err?.message || 'Errore durante aggiornamento totali.');
+    } finally {
+      setPricingSaving(false);
+    }
+  };
+
   return (
     <section className="space-y-6">
       <header className="space-y-1">
@@ -598,6 +662,96 @@ export default function QuoteBuilderPage() {
           />
         ))}
       </section>
+
+      <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
+        <div className="mx-auto max-w-5xl space-y-4">
+          <div className="grid gap-4 md:grid-cols-5">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Subtotale</p>
+              <p className="text-lg font-semibold">
+                {totals ? formatMoney(totals.subtotal) : '0.00'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Sconto</p>
+              <p className="text-lg font-semibold">
+                {totals ? formatMoney(totals.discount_amount) : '0.00'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Imponibile</p>
+              <p className="text-lg font-semibold">
+                {totals ? formatMoney(totals.taxable_total) : '0.00'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">IVA</p>
+              <p className="text-lg font-semibold">
+                {totals ? formatMoney(totals.vat_amount) : '0.00'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Totale</p>
+              <p className="text-lg font-semibold">
+                {totals ? formatMoney(totals.grand_total) : '0.00'}
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handlePricingSubmit} className="grid gap-3 md:grid-cols-4">
+            <label className="text-sm">
+              <span className="text-slate-600">Tipo sconto</span>
+              <select
+                value={pricingForm.discount_type}
+                onChange={(event) =>
+                  setPricingForm((prev) => ({ ...prev, discount_type: event.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              >
+                <option value="none">Nessuno</option>
+                <option value="percent">Percentuale</option>
+                <option value="amount">Importo</option>
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="text-slate-600">Valore sconto</span>
+              <input
+                type="number"
+                step="0.01"
+                value={pricingForm.discount_value}
+                onChange={(event) =>
+                  setPricingForm((prev) => ({ ...prev, discount_value: event.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              />
+            </label>
+            <label className="text-sm">
+              <span className="text-slate-600">IVA (%)</span>
+              <input
+                type="number"
+                step="0.01"
+                value={pricingForm.vat_rate}
+                onChange={(event) =>
+                  setPricingForm((prev) => ({ ...prev, vat_rate: event.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              />
+            </label>
+            <div className="flex items-end gap-2">
+              <button
+                type="submit"
+                disabled={pricingSaving}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {pricingSaving ? 'Salvataggio...' : 'Applica'}
+              </button>
+              {pricingError ? (
+                <span className="text-xs text-amber-700">{pricingError}</span>
+              ) : null}
+            </div>
+          </form>
+        </div>
+      </div>
     </section>
   );
 }
