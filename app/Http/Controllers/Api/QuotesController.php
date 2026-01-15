@@ -3,11 +3,62 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Quotes\StoreQuoteRequest;
 use App\Http\Resources\QuoteResource;
+use App\Models\Customer;
 use App\Models\Quote;
+use App\Services\ProtGeneratorService;
+use Illuminate\Support\Facades\DB;
 
 class QuotesController extends Controller
 {
+    public function store(
+        StoreQuoteRequest $request,
+        ProtGeneratorService $protGenerator
+    ) {
+        $user = $request->user();
+        $data = $request->validated();
+
+        $quote = DB::transaction(function () use ($data, $user, $protGenerator) {
+            $customer = Customer::findOrFail($data['customer_id']);
+
+            $prot = $protGenerator->allocate(
+                $user->initials ?? '',
+                $data['quote_type']
+            );
+
+            return Quote::create([
+                'quote_type' => $data['quote_type'],
+                'customer_id' => $customer->id,
+                'customer_title_snapshot' => $customer->title,
+                'customer_body_snapshot' => $customer->body,
+                'customer_email_snapshot' => $customer->email,
+                'prot_display' => $prot['prot_display'],
+                'prot_internal' => $prot['prot_internal'],
+                'prot_year' => $prot['prot_year'],
+                'prot_number' => $prot['prot_number'],
+                'revision_number' => $prot['revision_number'],
+                'date' => $data['date'],
+                'cantiere' => $data['cantiere'],
+                'title_template_id' => $data['title_template_id'] ?? null,
+                'title_text' => $data['title_text'],
+                'discount_type' => null,
+                'discount_value' => null,
+                'vat_rate' => $data['vat_rate'] ?? 22,
+                'subtotal' => 0,
+                'discount_amount' => 0,
+                'taxable_total' => 0,
+                'vat_amount' => 0,
+                'grand_total' => 0,
+                'created_by_user_id' => $user->id,
+            ]);
+        });
+
+        return (new QuoteResource($quote))
+            ->response()
+            ->setStatusCode(201);
+    }
+
     public function show(Quote $quote)
     {
         $quote->load([
