@@ -107,6 +107,10 @@ export async function deleteCustomer(id) {
   return request(`/api/customers/${id}`, { method: 'DELETE' });
 }
 
+export async function fetchQuoteTitleTemplates() {
+  return request('/api/quote-title-templates', { method: 'GET' });
+}
+
 export async function uploadFile(path, file) {
   await getCsrfCookie();
 

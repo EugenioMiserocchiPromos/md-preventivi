@@ -7,6 +7,7 @@ import AdminImportPage from './pages/AdminImportPage';
 import QuotesListPage from './pages/QuotesListPage';
 import ProductsPage from './pages/ProductsPage';
 import CustomersPage from './pages/CustomersPage';
+import QuoteTitleTemplatesPage from './pages/QuoteTitleTemplatesPage';
 import LoginPage from './pages/LoginPage';
 
 function RequireAuth({ children }) {
@@ -108,6 +109,16 @@ function App() {
           <RequireAuth>
             <AppLayout>
               <CustomersPage />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/titoli"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <QuoteTitleTemplatesPage />
             </AppLayout>
           </RequireAuth>
         }
