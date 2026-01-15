@@ -79,6 +79,16 @@ export async function fetchProductComponents(productId) {
   return request(`/api/products/${productId}/components`, { method: 'GET' });
 }
 
+export async function fetchCustomers({ q, perPage = 20, page = 1 } = {}) {
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (perPage) params.set('per_page', String(perPage));
+  if (page) params.set('page', String(page));
+
+  const suffix = params.toString();
+  return request(`/api/customers${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
+}
+
 export async function uploadFile(path, file) {
   await getCsrfCookie();
 

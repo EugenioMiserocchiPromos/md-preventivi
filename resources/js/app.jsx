@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './auth/AuthContext';
 import AdminImportPage from './pages/AdminImportPage';
 import QuotesListPage from './pages/QuotesListPage';
 import ProductsPage from './pages/ProductsPage';
+import CustomersPage from './pages/CustomersPage';
 import LoginPage from './pages/LoginPage';
 
 function RequireAuth({ children }) {
@@ -97,6 +98,16 @@ function App() {
           <RequireAuth>
             <AppLayout>
               <ProductsPage />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/clienti"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <CustomersPage />
             </AppLayout>
           </RequireAuth>
         }
