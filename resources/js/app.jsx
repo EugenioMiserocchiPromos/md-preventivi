@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import AppLayout from './layouts/AppLayout';
 
 function Home() {
   return (
@@ -36,24 +37,7 @@ function PreventiviList({ label, code }) {
 
 function App() {
   return (
-    <div className="min-h-screen p-6 bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">MD Preventivi</h1>
-        <nav className="mt-2 flex flex-wrap gap-3 text-sm">
-          <Link className="underline underline-offset-4" to="/">
-            Home
-          </Link>
-          <Link className="underline underline-offset-4" to="/preventivi/fp">
-            FP
-          </Link>
-          <Link className="underline underline-offset-4" to="/preventivi/as">
-            AS
-          </Link>
-          <Link className="underline underline-offset-4" to="/preventivi/vm">
-            VM
-          </Link>
-        </nav>
-      </header>
+    <AppLayout>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route
@@ -67,7 +51,7 @@ function App() {
         />
         <Route path="*" element={<Home />} />
       </Routes>
-    </div>
+    </AppLayout>
   );
 }
 
