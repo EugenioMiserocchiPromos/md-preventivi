@@ -1,50 +1,86 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import QuotesListPage from './pages/QuotesListPage';
+import LoginPage from './pages/LoginPage';
 
-function Home() {
-  return (
-    <div className="space-y-2">
-      <p className="text-sm text-slate-600 dark:text-slate-300">
-        Seleziona una lista preventivi.
-      </p>
-      <div className="flex flex-wrap gap-2 text-sm">
-        <Link className="underline underline-offset-4" to="/preventivi/fp">
-          Fornitura e Posa
-        </Link>
-        <Link className="underline underline-offset-4" to="/preventivi/as">
-          Assistenza
-        </Link>
-        <Link className="underline underline-offset-4" to="/preventivi/vm">
-          Vendita Materiale
-        </Link>
-      </div>
-    </div>
-  );
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div className="px-6 py-10 text-sm text-slate-500">Caricamento...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  return children;
+}
+
+function LoginRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="px-6 py-10 text-sm text-slate-500">Caricamento...</div>;
+  }
+
+  if (user) {
+    return <Navigate to="/preventivi/fp" replace />;
+  }
+
+  return <LoginPage />;
 }
 
 function App() {
   return (
-    <AppLayout>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route
-          path="/preventivi/fp"
-          element={<QuotesListPage label="Fornitura e Posa in opera" type="FP" />}
-        />
-        <Route
-          path="/preventivi/as"
-          element={<QuotesListPage label="Assistenza" type="AS" />}
-        />
-        <Route
-          path="/preventivi/vm"
-          element={<QuotesListPage label="Vendita Materiale" type="VM" />}
-        />
-        <Route path="*" element={<Home />} />
-      </Routes>
-    </AppLayout>
+    <Routes>
+      <Route path="/login" element={<LoginRoute />} />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <Navigate to="/preventivi/fp" replace />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/preventivi/fp"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <QuotesListPage label="Fornitura e Posa in opera" type="FP" />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/preventivi/as"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <QuotesListPage label="Assistenza" type="AS" />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/preventivi/vm"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <QuotesListPage label="Vendita Materiale" type="VM" />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<Navigate to="/preventivi/fp" replace />} />
+    </Routes>
   );
 }
 
@@ -52,7 +88,9 @@ const el = document.getElementById('app');
 if (el) {
   createRoot(el).render(
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

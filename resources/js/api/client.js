@@ -1,0 +1,63 @@
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp(`(^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+async function request(path, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  const needsXsrf = !['GET', 'HEAD'].includes(method);
+
+  const response = await fetch(path, {
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(needsXsrf && xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  let data = null;
+  if (response.status !== 204) {
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!response.ok) {
+    const message = data?.message || 'Richiesta non riuscita.';
+    const error = new Error(message);
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getCsrfCookie() {
+  await fetch('/sanctum/csrf-cookie', {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  });
+}
+
+export async function login(payload) {
+  await getCsrfCookie();
+  return request('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function logout() {
+  return request('/api/auth/logout', { method: 'POST' });
+}
+
+export async function fetchMe() {
+  return request('/api/me', { method: 'GET' });
+}
