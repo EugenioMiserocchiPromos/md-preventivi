@@ -89,6 +89,24 @@ export async function fetchCustomers({ q, perPage = 20, page = 1 } = {}) {
   return request(`/api/customers${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
 }
 
+export async function createCustomer(payload) {
+  return request('/api/customers', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCustomer(id, payload) {
+  return request(`/api/customers/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCustomer(id) {
+  return request(`/api/customers/${id}`, { method: 'DELETE' });
+}
+
 export async function uploadFile(path, file) {
   await getCsrfCookie();
 
