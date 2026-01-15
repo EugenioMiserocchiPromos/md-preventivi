@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             ProductsSeeder::class,
             ProductComponentsSeeder::class,
             QuoteTitleTemplatesSeeder::class,
+            QuotesSeeder::class,
         ]);
     }
 }

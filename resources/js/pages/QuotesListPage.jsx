@@ -43,9 +43,9 @@ export default function QuotesListPage({ type, label }) {
           {label} <span className="text-slate-500">({type})</span>
         </h2>
       </header>
-      <div className="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800/60">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/70">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900">
+          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               {headers.map((header) => (
                 <th key={header} className="px-4 py-3 font-medium">
@@ -63,10 +63,7 @@ export default function QuotesListPage({ type, label }) {
               </tr>
             ) : (
               rows.map((row) => (
-                <tr
-                  key={row.prot}
-                  className="border-t border-slate-200/60 text-slate-700 dark:border-slate-800/60 dark:text-slate-200"
-                >
+                <tr key={row.prot} className="border-t border-slate-200/60 text-slate-700">
                   <td className="px-4 py-3 font-medium">{row.prot}</td>
                   <td className="px-4 py-3">{row.cliente}</td>
                   <td className="px-4 py-3">{row.titolo}</td>

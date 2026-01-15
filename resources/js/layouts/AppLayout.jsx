@@ -16,8 +16,8 @@ export default function AppLayout({ children }) {
   const { user, logout, loading } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="border-b border-slate-200/70 dark:border-slate-800/60">
+    <div className="min-h-screen bg-white text-slate-900">
+      <header className="border-b border-slate-200/70">
         <div className="mx-auto max-w-5xl px-6 py-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -31,7 +31,7 @@ export default function AppLayout({ children }) {
                 type="button"
                 onClick={logout}
                 disabled={loading}
-                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500"
+                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:opacity-60"
               >
                 Logout
               </button>
@@ -46,8 +46,8 @@ export default function AppLayout({ children }) {
                   [
                     'rounded-full px-3 py-1.5 transition-colors',
                     isActive
-                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
                   ].join(' ')
                 }
                 end
