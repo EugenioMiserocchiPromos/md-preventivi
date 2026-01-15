@@ -9,13 +9,15 @@ use App\Http\Resources\QuoteItemResource;
 use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Services\QuoteItemService;
+use App\Services\QuoteTotalsService;
 
 class QuoteItemsController extends Controller
 {
     public function store(
         Quote $quote,
         StoreQuoteItemRequest $request,
-        QuoteItemService $service
+        QuoteItemService $service,
+        QuoteTotalsService $totalsService
     ) {
         $item = $service->create(
             $quote,
@@ -23,10 +25,19 @@ class QuoteItemsController extends Controller
             (float) ($request->validated('qty') ?? 1)
         );
 
-        return new QuoteItemResource($item);
+        $updatedQuote = $totalsService->recalculateAndPersist($quote->fresh());
+
+        return response()->json([
+            'item' => new QuoteItemResource($item),
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
     }
 
-    public function update(UpdateQuoteItemRequest $request, QuoteItem $item)
+    public function update(
+        UpdateQuoteItemRequest $request,
+        QuoteItem $item,
+        QuoteTotalsService $totalsService
+    )
     {
         $data = $request->validated();
         $item->fill($data);
@@ -35,13 +46,23 @@ class QuoteItemsController extends Controller
 
         $item->load(['components', 'pose']);
 
-        return new QuoteItemResource($item);
+        $updatedQuote = $totalsService->recalculateAndPersist($item->quote()->first());
+
+        return response()->json([
+            'item' => new QuoteItemResource($item),
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
     }
 
-    public function destroy(QuoteItem $item)
+    public function destroy(QuoteItem $item, QuoteTotalsService $totalsService)
     {
+        $quote = $item->quote()->first();
         $item->delete();
 
-        return response()->noContent();
+        $updatedQuote = $totalsService->recalculateAndPersist($quote);
+
+        return response()->json([
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
     }
 }

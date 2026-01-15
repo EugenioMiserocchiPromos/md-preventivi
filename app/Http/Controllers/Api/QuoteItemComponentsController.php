@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotes\UpdateQuoteItemComponentRequest;
 use App\Http\Resources\QuoteItemComponentResource;
 use App\Models\QuoteItemComponent;
+use App\Services\QuoteTotalsService;
 
 class QuoteItemComponentsController extends Controller
 {
     public function update(
         UpdateQuoteItemComponentRequest $request,
-        QuoteItemComponent $component
+        QuoteItemComponent $component,
+        QuoteTotalsService $totalsService
     ) {
         $data = $request->validated();
         if (array_key_exists('is_visible', $data)) {
@@ -25,6 +27,12 @@ class QuoteItemComponentsController extends Controller
         );
         $component->save();
 
-        return new QuoteItemComponentResource($component);
+        $quote = $component->quoteItem()->first()->quote()->first();
+        $updatedQuote = $totalsService->recalculateAndPersist($quote);
+
+        return response()->json([
+            'component' => new QuoteItemComponentResource($component),
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
     }
 }

@@ -51,4 +51,15 @@ class QuoteTotalsService
 
         return $quote;
     }
+
+    public function totalsPayload(Quote $quote): array
+    {
+        return [
+            'subtotal' => $quote->subtotal,
+            'discount_amount' => $quote->discount_amount,
+            'taxable_total' => $quote->taxable_total,
+            'vat_amount' => $quote->vat_amount,
+            'grand_total' => $quote->grand_total,
+        ];
+    }
 }

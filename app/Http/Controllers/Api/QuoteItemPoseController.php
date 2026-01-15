@@ -7,10 +7,15 @@ use App\Http\Requests\Quotes\UpsertQuoteItemPoseRequest;
 use App\Http\Resources\QuoteItemPoseResource;
 use App\Models\QuoteItem;
 use App\Models\QuoteItemPose;
+use App\Services\QuoteTotalsService;
 
 class QuoteItemPoseController extends Controller
 {
-    public function upsert(UpsertQuoteItemPoseRequest $request, QuoteItem $item)
+    public function upsert(
+        UpsertQuoteItemPoseRequest $request,
+        QuoteItem $item,
+        QuoteTotalsService $totalsService
+    )
     {
         $data = $request->validated();
         $qty = (float) ($data['qty'] ?? 0);
@@ -34,13 +39,22 @@ class QuoteItemPoseController extends Controller
             ]
         );
 
-        return new QuoteItemPoseResource($pose);
+        $updatedQuote = $totalsService->recalculateAndPersist($item->quote()->first());
+
+        return response()->json([
+            'pose' => new QuoteItemPoseResource($pose),
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
     }
 
-    public function destroy(QuoteItem $item)
+    public function destroy(QuoteItem $item, QuoteTotalsService $totalsService)
     {
         QuoteItemPose::where('quote_item_id', $item->id)->delete();
 
-        return response()->noContent();
+        $updatedQuote = $totalsService->recalculateAndPersist($item->quote()->first());
+
+        return response()->json([
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
     }
 }
