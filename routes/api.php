@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductComponentsImportController;
+use App\Http\Controllers\Api\ProductComponentsController;
 use App\Http\Controllers\Api\ProductImportController;
+use App\Http\Controllers\Api\ProductsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -14,3 +16,5 @@ Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
 
 Route::middleware('auth:sanctum')->post('/products/import', [ProductImportController::class, 'import']);
 Route::middleware('auth:sanctum')->post('/products/components/import', [ProductComponentsImportController::class, 'import']);
+Route::middleware('auth:sanctum')->get('/products', [ProductsController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/products/{product}/components', [ProductComponentsController::class, 'index']);
