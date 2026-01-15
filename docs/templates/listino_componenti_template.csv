@@ -1,0 +1,4 @@
+product_code,component_name,unit_default,qty_default,price_default,default_visible,sort_index
+001,Telaio,pz,1,120.00,true,1
+001,Vetro,mq,1.2,80.00,true,2
+002,Rete,mq,1,25.00,true,1
