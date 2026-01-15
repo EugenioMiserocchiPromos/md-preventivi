@@ -6,6 +6,7 @@ const navItems = [
   { to: '/preventivi/fp', label: 'Fornitura e Posa (FP)' },
   { to: '/preventivi/as', label: 'Assistenza (AS)' },
   { to: '/preventivi/vm', label: 'Vendita Materiale (VM)' },
+  { to: '/admin/import', label: 'Import CSV' },
 ];
 
 export default function AppLayout({ children }) {

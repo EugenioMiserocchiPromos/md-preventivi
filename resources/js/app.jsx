@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
 import { AuthProvider, useAuth } from './auth/AuthContext';
+import AdminImportPage from './pages/AdminImportPage';
 import QuotesListPage from './pages/QuotesListPage';
 import LoginPage from './pages/LoginPage';
 
@@ -75,6 +76,16 @@ function App() {
           <RequireAuth>
             <AppLayout>
               <QuotesListPage label="Vendita Materiale" type="VM" />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/import"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <AdminImportPage />
             </AppLayout>
           </RequireAuth>
         }

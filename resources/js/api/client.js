@@ -3,22 +3,7 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
-async function request(path, options = {}) {
-  const method = (options.method || 'GET').toUpperCase();
-  const xsrfToken = getCookie('XSRF-TOKEN');
-  const needsXsrf = !['GET', 'HEAD'].includes(method);
-
-  const response = await fetch(path, {
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(needsXsrf && xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
-
+async function parseResponse(response) {
   let data = null;
   if (response.status !== 204) {
     try {
@@ -37,6 +22,24 @@ async function request(path, options = {}) {
   }
 
   return data;
+}
+
+async function request(path, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  const needsXsrf = !['GET', 'HEAD'].includes(method);
+
+  const response = await fetch(path, {
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(needsXsrf && xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+  return parseResponse(response);
 }
 
 export async function getCsrfCookie() {
@@ -60,4 +63,24 @@ export async function logout() {
 
 export async function fetchMe() {
   return request('/api/me', { method: 'GET' });
+}
+
+export async function uploadFile(path, file) {
+  await getCsrfCookie();
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  const response = await fetch(path, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+    },
+    body: formData,
+  });
+
+  return parseResponse(response);
 }
