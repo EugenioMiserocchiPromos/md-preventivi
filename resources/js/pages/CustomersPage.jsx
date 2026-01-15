@@ -41,7 +41,7 @@ export default function CustomersPage() {
     load(1, '');
   }, [load]);
 
-  const handleSubmit = (event) => {
+  const handleSearchSubmit = (event) => {
     event.preventDefault();
     load(1, query);
   };
@@ -157,7 +157,7 @@ export default function CustomersPage() {
         <p className="text-sm text-slate-500">Ricerca per titolo o email.</p>
       </header>
 
-      <form onSubmit={handleSubmit} className="flex flex-wrap gap-3">
+      <form onSubmit={handleSearchSubmit} className="flex flex-wrap gap-3">
         <input
           type="text"
           value={query}
