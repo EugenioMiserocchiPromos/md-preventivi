@@ -111,6 +111,46 @@ export async function fetchQuoteTitleTemplates() {
   return request('/api/quote-title-templates', { method: 'GET' });
 }
 
+export async function fetchQuote(quoteId) {
+  return request(`/api/quotes/${quoteId}`, { method: 'GET' });
+}
+
+export async function createQuoteItem(quoteId, payload) {
+  return request(`/api/quotes/${quoteId}/items`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateQuoteItem(itemId, payload) {
+  return request(`/api/quote-items/${itemId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteQuoteItem(itemId) {
+  return request(`/api/quote-items/${itemId}`, { method: 'DELETE' });
+}
+
+export async function updateQuoteItemComponent(componentId, payload) {
+  return request(`/api/quote-item-components/${componentId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function upsertQuoteItemPose(itemId, payload) {
+  return request(`/api/quote-items/${itemId}/pose`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteQuoteItemPose(itemId) {
+  return request(`/api/quote-items/${itemId}/pose`, { method: 'DELETE' });
+}
+
 export async function uploadFile(path, file) {
   await getCsrfCookie();
 
