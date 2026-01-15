@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class QuoteItemComponent extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'unit_override',
+        'qty',
+        'unit_price_override',
+        'is_visible',
+    ];
 
     public function quoteItem(): BelongsTo
     {

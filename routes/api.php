@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CustomersController;
 use App\Http\Controllers\Api\QuoteTitleTemplatesController;
 use App\Http\Controllers\Api\QuotesController;
 use App\Http\Controllers\Api\QuoteItemsController;
+use App\Http\Controllers\Api\QuoteItemComponentsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -33,3 +34,6 @@ Route::middleware('auth:sanctum')->get('/quote-title-templates', [QuoteTitleTemp
 
 Route::middleware('auth:sanctum')->get('/quotes/{quote}', [QuotesController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/items', [QuoteItemsController::class, 'store']);
+Route::middleware('auth:sanctum')->patch('/quote-items/{item}', [QuoteItemsController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/quote-items/{item}', [QuoteItemsController::class, 'destroy']);
+Route::middleware('auth:sanctum')->patch('/quote-item-components/{component}', [QuoteItemComponentsController::class, 'update']);

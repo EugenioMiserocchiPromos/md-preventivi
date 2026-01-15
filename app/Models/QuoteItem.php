@@ -9,7 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class QuoteItem extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'unit_override',
+        'qty',
+        'unit_price_override',
+        'note_shared',
+    ];
 
     public function quote(): BelongsTo
     {
