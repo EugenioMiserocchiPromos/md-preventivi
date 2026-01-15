@@ -5,7 +5,7 @@ const headers = ['PROT', 'Cliente', 'Titolo', 'Totale', 'Data', 'Azioni'];
 const mockRowsByType = {
   FP: [
     {
-      prot: 'MD/FP 0001-26',
+      prot_display: 'MD/FP 0001-26',
       cliente: 'Edil Casa Srl',
       titolo: 'Ristrutturazione Cucina',
       totale: '€ 12.450,00',
@@ -14,7 +14,7 @@ const mockRowsByType = {
   ],
   AS: [
     {
-      prot: 'MD/AS 0002-26',
+      prot_display: 'MD/AS 0002-26',
       cliente: 'Condominio Aurora',
       titolo: 'Assistenza Impianto',
       totale: '€ 980,00',
@@ -23,7 +23,7 @@ const mockRowsByType = {
   ],
   VM: [
     {
-      prot: 'MD/VM 0003-26',
+      prot_display: 'MD/VM 0003-26',
       cliente: 'Ferramenta Riva',
       titolo: 'Vendita Materiale',
       totale: '€ 2.150,00',
@@ -64,7 +64,7 @@ export default function QuotesListPage({ type, label }) {
             ) : (
               rows.map((row) => (
                 <tr key={row.prot} className="border-t border-slate-200/60 text-slate-700">
-                  <td className="px-4 py-3 font-medium">{row.prot}</td>
+                  <td className="px-4 py-3 font-medium">{row.prot_display ?? row.prot}</td>
                   <td className="px-4 py-3">{row.cliente}</td>
                   <td className="px-4 py-3">{row.titolo}</td>
                   <td className="px-4 py-3">{row.totale}</td>

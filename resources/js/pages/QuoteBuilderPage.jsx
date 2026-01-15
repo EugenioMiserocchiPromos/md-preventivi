@@ -583,7 +583,7 @@ export default function QuoteBuilderPage() {
         <h1 className="text-2xl font-semibold">Preventivo</h1>
         {quote ? (
           <p className="text-sm text-slate-500">
-            {quote.prot_display} — {quote.customer_title_snapshot}
+            PROT: {quote.prot_display || '—'} — {quote.customer_title_snapshot}
           </p>
         ) : null}
       </header>
