@@ -9,7 +9,16 @@ class QuoteItemPose extends Model
 {
     protected $table = 'quote_item_pose';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'quote_item_id',
+        'pose_type',
+        'unit',
+        'qty',
+        'unit_price',
+        'pose_total',
+        'is_included',
+        'is_visible',
+    ];
 
     public function quoteItem(): BelongsTo
     {
