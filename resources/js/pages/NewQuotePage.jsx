@@ -9,6 +9,7 @@ export default function NewQuotePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
 
   const [formValues, setFormValues] = useState({
     quote_type: 'FP',
@@ -58,6 +59,7 @@ export default function NewQuotePage() {
     event.preventDefault();
     setSaving(true);
     setError(null);
+    setFormErrors({});
 
     try {
       const payload = {
@@ -74,7 +76,11 @@ export default function NewQuotePage() {
       const quote = response.data ?? response;
       navigate(`/builder/${quote.id}`);
     } catch (err) {
-      setError(err?.message || 'Creazione preventivo non riuscita.');
+      if (err?.status === 422 && err?.data?.errors) {
+        setFormErrors(err.data.errors);
+      } else {
+        setError(err?.message || 'Creazione preventivo non riuscita.');
+      }
     } finally {
       setSaving(false);
     }
@@ -104,6 +110,13 @@ export default function NewQuotePage() {
               <option value="AS">Assistenza (AS)</option>
               <option value="VM">Vendita Materiale (VM)</option>
             </select>
+            {formErrors.quote_type ? (
+              <p className="mt-1 text-xs text-amber-700">
+                {Array.isArray(formErrors.quote_type)
+                  ? formErrors.quote_type.join(', ')
+                  : formErrors.quote_type}
+              </p>
+            ) : null}
           </label>
           <label className="text-sm">
             <span className="text-slate-600">Cliente</span>
@@ -120,6 +133,13 @@ export default function NewQuotePage() {
                 </option>
               ))}
             </select>
+            {formErrors.customer_id ? (
+              <p className="mt-1 text-xs text-amber-700">
+                {Array.isArray(formErrors.customer_id)
+                  ? formErrors.customer_id.join(', ')
+                  : formErrors.customer_id}
+              </p>
+            ) : null}
           </label>
           <label className="text-sm">
             <span className="text-slate-600">Data</span>
@@ -130,6 +150,13 @@ export default function NewQuotePage() {
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               required
             />
+            {formErrors.date ? (
+              <p className="mt-1 text-xs text-amber-700">
+                {Array.isArray(formErrors.date)
+                  ? formErrors.date.join(', ')
+                  : formErrors.date}
+              </p>
+            ) : null}
           </label>
           <label className="text-sm">
             <span className="text-slate-600">Cantiere</span>
@@ -140,6 +167,13 @@ export default function NewQuotePage() {
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               required
             />
+            {formErrors.cantiere ? (
+              <p className="mt-1 text-xs text-amber-700">
+                {Array.isArray(formErrors.cantiere)
+                  ? formErrors.cantiere.join(', ')
+                  : formErrors.cantiere}
+              </p>
+            ) : null}
           </label>
           <label className="text-sm md:col-span-2">
             <span className="text-slate-600">Template titolo</span>
@@ -156,6 +190,13 @@ export default function NewQuotePage() {
                 </option>
               ))}
             </select>
+            {formErrors.title_template_id ? (
+              <p className="mt-1 text-xs text-amber-700">
+                {Array.isArray(formErrors.title_template_id)
+                  ? formErrors.title_template_id.join(', ')
+                  : formErrors.title_template_id}
+              </p>
+            ) : null}
           </label>
         </div>
 
