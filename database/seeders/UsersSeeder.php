@@ -15,8 +15,9 @@ class UsersSeeder extends Seeder
         DB::table('users')->updateOrInsert(
             ['email' => 'test@example.com'],
             [
-                'name' => 'Test User',
-                'initials' => 'MD',
+                'name' => 'Eugenio',
+                'surname' => 'Miserocchi',
+                'initials' => 'EM',
                 'password' => Hash::make('secret'),
                 'created_at' => $now,
                 'updated_at' => $now,

@@ -19,6 +19,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'surname',
         'initials',
         'email',
         'password',
@@ -45,5 +46,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            $computed = $user->computedInitials();
+
+            if ($computed !== '' && $user->initials !== $computed) {
+                $user->initials = $computed;
+            }
+        });
+    }
+
+    public function computedInitials(): string
+    {
+        $name = trim((string) $this->name);
+        $surname = trim((string) $this->surname);
+
+        if ($name === '' || $surname === '') {
+            return trim((string) $this->initials);
+        }
+
+        $initials = strtoupper(substr($name, 0, 1).substr($surname, 0, 1));
+
+        return $initials;
     }
 }
