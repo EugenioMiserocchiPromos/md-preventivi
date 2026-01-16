@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\QuoteItemsController;
 use App\Http\Controllers\Api\QuoteItemComponentsController;
 use App\Http\Controllers\Api\QuoteItemPoseController;
 use App\Http\Controllers\Api\QuotePricingController;
+use App\Http\Controllers\Api\QuoteExtrasController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -42,6 +43,10 @@ Route::middleware('auth:sanctum')->post('/quotes', [QuotesController::class, 'st
 Route::middleware('auth:sanctum')->get('/quotes', [QuotesController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/items', [QuoteItemsController::class, 'store']);
 Route::middleware('auth:sanctum')->patch('/quotes/{quote}/pricing', [QuotePricingController::class, 'update']);
+Route::middleware('auth:sanctum')->get('/quotes/{quote}/extras', [QuoteExtrasController::class, 'index']);
+Route::middleware('auth:sanctum')->post('/quotes/{quote}/extras', [QuoteExtrasController::class, 'store']);
+Route::middleware('auth:sanctum')->patch('/quote-extras/{extra}', [QuoteExtrasController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/quote-extras/{extra}', [QuoteExtrasController::class, 'destroy']);
 Route::middleware('auth:sanctum')->patch('/quote-items/{item}', [QuoteItemsController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/quote-items/{item}', [QuoteItemsController::class, 'destroy']);
 Route::middleware('auth:sanctum')->patch('/quote-item-components/{component}', [QuoteItemComponentsController::class, 'update']);

@@ -7,7 +7,12 @@ use Illuminate\Support\Facades\DB;
 
 class QuoteExtrasService
 {
-    public const FIXED_KEYS = ['extra_1', 'extra_2', 'extra_3'];
+    public const FIXED_KEYS = ['warranty_10y', 'extra_2', 'extra_3'];
+    private const DESCRIPTIONS = [
+        'warranty_10y' => 'Garanzia 10 anni',
+        'extra_2' => 'Extra 2',
+        'extra_3' => 'Extra 3',
+    ];
 
     public function ensureFixedRows(Quote $quote): void
     {
@@ -27,8 +32,7 @@ class QuoteExtrasService
             ->max('sort_index') ?? 0);
 
         foreach ($missingKeys as $offset => $key) {
-            $labelIndex = array_search($key, self::FIXED_KEYS, true);
-            $description = $labelIndex === false ? 'Extra' : 'Extra ' . ($labelIndex + 1);
+            $description = self::DESCRIPTIONS[$key] ?? 'Extra';
 
             DB::table('quote_extras')->insert([
                 'quote_id' => $quote->id,
@@ -39,7 +43,7 @@ class QuoteExtrasService
                 'unit_price' => 0,
                 'line_total' => 0,
                 'notes' => null,
-                'is_included' => true,
+                'is_included' => $key !== 'warranty_10y',
                 'is_fixed' => true,
                 'fixed_key' => $key,
                 'sort_index' => $nextIndex + $offset + 1,
