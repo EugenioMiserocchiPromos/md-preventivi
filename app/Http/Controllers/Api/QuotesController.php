@@ -64,8 +64,8 @@ class QuotesController extends Controller
                 abort(422, 'Template titolo non valido.');
             }
 
-            $prot = $protGenerator->allocate(
-                $user->initials ?? '',
+            $prot = $protGenerator->allocateForUser(
+                $user,
                 $data['quote_type']
             );
 
