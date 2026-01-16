@@ -4,14 +4,49 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotes\StoreQuoteRequest;
+use App\Http\Resources\QuoteListResource;
 use App\Http\Resources\QuoteResource;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Services\ProtGeneratorService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class QuotesController extends Controller
 {
+    public function index(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => ['required', 'in:FP,AS,VM'],
+            'q' => ['nullable', 'string'],
+            'per_page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $query = Quote::query()->where('quote_type', $validated['type']);
+
+        $search = trim((string) ($validated['q'] ?? ''));
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $query->where(function ($builder) use ($like) {
+                $builder
+                    ->where('prot_display', 'like', $like)
+                    ->orWhere('title_text', 'like', $like)
+                    ->orWhere('customer_title_snapshot', 'like', $like);
+            });
+        }
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
+        $perPage = max(1, min($perPage, 50));
+
+        $quotes = $query
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return QuoteListResource::collection($quotes);
+    }
+
     public function store(
         StoreQuoteRequest $request,
         ProtGeneratorService $protGenerator
@@ -21,6 +56,12 @@ class QuotesController extends Controller
 
         $quote = DB::transaction(function () use ($data, $user, $protGenerator) {
             $customer = Customer::findOrFail($data['customer_id']);
+            $template = DB::table('quote_title_templates')
+                ->where('id', $data['title_template_id'])
+                ->first();
+            if (! $template) {
+                abort(422, 'Template titolo non valido.');
+            }
 
             $prot = $protGenerator->allocate(
                 $user->initials ?? '',
@@ -40,8 +81,8 @@ class QuotesController extends Controller
                 'revision_number' => $prot['revision_number'],
                 'date' => $data['date'],
                 'cantiere' => $data['cantiere'],
-                'title_template_id' => $data['title_template_id'] ?? null,
-                'title_text' => $data['title_text'],
+                'title_template_id' => $template->id,
+                'title_text' => $template->label,
                 'discount_type' => null,
                 'discount_value' => null,
                 'vat_rate' => $data['vat_rate'] ?? 22,

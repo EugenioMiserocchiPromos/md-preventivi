@@ -19,8 +19,11 @@ class StoreQuoteRequest extends FormRequest
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'date' => ['required', 'date'],
             'cantiere' => ['required', 'string', 'max:255'],
-            'title_template_id' => ['nullable', 'integer', 'exists:quote_title_templates,id'],
-            'title_text' => ['required', 'string', 'max:255'],
+            'title_template_id' => [
+                'required',
+                'integer',
+                Rule::exists('quote_title_templates', 'id')->where('is_active', true),
+            ],
             'vat_rate' => ['nullable', 'numeric', 'min:0'],
         ];
     }

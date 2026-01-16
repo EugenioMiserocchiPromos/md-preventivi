@@ -33,9 +33,13 @@ Route::middleware('auth:sanctum')->put('/customers/{customer}', [CustomersContro
 Route::middleware('auth:sanctum')->delete('/customers/{customer}', [CustomersController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/quote-title-templates', [QuoteTitleTemplatesController::class, 'index']);
+Route::middleware('auth:sanctum')->post('/quote-title-templates', [QuoteTitleTemplatesController::class, 'store']);
+Route::middleware('auth:sanctum')->patch('/quote-title-templates/{template}', [QuoteTitleTemplatesController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/quote-title-templates/{template}', [QuoteTitleTemplatesController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/quotes/{quote}', [QuotesController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/quotes', [QuotesController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/quotes', [QuotesController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/items', [QuoteItemsController::class, 'store']);
 Route::middleware('auth:sanctum')->patch('/quotes/{quote}/pricing', [QuotePricingController::class, 'update']);
 Route::middleware('auth:sanctum')->patch('/quote-items/{item}', [QuoteItemsController::class, 'update']);

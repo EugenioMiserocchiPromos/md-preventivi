@@ -111,8 +111,37 @@ export async function fetchQuoteTitleTemplates() {
   return request('/api/quote-title-templates', { method: 'GET' });
 }
 
+export async function createQuoteTitleTemplate(payload) {
+  return request('/api/quote-title-templates', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateQuoteTitleTemplate(id, payload) {
+  return request(`/api/quote-title-templates/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteQuoteTitleTemplate(id) {
+  return request(`/api/quote-title-templates/${id}`, { method: 'DELETE' });
+}
+
 export async function fetchQuote(quoteId) {
   return request(`/api/quotes/${quoteId}`, { method: 'GET' });
+}
+
+export async function fetchQuotes({ type, q, perPage = 20, page = 1 } = {}) {
+  const params = new URLSearchParams();
+  if (type) params.set('type', type);
+  if (q) params.set('q', q);
+  if (perPage) params.set('per_page', String(perPage));
+  if (page) params.set('page', String(page));
+
+  const suffix = params.toString();
+  return request(`/api/quotes${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
 }
 
 export async function createQuoteItem(quoteId, payload) {

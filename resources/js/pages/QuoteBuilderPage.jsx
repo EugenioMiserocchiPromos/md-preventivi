@@ -417,7 +417,6 @@ export default function QuoteBuilderPage() {
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
-    vat_rate: '',
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
@@ -435,8 +434,6 @@ export default function QuoteBuilderPage() {
           data.discount_value !== null && data.discount_value !== undefined
             ? String(data.discount_value)
             : '',
-        vat_rate:
-          data.vat_rate !== null && data.vat_rate !== undefined ? String(data.vat_rate) : '',
       });
     } catch (err) {
       setError(err?.message || 'Errore nel caricamento preventivo.');
@@ -553,7 +550,6 @@ export default function QuoteBuilderPage() {
       discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
       discount_value:
         pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
-      vat_rate: pricingForm.vat_rate === '' ? null : Number(pricingForm.vat_rate),
     };
 
     try {
@@ -566,8 +562,6 @@ export default function QuoteBuilderPage() {
           data.discount_value !== null && data.discount_value !== undefined
             ? String(data.discount_value)
             : '',
-        vat_rate:
-          data.vat_rate !== null && data.vat_rate !== undefined ? String(data.vat_rate) : '',
       });
     } catch (err) {
       setPricingError(err?.message || 'Errore durante aggiornamento totali.');
@@ -665,7 +659,7 @@ export default function QuoteBuilderPage() {
 
       <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
         <div className="mx-auto max-w-5xl space-y-4">
-          <div className="grid gap-4 md:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-4">
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-500">Subtotale</p>
               <p className="text-lg font-semibold">
@@ -685,12 +679,6 @@ export default function QuoteBuilderPage() {
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">IVA</p>
-              <p className="text-lg font-semibold">
-                {totals ? formatMoney(totals.vat_amount) : '0.00'}
-              </p>
-            </div>
-            <div>
               <p className="text-xs uppercase tracking-wide text-slate-500">Totale</p>
               <p className="text-lg font-semibold">
                 {totals ? formatMoney(totals.grand_total) : '0.00'}
@@ -698,7 +686,7 @@ export default function QuoteBuilderPage() {
             </div>
           </div>
 
-          <form onSubmit={handlePricingSubmit} className="grid gap-3 md:grid-cols-4">
+          <form onSubmit={handlePricingSubmit} className="grid gap-3 md:grid-cols-3">
             <label className="text-sm">
               <span className="text-slate-600">Tipo sconto</span>
               <select
@@ -721,18 +709,6 @@ export default function QuoteBuilderPage() {
                 value={pricingForm.discount_value}
                 onChange={(event) =>
                   setPricingForm((prev) => ({ ...prev, discount_value: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              />
-            </label>
-            <label className="text-sm">
-              <span className="text-slate-600">IVA (%)</span>
-              <input
-                type="number"
-                step="0.01"
-                value={pricingForm.vat_rate}
-                onChange={(event) =>
-                  setPricingForm((prev) => ({ ...prev, vat_rate: event.target.value }))
                 }
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               />
