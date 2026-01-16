@@ -9,6 +9,7 @@ import ProductsPage from './pages/ProductsPage';
 import CustomersPage from './pages/CustomersPage';
 import QuoteTitleTemplatesPage from './pages/QuoteTitleTemplatesPage';
 import QuoteBuilderPage from './pages/QuoteBuilderPage';
+import QuoteExtrasPage from './pages/QuoteExtrasPage';
 import NewQuotePage from './pages/NewQuotePage';
 import LoginPage from './pages/LoginPage';
 
@@ -131,6 +132,16 @@ function App() {
           <RequireAuth>
             <AppLayout>
               <QuoteBuilderPage />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/builder/:quoteId/extras"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <QuoteExtrasPage />
             </AppLayout>
           </RequireAuth>
         }

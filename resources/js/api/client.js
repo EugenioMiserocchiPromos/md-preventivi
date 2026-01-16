@@ -187,6 +187,28 @@ export async function updateQuotePricing(quoteId, payload) {
   });
 }
 
+export async function fetchQuoteExtras(quoteId) {
+  return request(`/api/quotes/${quoteId}/extras`, { method: 'GET' });
+}
+
+export async function createQuoteExtra(quoteId, payload) {
+  return request(`/api/quotes/${quoteId}/extras`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateQuoteExtra(extraId, payload) {
+  return request(`/api/quote-extras/${extraId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteQuoteExtra(extraId) {
+  return request(`/api/quote-extras/${extraId}`, { method: 'DELETE' });
+}
+
 export async function createQuote(payload) {
   return request('/api/quotes', {
     method: 'POST',
