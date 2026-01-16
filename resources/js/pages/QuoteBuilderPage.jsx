@@ -206,26 +206,23 @@ function QuoteItemCard({
 
     return (
       <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Prodotto</p>
-            <h3 className="text-lg font-semibold">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-slate-500">PRODOTTO</p>
+            <h3 className="text-lg font-semibold truncate">
               {item.product_code_snapshot} — {item.name_snapshot}
             </h3>
             <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
           </div>
-        </div>
-        <div className="mt-4 flex items-start justify-between gap-4">
-          <div />
-          <div className="text-right">
-            <span className="text-xs uppercase tracking-wide text-slate-500">Totale riga</span>
-            <p className="mt-1 text-lg font-semibold text-slate-800">
-              {formatMoney(collapsedTotal)}
-            </p>
+          <div className="flex shrink-0 flex-col items-end gap-2 text-right">
+            <div className="whitespace-nowrap">
+              <span className="text-xs uppercase tracking-wide text-slate-500">TOTALE RIGA</span>
+              <p className="text-sm font-semibold text-slate-800">{formatMoney(collapsedTotal)}</p>
+            </div>
             <button
               type="button"
               onClick={() => onOpen(item.id)}
-              className="mt-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
             >
               Modifica
             </button>
