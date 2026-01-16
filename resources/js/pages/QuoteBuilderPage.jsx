@@ -728,6 +728,28 @@ export default function QuoteBuilderPage() {
     return [...quote.items].sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
   }, [quote]);
 
+  const groupedItems = useMemo(() => {
+    const map = new Map();
+    sortedItems.forEach((item) => {
+      const key = item.category_name_snapshot || 'Senza categoria';
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key).push(item);
+    });
+    const categories = Array.from(map.keys());
+    const colorMap = new Map();
+    categories.forEach((category, index) => {
+      const hue = Math.round((index * 360) / Math.max(categories.length, 1));
+      colorMap.set(category, hue);
+    });
+    return Array.from(map.entries()).map(([category, items]) => ({
+      category,
+      items,
+      color: colorMap.get(category),
+    }));
+  }, [sortedItems]);
+
   const totals = quote
     ? {
         subtotal: Number(quote.subtotal ?? 0),
@@ -852,20 +874,31 @@ export default function QuoteBuilderPage() {
         {!loading && sortedItems.length === 0 ? (
           <p className="text-sm text-slate-500">Nessuna riga presente.</p>
         ) : null}
-        {sortedItems.map((item) => (
-          <QuoteItemCard
-            key={item.id}
-            item={item}
-            isOpen={openItemId === item.id}
-            onOpen={(id) => setOpenItemId(id)}
-            onUpdateItem={updateItem}
-            onDeleteItem={removeItem}
-            onUpdateComponent={updateComponent}
-            onUpsertPose={upsertPose}
-            onDeletePose={removePose}
-            onSaveAll={saveAll}
-            onRegisterSave={registerSaveHandler}
-          />
+        {groupedItems.map((group) => (
+          <div key={group.category} className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span
+                className="h-3 w-3 rounded-sm"
+                style={{ backgroundColor: `hsl(${group.color} 70% 45%)` }}
+              />
+              <h3 className="text-sm font-semibold text-slate-700">{group.category}</h3>
+            </div>
+            {group.items.map((item) => (
+              <QuoteItemCard
+                key={item.id}
+                item={item}
+                isOpen={openItemId === item.id}
+                onOpen={(id) => setOpenItemId(id)}
+                onUpdateItem={updateItem}
+                onDeleteItem={removeItem}
+                onUpdateComponent={updateComponent}
+                onUpsertPose={upsertPose}
+                onDeletePose={removePose}
+                onSaveAll={saveAll}
+                onRegisterSave={registerSaveHandler}
+              />
+            ))}
+          </div>
         ))}
       </section>
 
