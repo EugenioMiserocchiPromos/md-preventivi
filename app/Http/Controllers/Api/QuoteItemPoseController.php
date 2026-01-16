@@ -26,7 +26,7 @@ class QuoteItemPoseController extends Controller
 
         $data['pose_total'] = $isIncluded ? 0 : round($qty * $unitPrice, 2);
         $data['is_included'] = $isIncluded;
-        $data['is_visible'] = (bool) ($data['is_visible'] ?? true);
+        $data['is_visible'] = true;
 
         $pose = QuoteItemPose::updateOrCreate(
             ['quote_item_id' => $item->id],
@@ -37,7 +37,7 @@ class QuoteItemPoseController extends Controller
                 'unit_price' => $unitPrice,
                 'pose_total' => $data['pose_total'],
                 'is_included' => $data['is_included'],
-                'is_visible' => $data['is_visible'],
+                'is_visible' => true,
             ]
         );
 

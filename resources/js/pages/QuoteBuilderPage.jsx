@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   createQuoteItem,
@@ -18,10 +18,14 @@ const defaultPose = {
   qty: 1,
   unit_price: 0,
   is_included: false,
-  is_visible: true,
 };
 
 const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
+const poseTypeOptions = [
+  'Posa in opera',
+  "Posa di competenza dell'impresa",
+  'Fornitura e posa in opera',
+];
 
 const normalizeUnit = (value) => {
   const normalized = String(value || '').trim().toLowerCase();
@@ -32,11 +36,15 @@ const normalizeUnit = (value) => {
 
 function QuoteItemCard({
   item,
+  isOpen,
+  onOpen,
   onUpdateItem,
   onDeleteItem,
   onUpdateComponent,
   onUpsertPose,
   onDeletePose,
+  onSaveAll,
+  onRegisterSave,
 }) {
   const [itemDraft, setItemDraft] = useState({
     qty: item.qty,
@@ -61,6 +69,7 @@ function QuoteItemCard({
     item.pose?.id ? { ...item.pose, unit: normalizeUnit(item.pose.unit) } : defaultPose
   );
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     setItemDraft({
@@ -96,17 +105,6 @@ function QuoteItemCard({
     setSaving(false);
   };
 
-  const saveComponent = async (componentId) => {
-    const draft = componentDrafts[componentId];
-    if (!draft) return;
-    await onUpdateComponent(componentId, {
-      qty: Number(draft.qty),
-      unit_override: draft.unit_override,
-      unit_price_override: Number(draft.unit_price_override),
-      is_visible: Boolean(draft.is_visible),
-    });
-  };
-
   const savePose = async () => {
     await onUpsertPose(item.id, {
       pose_type: poseDraft.pose_type,
@@ -114,9 +112,125 @@ function QuoteItemCard({
       qty: Number(poseDraft.qty),
       unit_price: Number(poseDraft.unit_price),
       is_included: Boolean(poseDraft.is_included),
-      is_visible: Boolean(poseDraft.is_visible),
     });
   };
+
+  const normalizeNumber = (value) => Number(value || 0);
+  const formatMoney = (value) => `€ ${normalizeNumber(value).toFixed(2)}`;
+
+  const componentTotals = (item.components || []).map((component) => {
+    const draft = componentDrafts[component.id] || {};
+    const qty = normalizeNumber(draft.qty);
+    const price = normalizeNumber(draft.unit_price_override);
+    const isVisible = Boolean(draft.is_visible);
+    return {
+      id: component.id,
+      total: isVisible ? qty * price : 0,
+    };
+  });
+
+  const componentsTotal = componentTotals.reduce((sum, row) => sum + row.total, 0);
+  const poseTotal = item.pose
+    ? poseDraft.is_included
+      ? 0
+      : normalizeNumber(poseDraft.qty) * normalizeNumber(poseDraft.unit_price)
+    : 0;
+  const itemTotal = normalizeNumber(itemDraft.qty) * normalizeNumber(itemDraft.unit_price_override);
+  const cardTotal = itemTotal + componentsTotal + poseTotal;
+
+  const handleSaveAll = useCallback(async (mode) => {
+    setSaving(true);
+    setSaveError(null);
+    await onSaveAll(
+      item.id,
+      {
+        item: {
+          qty: Number(itemDraft.qty),
+          unit_override: itemDraft.unit_override,
+          unit_price_override: Number(itemDraft.unit_price_override),
+          note_shared: itemDraft.note_shared,
+        },
+        components: (item.components || []).map((component) => {
+          const draft = componentDrafts[component.id] || {};
+          return {
+            id: component.id,
+            payload: {
+              qty: Number(draft.qty),
+              unit_override: draft.unit_override,
+              unit_price_override: Number(draft.unit_price_override),
+              is_visible: Boolean(draft.is_visible),
+            },
+          };
+        }),
+        pose: item.pose
+          ? {
+              pose_type: poseDraft.pose_type,
+              unit: poseDraft.unit,
+              qty: Number(poseDraft.qty),
+              unit_price: Number(poseDraft.unit_price),
+              is_included: Boolean(poseDraft.is_included),
+            }
+          : null,
+      },
+      mode,
+      setSaveError
+    );
+    setSaving(false);
+  }, [item.id, item.components, item.pose, itemDraft, componentDrafts, poseDraft, onSaveAll]);
+
+  useEffect(() => {
+    if (onRegisterSave) {
+      onRegisterSave(item.id, handleSaveAll);
+      return () => onRegisterSave(item.id, null);
+    }
+    return undefined;
+  }, [item.id, handleSaveAll, onRegisterSave]);
+
+  if (!isOpen) {
+    const collapsedComponentsTotal = (item.components || []).reduce((sum, component) => {
+      if (!component.is_visible) {
+        return sum;
+      }
+      const qty = normalizeNumber(component.qty);
+      const price = normalizeNumber(component.unit_price_override);
+      return sum + qty * price;
+    }, 0);
+    const collapsedPoseTotal = item.pose
+      ? item.pose.is_included
+        ? 0
+        : normalizeNumber(item.pose.qty) * normalizeNumber(item.pose.unit_price)
+      : 0;
+    const collapsedItemTotal =
+      normalizeNumber(item.qty) * normalizeNumber(item.unit_price_override);
+    const collapsedTotal = collapsedItemTotal + collapsedComponentsTotal + collapsedPoseTotal;
+
+    return (
+      <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-slate-500">PRODOTTO</p>
+            <h3 className="text-lg font-semibold truncate">
+              {item.product_code_snapshot} — {item.name_snapshot}
+            </h3>
+            <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-2 text-right">
+            <div className="whitespace-nowrap">
+              <span className="text-xs uppercase tracking-wide text-slate-500">TOTALE RIGA</span>
+              <p className="text-sm font-semibold text-slate-800">{formatMoney(collapsedTotal)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpen(item.id)}
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+            >
+              Modifica
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
@@ -128,14 +242,14 @@ function QuoteItemCard({
           </h3>
           <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => onDeleteItem(item.id)}
-          className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600"
-        >
-          Elimina riga
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => onDeleteItem(item.id)}
+            className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600"
+          >
+            Elimina riga
+          </button>
+        </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-4">
         <label className="text-sm">
@@ -180,7 +294,7 @@ function QuoteItemCard({
         </label>
         <div className="text-sm">
           <span className="text-slate-600">Totale riga</span>
-          <p className="mt-2 text-base font-semibold text-slate-800">{item.line_total}</p>
+          <p className="mt-2 text-base font-semibold text-slate-800">{formatMoney(item.line_total)}</p>
         </div>
       </div>
 
@@ -196,17 +310,6 @@ function QuoteItemCard({
         />
       </label>
 
-      <div className="mt-3 flex justify-end">
-        <button
-          type="button"
-          onClick={saveItem}
-          disabled={saving}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
-        >
-          {saving ? 'Salvataggio...' : 'Salva riga'}
-        </button>
-      </div>
-
       <div className="mt-6 space-y-3">
         <h4 className="text-sm font-semibold text-slate-700">Sottovoci</h4>
         {item.components && item.components.length ? (
@@ -218,15 +321,25 @@ function QuoteItemCard({
                   <th className="px-3 py-2 font-medium">Qta</th>
                   <th className="px-3 py-2 font-medium">UM</th>
                   <th className="px-3 py-2 font-medium">Prezzo</th>
+                  <th className="px-3 py-2 font-medium">Totale</th>
                   <th className="px-3 py-2 font-medium">Visibile</th>
-                  <th className="px-3 py-2 font-medium">Azioni</th>
                 </tr>
               </thead>
               <tbody>
                 {item.components.map((component) => {
                   const draft = componentDrafts[component.id] || {};
+                  const rowTotal =
+                    draft.is_visible
+                      ? normalizeNumber(draft.qty) * normalizeNumber(draft.unit_price_override)
+                      : 0;
                   return (
-                    <tr key={component.id} className="border-t border-slate-200/60">
+                    <tr
+                      key={component.id}
+                      className={[
+                        'border-t border-slate-200/60',
+                        draft.is_visible ? 'text-slate-700' : 'bg-slate-50 text-slate-400',
+                      ].join(' ')}
+                    >
                       <td className="px-3 py-2 font-medium text-slate-700">
                         {component.name_snapshot}
                       </td>
@@ -282,6 +395,7 @@ function QuoteItemCard({
                           className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-xs"
                         />
                       </td>
+                      <td className="px-3 py-2 text-slate-600">{formatMoney(rowTotal)}</td>
                       <td className="px-3 py-2">
                         <input
                           type="checkbox"
@@ -296,15 +410,6 @@ function QuoteItemCard({
                             }))
                           }
                         />
-                      </td>
-                      <td className="px-3 py-2">
-                        <button
-                          type="button"
-                          onClick={() => saveComponent(component.id)}
-                          className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600"
-                        >
-                          Salva
-                        </button>
                       </td>
                     </tr>
                   );
@@ -343,14 +448,19 @@ function QuoteItemCard({
           <div className="grid gap-3 md:grid-cols-3">
             <label className="text-sm">
               <span className="text-slate-600">Tipo</span>
-              <input
-                type="text"
+              <select
                 value={poseDraft.pose_type}
                 onChange={(event) =>
                   setPoseDraft((prev) => ({ ...prev, pose_type: event.target.value }))
                 }
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              />
+              >
+                {poseTypeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="text-sm">
               <span className="text-slate-600">UM</span>
@@ -402,29 +512,39 @@ function QuoteItemCard({
               />
               <span className="text-slate-600">Compreso</span>
             </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={Boolean(poseDraft.is_visible)}
-                onChange={(event) =>
-                  setPoseDraft((prev) => ({ ...prev, is_visible: event.target.checked }))
-                }
-              />
-              <span className="text-slate-600">Visibile</span>
-            </label>
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={savePose}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-              >
-                Salva posa
-              </button>
+            <div className="text-sm">
+              <span className="text-slate-600">Totale posa</span>
+              <p className="mt-2 font-semibold text-slate-800">{formatMoney(poseTotal)}</p>
             </div>
+            <div className="flex items-end" />
           </div>
         ) : (
           <p className="text-sm text-slate-500">Nessuna posa associata.</p>
         )}
+      </div>
+
+      <div className="mt-4 flex justify-end gap-2">
+        <div className="mr-auto text-sm">
+          <span className="text-slate-600">Totale prodotto</span>
+          <p className="mt-1 text-lg font-semibold text-slate-800">{formatMoney(cardTotal)}</p>
+        </div>
+        {saveError ? <span className="text-xs text-amber-700">{saveError}</span> : null}
+        <button
+          type="button"
+          onClick={() => handleSaveAll('update')}
+          disabled={saving}
+          className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 disabled:opacity-60"
+        >
+          Aggiorna
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSaveAll('save')}
+          disabled={saving}
+          className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+        >
+          Salva
+        </button>
       </div>
     </div>
   );
@@ -440,6 +560,8 @@ export default function QuoteBuilderPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [openItemId, setOpenItemId] = useState(null);
+  const saveHandlersRef = useRef({});
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
@@ -472,6 +594,13 @@ export default function QuoteBuilderPage() {
     loadQuote();
   }, [loadQuote]);
 
+  useEffect(() => {
+    if (!quote?.items?.length) return;
+    if (openItemId !== null && !quote.items.some((item) => item.id === openItemId)) {
+      setOpenItemId(null);
+    }
+  }, [quote, openItemId]);
+
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
     if (!searchQuery.trim()) {
@@ -494,8 +623,22 @@ export default function QuoteBuilderPage() {
     if (!quote) return;
     setAdding(true);
     try {
-      await createQuoteItem(quote.id, { product_id: productId, qty: 1 });
+      if (openItemId !== null) {
+        const saveHandler = saveHandlersRef.current[openItemId];
+        if (saveHandler) {
+          await saveHandler('save');
+        }
+      }
+
+      const response = await createQuoteItem(quote.id, { product_id: productId, qty: 1 });
+      const createdItem =
+        response.item?.data ?? response.item ?? response.data?.item ?? response.data ?? null;
       await loadQuote();
+      if (createdItem?.id) {
+        setOpenItemId(createdItem.id);
+      } else {
+        setOpenItemId(null);
+      }
     } catch (err) {
       setError(err?.message || 'Errore durante aggiunta prodotto.');
     } finally {
@@ -543,10 +686,42 @@ export default function QuoteBuilderPage() {
     try {
       await deleteQuoteItem(itemId);
       await loadQuote();
+      if (openItemId === itemId) {
+        setOpenItemId(null);
+      }
     } catch (err) {
       setError(err?.message || 'Errore durante eliminazione riga.');
     }
   };
+
+  const saveAll = async (itemId, payload, mode, setLocalError) => {
+    try {
+      await updateQuoteItem(itemId, payload.item);
+      if (payload.components?.length) {
+        for (const component of payload.components) {
+          await updateQuoteItemComponent(component.id, component.payload);
+        }
+      }
+      if (payload.pose) {
+        await upsertQuoteItemPose(itemId, payload.pose);
+      }
+      await loadQuote();
+      if (mode === 'save') {
+        setOpenItemId(null);
+      }
+    } catch (err) {
+      setLocalError?.(err?.message || 'Errore durante aggiornamento riga.');
+      setError(err?.message || 'Errore durante aggiornamento riga.');
+    }
+  };
+
+  const registerSaveHandler = useCallback((itemId, handler) => {
+    if (handler) {
+      saveHandlersRef.current[itemId] = handler;
+    } else {
+      delete saveHandlersRef.current[itemId];
+    }
+  }, []);
 
   const sortedItems = useMemo(() => {
     if (!quote?.items) return [];
@@ -563,7 +738,7 @@ export default function QuoteBuilderPage() {
       }
     : null;
 
-  const formatMoney = (value) => value.toFixed(2);
+  const formatMoney = (value) => `€ ${Number(value || 0).toFixed(2)}`;
 
   const handlePricingSubmit = async (event) => {
     event.preventDefault();
@@ -581,7 +756,14 @@ export default function QuoteBuilderPage() {
     try {
       const response = await updateQuotePricing(quote.id, payload);
       const data = response.data ?? response;
-      setQuote(data);
+      setQuote((prev) => {
+        if (!prev) return data;
+        return {
+          ...prev,
+          ...data,
+          items: data.items ?? prev.items,
+        };
+      });
       setPricingForm({
         discount_type: data.discount_type ?? 'none',
         discount_value:
@@ -674,11 +856,15 @@ export default function QuoteBuilderPage() {
           <QuoteItemCard
             key={item.id}
             item={item}
+            isOpen={openItemId === item.id}
+            onOpen={(id) => setOpenItemId(id)}
             onUpdateItem={updateItem}
             onDeleteItem={removeItem}
             onUpdateComponent={updateComponent}
             onUpsertPose={upsertPose}
             onDeletePose={removePose}
+            onSaveAll={saveAll}
+            onRegisterSave={registerSaveHandler}
           />
         ))}
       </section>
