@@ -38,14 +38,15 @@ class QuoteTotalsService
 
         $discountAmount = round(min(max($discountAmount, 0), $subtotal), 2);
         $taxableTotal = round($subtotal - $discountAmount, 2);
-        $vatRate = (float) ($quote->vat_rate ?? 0);
-        $vatAmount = round($taxableTotal * ($vatRate / 100), 2);
-        $grandTotal = round($taxableTotal + $vatAmount, 2);
+        $vatRate = 0.0;
+        $vatAmount = 0.0;
+        $grandTotal = round($taxableTotal, 2);
 
         $quote->subtotal = $subtotal;
         $quote->discount_amount = $discountAmount;
         $quote->taxable_total = $taxableTotal;
         $quote->vat_amount = $vatAmount;
+        $quote->vat_rate = $vatRate;
         $quote->grand_total = $grandTotal;
         $quote->save();
 

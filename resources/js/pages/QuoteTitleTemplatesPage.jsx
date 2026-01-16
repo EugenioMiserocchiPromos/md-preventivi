@@ -12,7 +12,7 @@ export default function QuoteTitleTemplatesPage() {
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [formValues, setFormValues] = useState({ label: '', is_active: true, sort_index: '' });
+  const [formValues, setFormValues] = useState({ label: '' });
   const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -42,7 +42,7 @@ export default function QuoteTitleTemplatesPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setFormValues({ label: '', is_active: true, sort_index: '' });
+    setFormValues({ label: '' });
     setFormErrors({});
     setModalOpen(true);
   };
@@ -51,8 +51,6 @@ export default function QuoteTitleTemplatesPage() {
     setEditing(item);
     setFormValues({
       label: item.label || '',
-      is_active: Boolean(item.is_active),
-      sort_index: item.sort_index ?? '',
     });
     setFormErrors({});
     setModalOpen(true);
@@ -73,9 +71,6 @@ export default function QuoteTitleTemplatesPage() {
 
     const payload = {
       label: formValues.label,
-      is_active: Boolean(formValues.is_active),
-      sort_index:
-        formValues.sort_index === '' ? undefined : Number(formValues.sort_index),
     };
 
     try {
@@ -117,7 +112,7 @@ export default function QuoteTitleTemplatesPage() {
       <header className="space-y-1">
         <p className="text-xs uppercase tracking-wide text-slate-500">Admin</p>
         <h1 className="text-2xl font-semibold">Titoli preventivo</h1>
-        <p className="text-sm text-slate-500">Lista read-only dei titoli disponibili.</p>
+        <p className="text-sm text-slate-500">Visualizza, modifica ed elimina i titoli dei preventivi.</p>
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -140,14 +135,13 @@ export default function QuoteTitleTemplatesPage() {
           <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3 font-medium">Titolo</th>
-              <th className="px-4 py-3 font-medium">Attivo</th>
               <th className="px-4 py-3 font-medium">Azioni</th>
             </tr>
           </thead>
           <tbody>
             {!loading && items.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-slate-500" colSpan={3}>
+                <td className="px-4 py-6 text-slate-500" colSpan={2}>
                   Nessun titolo disponibile.
                 </td>
               </tr>
@@ -155,7 +149,6 @@ export default function QuoteTitleTemplatesPage() {
               items.map((item) => (
                 <tr key={item.id} className="border-t border-slate-200/60 text-slate-700">
                   <td className="px-4 py-3 font-medium">{item.label}</td>
-                  <td className="px-4 py-3 text-slate-600">{item.is_active ? 'Si' : 'No'}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2 text-xs">
                       <button
@@ -256,37 +249,6 @@ export default function QuoteTitleTemplatesPage() {
                     {Array.isArray(formErrors.label) ? formErrors.label.join(', ') : formErrors.label}
                   </p>
                 ) : null}
-              </label>
-
-              <label className="block text-sm">
-                <span className="text-slate-600">Ordine</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={formValues.sort_index}
-                  onChange={(event) =>
-                    setFormValues((prev) => ({ ...prev, sort_index: event.target.value }))
-                  }
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                />
-                {formErrors.sort_index ? (
-                  <p className="mt-1 text-xs text-amber-700">
-                    {Array.isArray(formErrors.sort_index)
-                      ? formErrors.sort_index.join(', ')
-                      : formErrors.sort_index}
-                  </p>
-                ) : null}
-              </label>
-
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={formValues.is_active}
-                  onChange={(event) =>
-                    setFormValues((prev) => ({ ...prev, is_active: event.target.checked }))
-                  }
-                />
-                <span className="text-slate-600">Attivo</span>
               </label>
 
               {serverErrors.length ? (

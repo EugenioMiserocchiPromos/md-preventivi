@@ -13,8 +13,7 @@ class QuoteTitleTemplatesController extends Controller
     public function index()
     {
         $templates = DB::table('quote_title_templates')
-            ->where('is_active', true)
-            ->orderBy('sort_index')
+            ->orderBy('label')
             ->orderBy('id')
             ->get();
 
@@ -24,13 +23,11 @@ class QuoteTitleTemplatesController extends Controller
     public function store(StoreQuoteTitleTemplateRequest $request)
     {
         $data = $request->validated();
-        $sortIndex = array_key_exists('sort_index', $data)
-            ? (int) $data['sort_index']
-            : (int) (DB::table('quote_title_templates')->max('sort_index') ?? 0) + 1;
+        $sortIndex = (int) (DB::table('quote_title_templates')->max('sort_index') ?? 0) + 1;
 
         $id = DB::table('quote_title_templates')->insertGetId([
             'label' => $data['label'],
-            'is_active' => (bool) ($data['is_active'] ?? true),
+            'is_active' => true,
             'sort_index' => $sortIndex,
             'created_at' => now(),
             'updated_at' => now(),
@@ -48,16 +45,9 @@ class QuoteTitleTemplatesController extends Controller
         $data = $request->validated();
         $payload = [
             'label' => $data['label'],
+            'is_active' => true,
             'updated_at' => now(),
         ];
-
-        if (array_key_exists('is_active', $data)) {
-            $payload['is_active'] = (bool) $data['is_active'];
-        }
-
-        if (array_key_exists('sort_index', $data)) {
-            $payload['sort_index'] = (int) $data['sort_index'];
-        }
 
         DB::table('quote_title_templates')->where('id', $template)->update($payload);
         $updated = DB::table('quote_title_templates')->where('id', $template)->first();

@@ -15,8 +15,6 @@ class StoreQuoteTitleTemplateRequest extends FormRequest
     {
         return [
             'label' => ['required', 'string', 'max:255'],
-            'is_active' => ['sometimes', 'boolean'],
-            'sort_index' => ['sometimes', 'integer', 'min:0'],
         ];
     }
 }

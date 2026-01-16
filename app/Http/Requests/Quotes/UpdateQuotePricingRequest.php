@@ -17,7 +17,6 @@ class UpdateQuotePricingRequest extends FormRequest
         return [
             'discount_type' => ['nullable', Rule::in(['percent', 'amount'])],
             'discount_value' => ['nullable', 'numeric', 'min:0'],
-            'vat_rate' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

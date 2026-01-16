@@ -19,9 +19,7 @@ class QuotePricingController extends Controller
 
         $quote->discount_type = $data['discount_type'] ?? null;
         $quote->discount_value = $data['discount_value'] ?? null;
-        $quote->vat_rate = array_key_exists('vat_rate', $data)
-            ? $data['vat_rate']
-            : $quote->vat_rate;
+        $quote->vat_rate = 0;
 
         $quote->save();
 
