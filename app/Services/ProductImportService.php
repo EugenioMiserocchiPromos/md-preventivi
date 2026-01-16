@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Units;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -185,10 +186,10 @@ class ProductImportService
 
         $category = trim((string) ($data['category_name'] ?? ''));
         $name = trim((string) ($data['name'] ?? ''));
-        $unit = trim((string) ($data['unit_default'] ?? ''));
+        $unit = Units::normalize($data['unit_default'] ?? null);
         $priceRaw = trim((string) ($data['price_default'] ?? ''));
 
-        if ($category === '' || $name === '' || $unit === '') {
+        if ($category === '' || $name === '') {
             return ['valid' => false, 'message' => 'Campi obbligatori mancanti.'];
         }
 

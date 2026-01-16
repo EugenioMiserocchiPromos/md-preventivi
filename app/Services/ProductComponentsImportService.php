@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Units;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -209,13 +210,13 @@ class ProductComponentsImportService
         $productCode = str_pad($productCode, 3, '0', STR_PAD_LEFT);
 
         $componentName = trim((string) ($data['component_name'] ?? ''));
-        $unitDefault = trim((string) ($data['unit_default'] ?? ''));
+        $unitDefault = Units::normalize($data['unit_default'] ?? null);
         $qtyRaw = trim((string) ($data['qty_default'] ?? ''));
         $priceRaw = trim((string) ($data['price_default'] ?? ''));
         $defaultVisibleRaw = trim((string) ($data['default_visible'] ?? ''));
         $sortRaw = trim((string) ($data['sort_index'] ?? ''));
 
-        if ($componentName === '' || $unitDefault === '') {
+        if ($componentName === '') {
             return ['valid' => false, 'message' => 'component_name o unit_default mancanti.'];
         }
 
