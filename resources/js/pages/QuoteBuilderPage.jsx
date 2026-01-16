@@ -68,6 +68,7 @@ function QuoteItemCard({
     item.pose?.id ? { ...item.pose, unit: normalizeUnit(item.pose.unit) } : defaultPose
   );
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     setItemDraft({
@@ -103,17 +104,6 @@ function QuoteItemCard({
     setSaving(false);
   };
 
-  const saveComponent = async (componentId) => {
-    const draft = componentDrafts[componentId];
-    if (!draft) return;
-    await onUpdateComponent(componentId, {
-      qty: Number(draft.qty),
-      unit_override: draft.unit_override,
-      unit_price_override: Number(draft.unit_price_override),
-      is_visible: Boolean(draft.is_visible),
-    });
-  };
-
   const savePose = async () => {
     await onUpsertPose(item.id, {
       pose_type: poseDraft.pose_type,
@@ -124,25 +114,65 @@ function QuoteItemCard({
     });
   };
 
+  const normalizeNumber = (value) => Number(value || 0);
+  const formatNumber = (value) => normalizeNumber(value).toFixed(2);
+
+  const componentTotals = (item.components || []).map((component) => {
+    const draft = componentDrafts[component.id] || {};
+    const qty = normalizeNumber(draft.qty);
+    const price = normalizeNumber(draft.unit_price_override);
+    return {
+      id: component.id,
+      total: qty * price,
+    };
+  });
+
+  const componentsTotal = componentTotals.reduce((sum, row) => sum + row.total, 0);
+  const poseTotal = item.pose
+    ? poseDraft.is_included
+      ? 0
+      : normalizeNumber(poseDraft.qty) * normalizeNumber(poseDraft.unit_price)
+    : 0;
+  const itemTotal = normalizeNumber(itemDraft.qty) * normalizeNumber(itemDraft.unit_price_override);
+  const cardTotal = itemTotal + componentsTotal + poseTotal;
+
   const handleSaveAll = async (mode) => {
     setSaving(true);
-    await onSaveAll(item.id, {
-      item: {
-        qty: Number(itemDraft.qty),
-        unit_override: itemDraft.unit_override,
-        unit_price_override: Number(itemDraft.unit_price_override),
-        note_shared: itemDraft.note_shared,
+    setSaveError(null);
+    await onSaveAll(
+      item.id,
+      {
+        item: {
+          qty: Number(itemDraft.qty),
+          unit_override: itemDraft.unit_override,
+          unit_price_override: Number(itemDraft.unit_price_override),
+          note_shared: itemDraft.note_shared,
+        },
+        components: (item.components || []).map((component) => {
+          const draft = componentDrafts[component.id] || {};
+          return {
+            id: component.id,
+            payload: {
+              qty: Number(draft.qty),
+              unit_override: draft.unit_override,
+              unit_price_override: Number(draft.unit_price_override),
+              is_visible: Boolean(draft.is_visible),
+            },
+          };
+        }),
+        pose: item.pose
+          ? {
+              pose_type: poseDraft.pose_type,
+              unit: poseDraft.unit,
+              qty: Number(poseDraft.qty),
+              unit_price: Number(poseDraft.unit_price),
+              is_included: Boolean(poseDraft.is_included),
+            }
+          : null,
       },
-      pose: item.pose
-        ? {
-            pose_type: poseDraft.pose_type,
-            unit: poseDraft.unit,
-            qty: Number(poseDraft.qty),
-            unit_price: Number(poseDraft.unit_price),
-            is_included: Boolean(poseDraft.is_included),
-          }
-        : null,
-    }, mode);
+      mode,
+      setSaveError
+    );
     setSaving(false);
   };
 
@@ -276,13 +306,14 @@ function QuoteItemCard({
                   <th className="px-3 py-2 font-medium">Qta</th>
                   <th className="px-3 py-2 font-medium">UM</th>
                   <th className="px-3 py-2 font-medium">Prezzo</th>
+                  <th className="px-3 py-2 font-medium">Totale</th>
                   <th className="px-3 py-2 font-medium">Visibile</th>
-                  <th className="px-3 py-2 font-medium">Azioni</th>
                 </tr>
               </thead>
               <tbody>
                 {item.components.map((component) => {
                   const draft = componentDrafts[component.id] || {};
+                  const rowTotal = (normalizeNumber(draft.qty) * normalizeNumber(draft.unit_price_override)) || 0;
                   return (
                     <tr key={component.id} className="border-t border-slate-200/60">
                       <td className="px-3 py-2 font-medium text-slate-700">
@@ -340,6 +371,7 @@ function QuoteItemCard({
                           className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-xs"
                         />
                       </td>
+                      <td className="px-3 py-2 text-slate-600">{formatNumber(rowTotal)}</td>
                       <td className="px-3 py-2">
                         <input
                           type="checkbox"
@@ -354,15 +386,6 @@ function QuoteItemCard({
                             }))
                           }
                         />
-                      </td>
-                      <td className="px-3 py-2">
-                        <button
-                          type="button"
-                          onClick={() => saveComponent(component.id)}
-                          className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600"
-                        >
-                          Salva
-                        </button>
                       </td>
                     </tr>
                   );
@@ -465,6 +488,10 @@ function QuoteItemCard({
               />
               <span className="text-slate-600">Compreso</span>
             </label>
+            <div className="text-sm">
+              <span className="text-slate-600">Totale posa</span>
+              <p className="mt-2 font-semibold text-slate-800">{formatNumber(poseTotal)}</p>
+            </div>
             <div className="flex items-end" />
           </div>
         ) : (
@@ -473,6 +500,11 @@ function QuoteItemCard({
       </div>
 
       <div className="mt-4 flex justify-end gap-2">
+        <div className="mr-auto text-sm">
+          <span className="text-slate-600">Totale prodotto</span>
+          <p className="mt-1 text-lg font-semibold text-slate-800">{formatNumber(cardTotal)}</p>
+        </div>
+        {saveError ? <span className="text-xs text-amber-700">{saveError}</span> : null}
         <button
           type="button"
           onClick={() => handleSaveAll('update')}
@@ -623,9 +655,14 @@ export default function QuoteBuilderPage() {
     }
   };
 
-  const saveAll = async (itemId, payload, mode) => {
+  const saveAll = async (itemId, payload, mode, setLocalError) => {
     try {
       await updateQuoteItem(itemId, payload.item);
+      if (payload.components?.length) {
+        for (const component of payload.components) {
+          await updateQuoteItemComponent(component.id, component.payload);
+        }
+      }
       if (payload.pose) {
         await upsertQuoteItemPose(itemId, payload.pose);
       }
@@ -634,6 +671,7 @@ export default function QuoteBuilderPage() {
         setOpenItemId(null);
       }
     } catch (err) {
+      setLocalError?.(err?.message || 'Errore durante aggiornamento riga.');
       setError(err?.message || 'Errore durante aggiornamento riga.');
     }
   };
