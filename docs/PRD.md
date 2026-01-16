@@ -146,7 +146,7 @@ Righe fuori listino, a fine preventivo:
 - IVA unica sul totale (vat_rate)
 - Totale finale = (imponibile - sconto) + IVA
 
-Nota: `is_visible` influenza solo la stampa, non il calcolo.
+Nota: `is_visible` influenza la stampa **e** il calcolo dei componenti (componenti non visibili non contribuiscono ai totali).
 
 ## 12) PDF (struttura finale)
 Il PDF è composto da:

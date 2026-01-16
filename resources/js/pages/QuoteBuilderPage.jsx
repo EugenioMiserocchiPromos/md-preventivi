@@ -122,9 +122,10 @@ function QuoteItemCard({
     const draft = componentDrafts[component.id] || {};
     const qty = normalizeNumber(draft.qty);
     const price = normalizeNumber(draft.unit_price_override);
+    const isVisible = Boolean(draft.is_visible);
     return {
       id: component.id,
-      total: qty * price,
+      total: isVisible ? qty * price : 0,
     };
   });
 
@@ -186,6 +187,23 @@ function QuoteItemCard({
   }, [item.id, handleSaveAll, onRegisterSave]);
 
   if (!isOpen) {
+    const collapsedComponentsTotal = (item.components || []).reduce((sum, component) => {
+      if (!component.is_visible) {
+        return sum;
+      }
+      const qty = normalizeNumber(component.qty);
+      const price = normalizeNumber(component.unit_price_override);
+      return sum + qty * price;
+    }, 0);
+    const collapsedPoseTotal = item.pose
+      ? item.pose.is_included
+        ? 0
+        : normalizeNumber(item.pose.qty) * normalizeNumber(item.pose.unit_price)
+      : 0;
+    const collapsedItemTotal =
+      normalizeNumber(item.qty) * normalizeNumber(item.unit_price_override);
+    const collapsedTotal = collapsedItemTotal + collapsedComponentsTotal + collapsedPoseTotal;
+
     return (
       <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -196,6 +214,14 @@ function QuoteItemCard({
             </h3>
             <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
           </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between">
+          <div className="text-sm">
+            <span className="text-slate-600">Totale riga</span>
+            <p className="mt-1 text-lg font-semibold text-slate-800">
+              {formatMoney(collapsedTotal)}
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => onOpen(item.id)}
@@ -203,24 +229,6 @@ function QuoteItemCard({
           >
             Modifica
           </button>
-        </div>
-        <div className="mt-3 grid gap-3 text-sm text-slate-600 md:grid-cols-4">
-          <div>
-            <span className="text-xs uppercase tracking-wide text-slate-500">Qta</span>
-            <p className="font-semibold text-slate-800">{item.qty}</p>
-          </div>
-          <div>
-            <span className="text-xs uppercase tracking-wide text-slate-500">UM</span>
-            <p className="font-semibold text-slate-800">{item.unit_override}</p>
-          </div>
-          <div>
-            <span className="text-xs uppercase tracking-wide text-slate-500">Prezzo</span>
-            <p className="font-semibold text-slate-800">{item.unit_price_override}</p>
-          </div>
-          <div>
-            <span className="text-xs uppercase tracking-wide text-slate-500">Totale</span>
-            <p className="font-semibold text-slate-800">{formatMoney(item.line_total)}</p>
-          </div>
         </div>
       </div>
     );
@@ -322,7 +330,10 @@ function QuoteItemCard({
               <tbody>
                 {item.components.map((component) => {
                   const draft = componentDrafts[component.id] || {};
-                  const rowTotal = (normalizeNumber(draft.qty) * normalizeNumber(draft.unit_price_override)) || 0;
+                  const rowTotal =
+                    draft.is_visible
+                      ? normalizeNumber(draft.qty) * normalizeNumber(draft.unit_price_override)
+                      : 0;
                   return (
                     <tr key={component.id} className="border-t border-slate-200/60">
                       <td className="px-3 py-2 font-medium text-slate-700">

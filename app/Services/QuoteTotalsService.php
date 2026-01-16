@@ -16,6 +16,7 @@ class QuoteTotalsService
         $componentsTotal = (float) DB::table('quote_item_components')
             ->join('quote_items', 'quote_items.id', '=', 'quote_item_components.quote_item_id')
             ->where('quote_items.quote_id', $quote->id)
+            ->where('quote_item_components.is_visible', true)
             ->sum('quote_item_components.component_total');
 
         $poseTotal = (float) DB::table('quote_item_pose')
