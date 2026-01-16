@@ -15,7 +15,6 @@ export default function NewQuotePage() {
     customer_id: '',
     date: new Date().toISOString().slice(0, 10),
     cantiere: '',
-    title_text: '',
     title_template_id: '',
   });
 
@@ -66,7 +65,6 @@ export default function NewQuotePage() {
         customer_id: Number(formValues.customer_id),
         date: formValues.date,
         cantiere: formValues.cantiere,
-        title_text: formValues.title_text,
         title_template_id: formValues.title_template_id
           ? Number(formValues.title_template_id)
           : null,
@@ -144,23 +142,14 @@ export default function NewQuotePage() {
             />
           </label>
           <label className="text-sm md:col-span-2">
-            <span className="text-slate-600">Titolo preventivo</span>
-            <input
-              type="text"
-              value={formValues.title_text}
-              onChange={(event) => handleChange('title_text', event.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              required
-            />
-          </label>
-          <label className="text-sm md:col-span-2">
-            <span className="text-slate-600">Template titolo (opzionale)</span>
+            <span className="text-slate-600">Template titolo</span>
             <select
               value={formValues.title_template_id}
               onChange={(event) => handleChange('title_template_id', event.target.value)}
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              required
             >
-              <option value="">Nessun template</option>
+              <option value="">Seleziona template...</option>
               {templates.map((template) => (
                 <option key={template.id} value={template.id}>
                   {template.label}
