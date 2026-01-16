@@ -133,6 +133,17 @@ export async function fetchQuote(quoteId) {
   return request(`/api/quotes/${quoteId}`, { method: 'GET' });
 }
 
+export async function fetchQuotes({ type, q, perPage = 20, page = 1 } = {}) {
+  const params = new URLSearchParams();
+  if (type) params.set('type', type);
+  if (q) params.set('q', q);
+  if (perPage) params.set('per_page', String(perPage));
+  if (page) params.set('page', String(page));
+
+  const suffix = params.toString();
+  return request(`/api/quotes${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
+}
+
 export async function createQuoteItem(quoteId, payload) {
   return request(`/api/quotes/${quoteId}/items`, {
     method: 'POST',

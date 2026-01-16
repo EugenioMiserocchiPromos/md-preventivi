@@ -4,14 +4,49 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotes\StoreQuoteRequest;
+use App\Http\Resources\QuoteListResource;
 use App\Http\Resources\QuoteResource;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Services\ProtGeneratorService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class QuotesController extends Controller
 {
+    public function index(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => ['required', 'in:FP,AS,VM'],
+            'q' => ['nullable', 'string'],
+            'per_page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $query = Quote::query()->where('quote_type', $validated['type']);
+
+        $search = trim((string) ($validated['q'] ?? ''));
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $query->where(function ($builder) use ($like) {
+                $builder
+                    ->where('prot_display', 'like', $like)
+                    ->orWhere('title_text', 'like', $like)
+                    ->orWhere('customer_title_snapshot', 'like', $like);
+            });
+        }
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
+        $perPage = max(1, min($perPage, 50));
+
+        $quotes = $query
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return QuoteListResource::collection($quotes);
+    }
+
     public function store(
         StoreQuoteRequest $request,
         ProtGeneratorService $protGenerator
