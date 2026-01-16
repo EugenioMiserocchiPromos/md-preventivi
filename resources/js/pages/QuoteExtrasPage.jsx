@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   createQuoteExtra,
   deleteQuoteExtra,
@@ -30,6 +30,7 @@ const defaultNewExtra = {
 
 export default function QuoteExtrasPage() {
   const { quoteId } = useParams();
+  const navigate = useNavigate();
   const [quote, setQuote] = useState(null);
   const [extras, setExtras] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,8 @@ export default function QuoteExtrasPage() {
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
+  const [closing, setClosing] = useState(false);
+  const [closeError, setCloseError] = useState(null);
 
   const totals = quote
     ? {
@@ -215,12 +218,102 @@ export default function QuoteExtrasPage() {
     }
   };
 
+  const getListPath = (type) => {
+    const key = String(type || '').toLowerCase();
+    if (key === 'fp') return '/preventivi/fp';
+    if (key === 'as') return '/preventivi/as';
+    if (key === 'vm') return '/preventivi/vm';
+    return '/preventivi/fp';
+  };
+
+  const handleSaveAndClose = async () => {
+    if (!quote) return;
+    setClosing(true);
+    setCloseError(null);
+    setRowErrors({});
+
+    const warrantyError = extras.find(
+      (extra) =>
+        extra.fixed_key === 'warranty_10y' &&
+        Boolean(extra.is_included) &&
+        Number(extra.unit_price) <= 0
+    );
+    if (warrantyError) {
+      setRowErrors((prev) => ({
+        ...prev,
+        [warrantyError.id]:
+          'La garanzia 10 anni richiede un prezzo maggiore di 0 quando inclusa.',
+      }));
+      setClosing(false);
+      return;
+    }
+
+    try {
+      for (const extra of extras) {
+        const payload = {
+          unit: normalizeUnit(extra.unit),
+          qty: Number(extra.qty),
+          unit_price: Number(extra.unit_price),
+          notes: extra.notes || '',
+          is_included: Boolean(extra.is_included),
+        };
+        if (!extra.is_fixed) {
+          payload.description = extra.description;
+        }
+        const response = await updateQuoteExtra(extra.id, payload);
+        const data = response.data ?? response;
+        if (data.extra) {
+          setExtras((prev) =>
+            prev.map((item) => (item.id === extra.id ? data.extra : item))
+          );
+        }
+        if (data.totals) {
+          setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+        }
+      }
+
+      const pricingPayload = {
+        discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
+        discount_value:
+          pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
+      };
+      const pricingResponse = await updateQuotePricing(quote.id, pricingPayload);
+      const pricingData = pricingResponse.data ?? pricingResponse;
+      setQuote((prev) => (prev ? { ...prev, ...pricingData } : prev));
+
+      navigate(getListPath(quote.quote_type));
+    } catch (err) {
+      const message =
+        err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
+      setCloseError(message);
+    } finally {
+      setClosing(false);
+    }
+  };
+
   return (
     <section className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-500">Step</p>
           <h1 className="text-2xl font-semibold">Righe extra</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(`/builder/${quoteId}`)}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Indietro
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAndClose}
+            disabled={closing}
+            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {closing ? 'Salvataggio...' : 'Salva e chiudi'}
+          </button>
         </div>
       </header>
 
@@ -431,6 +524,7 @@ export default function QuoteExtrasPage() {
           </form>
         </div>
       ) : null}
+      {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
 
       <TotalsPanel
         totals={totals}
