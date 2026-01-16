@@ -7,6 +7,7 @@ use App\Http\Requests\Quotes\UpdateQuoteItemComponentRequest;
 use App\Http\Resources\QuoteItemComponentResource;
 use App\Models\QuoteItemComponent;
 use App\Services\QuoteTotalsService;
+use App\Support\Units;
 
 class QuoteItemComponentsController extends Controller
 {
@@ -18,6 +19,9 @@ class QuoteItemComponentsController extends Controller
         $data = $request->validated();
         if (array_key_exists('is_visible', $data)) {
             $data['is_visible'] = (bool) $data['is_visible'];
+        }
+        if (array_key_exists('unit_override', $data)) {
+            $data['unit_override'] = Units::normalize($data['unit_override']);
         }
 
         $component->fill($data);
