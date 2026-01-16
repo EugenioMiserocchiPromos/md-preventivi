@@ -158,6 +158,13 @@ export async function updateQuotePricing(quoteId, payload) {
   });
 }
 
+export async function createQuote(payload) {
+  return request('/api/quotes', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function uploadFile(path, file) {
   await getCsrfCookie();
 

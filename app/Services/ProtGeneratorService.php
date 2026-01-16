@@ -19,14 +19,26 @@ class ProtGeneratorService
                 ->first();
 
             if (! $counter) {
+                $maxExisting = (int) (DB::table('quotes')
+                    ->where('prot_year', $year)
+                    ->max('prot_number') ?? 0);
+
                 DB::table('quote_counters')->insert([
                     'year' => $year,
-                    'current_number' => 0,
+                    'current_number' => $maxExisting,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
 
-                $counter = (object) ['current_number' => 0];
+                $counter = (object) ['current_number' => $maxExisting];
+            } else {
+                $maxExisting = (int) (DB::table('quotes')
+                    ->where('prot_year', $year)
+                    ->max('prot_number') ?? 0);
+
+                if ((int) $counter->current_number < $maxExisting) {
+                    $counter->current_number = $maxExisting;
+                }
             }
 
             $nextNumber = (int) $counter->current_number + 1;

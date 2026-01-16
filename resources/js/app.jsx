@@ -9,6 +9,7 @@ import ProductsPage from './pages/ProductsPage';
 import CustomersPage from './pages/CustomersPage';
 import QuoteTitleTemplatesPage from './pages/QuoteTitleTemplatesPage';
 import QuoteBuilderPage from './pages/QuoteBuilderPage';
+import NewQuotePage from './pages/NewQuotePage';
 import LoginPage from './pages/LoginPage';
 
 function RequireAuth({ children }) {
@@ -130,6 +131,16 @@ function App() {
           <RequireAuth>
             <AppLayout>
               <QuoteBuilderPage />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/quotes/new"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <NewQuotePage />
             </AppLayout>
           </RequireAuth>
         }
