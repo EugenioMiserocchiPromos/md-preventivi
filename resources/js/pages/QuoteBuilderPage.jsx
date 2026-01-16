@@ -215,20 +215,21 @@ function QuoteItemCard({
             <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
           </div>
         </div>
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-sm">
-            <span className="text-slate-600">Totale riga</span>
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <div />
+          <div className="text-right">
+            <span className="text-xs uppercase tracking-wide text-slate-500">Totale riga</span>
             <p className="mt-1 text-lg font-semibold text-slate-800">
               {formatMoney(collapsedTotal)}
             </p>
+            <button
+              type="button"
+              onClick={() => onOpen(item.id)}
+              className="mt-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+            >
+              Modifica
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpen(item.id)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
-          >
-            Modifica
-          </button>
         </div>
       </div>
     );
