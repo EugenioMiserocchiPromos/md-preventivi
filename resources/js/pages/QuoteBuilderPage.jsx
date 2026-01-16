@@ -36,11 +36,14 @@ const normalizeUnit = (value) => {
 
 function QuoteItemCard({
   item,
+  isOpen,
+  onOpen,
   onUpdateItem,
   onDeleteItem,
   onUpdateComponent,
   onUpsertPose,
   onDeletePose,
+  onSaveAll,
 }) {
   const [itemDraft, setItemDraft] = useState({
     qty: item.qty,
@@ -121,6 +124,69 @@ function QuoteItemCard({
     });
   };
 
+  const handleSaveAll = async (mode) => {
+    setSaving(true);
+    await onSaveAll(item.id, {
+      item: {
+        qty: Number(itemDraft.qty),
+        unit_override: itemDraft.unit_override,
+        unit_price_override: Number(itemDraft.unit_price_override),
+        note_shared: itemDraft.note_shared,
+      },
+      pose: item.pose
+        ? {
+            pose_type: poseDraft.pose_type,
+            unit: poseDraft.unit,
+            qty: Number(poseDraft.qty),
+            unit_price: Number(poseDraft.unit_price),
+            is_included: Boolean(poseDraft.is_included),
+          }
+        : null,
+    }, mode);
+    setSaving(false);
+  };
+
+  if (!isOpen) {
+    return (
+      <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Prodotto</p>
+            <h3 className="text-lg font-semibold">
+              {item.product_code_snapshot} — {item.name_snapshot}
+            </h3>
+            <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpen(item.id)}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+          >
+            Modifica
+          </button>
+        </div>
+        <div className="mt-3 grid gap-3 text-sm text-slate-600 md:grid-cols-4">
+          <div>
+            <span className="text-xs uppercase tracking-wide text-slate-500">Qta</span>
+            <p className="font-semibold text-slate-800">{item.qty}</p>
+          </div>
+          <div>
+            <span className="text-xs uppercase tracking-wide text-slate-500">UM</span>
+            <p className="font-semibold text-slate-800">{item.unit_override}</p>
+          </div>
+          <div>
+            <span className="text-xs uppercase tracking-wide text-slate-500">Prezzo</span>
+            <p className="font-semibold text-slate-800">{item.unit_price_override}</p>
+          </div>
+          <div>
+            <span className="text-xs uppercase tracking-wide text-slate-500">Totale</span>
+            <p className="font-semibold text-slate-800">{item.line_total}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -131,14 +197,14 @@ function QuoteItemCard({
           </h3>
           <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => onDeleteItem(item.id)}
-          className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600"
-        >
-          Elimina riga
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => onDeleteItem(item.id)}
+            className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600"
+          >
+            Elimina riga
+          </button>
+        </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-4">
         <label className="text-sm">
@@ -198,17 +264,6 @@ function QuoteItemCard({
           className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
         />
       </label>
-
-      <div className="mt-3 flex justify-end">
-        <button
-          type="button"
-          onClick={saveItem}
-          disabled={saving}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
-        >
-          {saving ? 'Salvataggio...' : 'Salva riga'}
-        </button>
-      </div>
 
       <div className="mt-6 space-y-3">
         <h4 className="text-sm font-semibold text-slate-700">Sottovoci</h4>
@@ -410,19 +465,30 @@ function QuoteItemCard({
               />
               <span className="text-slate-600">Compreso</span>
             </label>
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={savePose}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-              >
-                Salva posa
-              </button>
-            </div>
+            <div className="flex items-end" />
           </div>
         ) : (
           <p className="text-sm text-slate-500">Nessuna posa associata.</p>
         )}
+      </div>
+
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => handleSaveAll('update')}
+          disabled={saving}
+          className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 disabled:opacity-60"
+        >
+          Aggiorna
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSaveAll('save')}
+          disabled={saving}
+          className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+        >
+          Salva
+        </button>
       </div>
     </div>
   );
@@ -438,6 +504,7 @@ export default function QuoteBuilderPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [openItemId, setOpenItemId] = useState(null);
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
@@ -469,6 +536,13 @@ export default function QuoteBuilderPage() {
   useEffect(() => {
     loadQuote();
   }, [loadQuote]);
+
+  useEffect(() => {
+    if (!quote?.items?.length) return;
+    if (openItemId === null) {
+      setOpenItemId(quote.items[0].id);
+    }
+  }, [quote, openItemId]);
 
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
@@ -541,6 +615,9 @@ export default function QuoteBuilderPage() {
     try {
       await deleteQuoteItem(itemId);
       await loadQuote();
+      if (openItemId === itemId) {
+        setOpenItemId(null);
+      }
     } catch (err) {
       setError(err?.message || 'Errore durante eliminazione riga.');
     }
@@ -579,7 +656,14 @@ export default function QuoteBuilderPage() {
     try {
       const response = await updateQuotePricing(quote.id, payload);
       const data = response.data ?? response;
-      setQuote(data);
+      setQuote((prev) => {
+        if (!prev) return data;
+        return {
+          ...prev,
+          ...data,
+          items: data.items ?? prev.items,
+        };
+      });
       setPricingForm({
         discount_type: data.discount_type ?? 'none',
         discount_value:
@@ -672,11 +756,14 @@ export default function QuoteBuilderPage() {
           <QuoteItemCard
             key={item.id}
             item={item}
+            isOpen={openItemId === item.id}
+            onOpen={(id) => setOpenItemId(id)}
             onUpdateItem={updateItem}
             onDeleteItem={removeItem}
             onUpdateComponent={updateComponent}
             onUpsertPose={upsertPose}
             onDeletePose={removePose}
+            onSaveAll={saveAll}
           />
         ))}
       </section>
@@ -755,3 +842,17 @@ export default function QuoteBuilderPage() {
     </section>
   );
 }
+  const saveAll = async (itemId, payload, mode) => {
+    try {
+      await updateQuoteItem(itemId, payload.item);
+      if (payload.pose) {
+        await upsertQuoteItemPose(itemId, payload.pose);
+      }
+      await loadQuote();
+      if (mode === 'save') {
+        setOpenItemId(null);
+      }
+    } catch (err) {
+      setError(err?.message || 'Errore durante aggiornamento riga.');
+    }
+  };
