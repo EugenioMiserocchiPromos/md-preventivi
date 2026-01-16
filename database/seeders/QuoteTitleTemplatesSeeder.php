@@ -9,6 +9,10 @@ class QuoteTitleTemplatesSeeder extends Seeder
 {
     public function run(): void
     {
+        if (DB::table('quote_title_templates')->exists()) {
+            return;
+        }
+
         $now = now();
 
         $templates = [
