@@ -623,6 +623,21 @@ export default function QuoteBuilderPage() {
     }
   };
 
+  const saveAll = async (itemId, payload, mode) => {
+    try {
+      await updateQuoteItem(itemId, payload.item);
+      if (payload.pose) {
+        await upsertQuoteItemPose(itemId, payload.pose);
+      }
+      await loadQuote();
+      if (mode === 'save') {
+        setOpenItemId(null);
+      }
+    } catch (err) {
+      setError(err?.message || 'Errore durante aggiornamento riga.');
+    }
+  };
+
   const sortedItems = useMemo(() => {
     if (!quote?.items) return [];
     return [...quote.items].sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
@@ -842,17 +857,3 @@ export default function QuoteBuilderPage() {
     </section>
   );
 }
-  const saveAll = async (itemId, payload, mode) => {
-    try {
-      await updateQuoteItem(itemId, payload.item);
-      if (payload.pose) {
-        await upsertQuoteItemPose(itemId, payload.pose);
-      }
-      await loadQuote();
-      if (mode === 'save') {
-        setOpenItemId(null);
-      }
-    } catch (err) {
-      setError(err?.message || 'Errore durante aggiornamento riga.');
-    }
-  };
