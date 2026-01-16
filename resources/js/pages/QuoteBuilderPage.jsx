@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   createQuoteItem,
@@ -44,6 +44,7 @@ function QuoteItemCard({
   onUpsertPose,
   onDeletePose,
   onSaveAll,
+  onRegisterSave,
 }) {
   const [itemDraft, setItemDraft] = useState({
     qty: item.qty,
@@ -115,7 +116,7 @@ function QuoteItemCard({
   };
 
   const normalizeNumber = (value) => Number(value || 0);
-  const formatNumber = (value) => normalizeNumber(value).toFixed(2);
+  const formatMoney = (value) => `€ ${normalizeNumber(value).toFixed(2)}`;
 
   const componentTotals = (item.components || []).map((component) => {
     const draft = componentDrafts[component.id] || {};
@@ -136,7 +137,7 @@ function QuoteItemCard({
   const itemTotal = normalizeNumber(itemDraft.qty) * normalizeNumber(itemDraft.unit_price_override);
   const cardTotal = itemTotal + componentsTotal + poseTotal;
 
-  const handleSaveAll = async (mode) => {
+  const handleSaveAll = useCallback(async (mode) => {
     setSaving(true);
     setSaveError(null);
     await onSaveAll(
@@ -174,7 +175,15 @@ function QuoteItemCard({
       setSaveError
     );
     setSaving(false);
-  };
+  }, [item.id, item.components, item.pose, itemDraft, componentDrafts, poseDraft, onSaveAll]);
+
+  useEffect(() => {
+    if (onRegisterSave) {
+      onRegisterSave(item.id, handleSaveAll);
+      return () => onRegisterSave(item.id, null);
+    }
+    return undefined;
+  }, [item.id, handleSaveAll, onRegisterSave]);
 
   if (!isOpen) {
     return (
@@ -210,7 +219,7 @@ function QuoteItemCard({
           </div>
           <div>
             <span className="text-xs uppercase tracking-wide text-slate-500">Totale</span>
-            <p className="font-semibold text-slate-800">{item.line_total}</p>
+            <p className="font-semibold text-slate-800">{formatMoney(item.line_total)}</p>
           </div>
         </div>
       </div>
@@ -279,7 +288,7 @@ function QuoteItemCard({
         </label>
         <div className="text-sm">
           <span className="text-slate-600">Totale riga</span>
-          <p className="mt-2 text-base font-semibold text-slate-800">{item.line_total}</p>
+          <p className="mt-2 text-base font-semibold text-slate-800">{formatMoney(item.line_total)}</p>
         </div>
       </div>
 
@@ -371,7 +380,7 @@ function QuoteItemCard({
                           className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-xs"
                         />
                       </td>
-                      <td className="px-3 py-2 text-slate-600">{formatNumber(rowTotal)}</td>
+                      <td className="px-3 py-2 text-slate-600">{formatMoney(rowTotal)}</td>
                       <td className="px-3 py-2">
                         <input
                           type="checkbox"
@@ -490,7 +499,7 @@ function QuoteItemCard({
             </label>
             <div className="text-sm">
               <span className="text-slate-600">Totale posa</span>
-              <p className="mt-2 font-semibold text-slate-800">{formatNumber(poseTotal)}</p>
+              <p className="mt-2 font-semibold text-slate-800">{formatMoney(poseTotal)}</p>
             </div>
             <div className="flex items-end" />
           </div>
@@ -502,7 +511,7 @@ function QuoteItemCard({
       <div className="mt-4 flex justify-end gap-2">
         <div className="mr-auto text-sm">
           <span className="text-slate-600">Totale prodotto</span>
-          <p className="mt-1 text-lg font-semibold text-slate-800">{formatNumber(cardTotal)}</p>
+          <p className="mt-1 text-lg font-semibold text-slate-800">{formatMoney(cardTotal)}</p>
         </div>
         {saveError ? <span className="text-xs text-amber-700">{saveError}</span> : null}
         <button
@@ -537,6 +546,7 @@ export default function QuoteBuilderPage() {
   const [searchError, setSearchError] = useState(null);
   const [adding, setAdding] = useState(false);
   const [openItemId, setOpenItemId] = useState(null);
+  const saveHandlersRef = useRef({});
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
@@ -571,8 +581,8 @@ export default function QuoteBuilderPage() {
 
   useEffect(() => {
     if (!quote?.items?.length) return;
-    if (openItemId === null) {
-      setOpenItemId(quote.items[0].id);
+    if (openItemId !== null && !quote.items.some((item) => item.id === openItemId)) {
+      setOpenItemId(null);
     }
   }, [quote, openItemId]);
 
@@ -598,8 +608,22 @@ export default function QuoteBuilderPage() {
     if (!quote) return;
     setAdding(true);
     try {
-      await createQuoteItem(quote.id, { product_id: productId, qty: 1 });
+      if (openItemId !== null) {
+        const saveHandler = saveHandlersRef.current[openItemId];
+        if (saveHandler) {
+          await saveHandler('save');
+        }
+      }
+
+      const response = await createQuoteItem(quote.id, { product_id: productId, qty: 1 });
+      const createdItem =
+        response.item?.data ?? response.item ?? response.data?.item ?? response.data ?? null;
       await loadQuote();
+      if (createdItem?.id) {
+        setOpenItemId(createdItem.id);
+      } else {
+        setOpenItemId(null);
+      }
     } catch (err) {
       setError(err?.message || 'Errore durante aggiunta prodotto.');
     } finally {
@@ -676,6 +700,14 @@ export default function QuoteBuilderPage() {
     }
   };
 
+  const registerSaveHandler = useCallback((itemId, handler) => {
+    if (handler) {
+      saveHandlersRef.current[itemId] = handler;
+    } else {
+      delete saveHandlersRef.current[itemId];
+    }
+  }, []);
+
   const sortedItems = useMemo(() => {
     if (!quote?.items) return [];
     return [...quote.items].sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
@@ -691,7 +723,7 @@ export default function QuoteBuilderPage() {
       }
     : null;
 
-  const formatMoney = (value) => value.toFixed(2);
+  const formatMoney = (value) => `€ ${Number(value || 0).toFixed(2)}`;
 
   const handlePricingSubmit = async (event) => {
     event.preventDefault();
@@ -817,6 +849,7 @@ export default function QuoteBuilderPage() {
             onUpsertPose={upsertPose}
             onDeletePose={removePose}
             onSaveAll={saveAll}
+            onRegisterSave={registerSaveHandler}
           />
         ))}
       </section>
