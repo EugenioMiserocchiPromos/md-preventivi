@@ -18,10 +18,14 @@ const defaultPose = {
   qty: 1,
   unit_price: 0,
   is_included: false,
-  is_visible: true,
 };
 
 const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
+const poseTypeOptions = [
+  'Posa in opera',
+  "Posa di competenza dell'impresa",
+  'Fornitura e posa in opera',
+];
 
 const normalizeUnit = (value) => {
   const normalized = String(value || '').trim().toLowerCase();
@@ -114,7 +118,6 @@ function QuoteItemCard({
       qty: Number(poseDraft.qty),
       unit_price: Number(poseDraft.unit_price),
       is_included: Boolean(poseDraft.is_included),
-      is_visible: Boolean(poseDraft.is_visible),
     });
   };
 
@@ -343,14 +346,19 @@ function QuoteItemCard({
           <div className="grid gap-3 md:grid-cols-3">
             <label className="text-sm">
               <span className="text-slate-600">Tipo</span>
-              <input
-                type="text"
+              <select
                 value={poseDraft.pose_type}
                 onChange={(event) =>
                   setPoseDraft((prev) => ({ ...prev, pose_type: event.target.value }))
                 }
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              />
+              >
+                {poseTypeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="text-sm">
               <span className="text-slate-600">UM</span>
@@ -401,16 +409,6 @@ function QuoteItemCard({
                 }
               />
               <span className="text-slate-600">Compreso</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={Boolean(poseDraft.is_visible)}
-                onChange={(event) =>
-                  setPoseDraft((prev) => ({ ...prev, is_visible: event.target.checked }))
-                }
-              />
-              <span className="text-slate-600">Visibile</span>
             </label>
             <div className="flex items-end">
               <button
