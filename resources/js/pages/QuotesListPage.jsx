@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuotes } from '../api/client';
 
-const headers = ['PROT', 'Cliente', 'Titolo', 'Totale', 'Data', 'Azioni'];
+const headers = ['PROT', 'Cliente', 'Titolo', 'Cantiere', 'Totale', 'Data', 'Azioni'];
 
 export default function QuotesListPage({ type, label }) {
   const navigate = useNavigate();
@@ -56,7 +56,7 @@ export default function QuotesListPage({ type, label }) {
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Cerca per PROT, titolo o cliente..."
+          placeholder="Cerca per PROT, titolo, cliente o cantiere..."
           className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -92,6 +92,7 @@ export default function QuotesListPage({ type, label }) {
                   <td className="px-4 py-3 font-medium">{row.prot_display || '—'}</td>
                   <td className="px-4 py-3">{row.customer_title_snapshot || '—'}</td>
                   <td className="px-4 py-3">{row.title_text || '—'}</td>
+                  <td className="px-4 py-3">{row.cantiere || '—'}</td>
                   <td className="px-4 py-3">{row.grand_total ?? 0}</td>
                   <td className="px-4 py-3">{row.date || '—'}</td>
                   <td className="px-4 py-3">

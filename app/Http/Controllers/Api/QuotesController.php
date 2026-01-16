@@ -31,7 +31,8 @@ class QuotesController extends Controller
                 $builder
                     ->where('prot_display', 'like', $like)
                     ->orWhere('title_text', 'like', $like)
-                    ->orWhere('customer_title_snapshot', 'like', $like);
+                    ->orWhere('customer_title_snapshot', 'like', $like)
+                    ->orWhere('cantiere', 'like', $like);
             });
         }
 

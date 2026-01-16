@@ -20,6 +20,7 @@ class QuoteListResource extends JsonResource
             'date' => $this->date,
             'title_text' => $this->title_text,
             'customer_title_snapshot' => $this->customer_title_snapshot,
+            'cantiere' => $this->cantiere,
             'grand_total' => $this->grand_total,
         ];
     }
