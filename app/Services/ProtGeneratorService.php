@@ -2,14 +2,15 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class ProtGeneratorService
 {
-    public function allocate(string $initials, string $quoteType, ?int $year = null): array
+    public function allocateForUser(User $user, string $quoteType, ?int $year = null): array
     {
         $year = $year ?? (int) now()->format('Y');
-        $initials = trim($initials) !== '' ? strtoupper(trim($initials)) : 'NA';
+        $initials = $this->resolveInitials($user);
         $quoteType = strtoupper($quoteType);
 
         return DB::transaction(function () use ($year, $initials, $quoteType) {
@@ -63,5 +64,19 @@ class ProtGeneratorService
                 'prot_internal' => $protInternal,
             ];
         });
+    }
+
+    private function resolveInitials(User $user): string
+    {
+        $name = trim((string) $user->name);
+        $surname = trim((string) $user->surname);
+
+        if ($name !== '' && $surname !== '') {
+            return strtoupper(substr($name, 0, 1).substr($surname, 0, 1));
+        }
+
+        $fallback = trim((string) $user->initials);
+
+        return $fallback !== '' ? strtoupper($fallback) : 'NA';
     }
 }

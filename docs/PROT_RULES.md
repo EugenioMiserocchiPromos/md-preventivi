@@ -14,7 +14,7 @@ Esempio:
 `MD/FP 0001-26`
 
 ## 2) Componenti del PROT
-- INIZIALI: prese dall’utente loggato (`users.initials`)
+- INIZIALI: derivate da `name + surname` dell’utente loggato (salvate in `users.initials`)
 - SIGLA: dipende da quote_type:
   - FP = Fornitura e Posa in opera
   - AS = Assistenza

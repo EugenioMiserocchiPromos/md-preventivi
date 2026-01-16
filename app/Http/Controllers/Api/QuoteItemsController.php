@@ -10,6 +10,7 @@ use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Services\QuoteItemService;
 use App\Services\QuoteTotalsService;
+use App\Support\Units;
 
 class QuoteItemsController extends Controller
 {
@@ -40,6 +41,9 @@ class QuoteItemsController extends Controller
     )
     {
         $data = $request->validated();
+        if (array_key_exists('unit_override', $data)) {
+            $data['unit_override'] = Units::normalize($data['unit_override']);
+        }
         $item->fill($data);
         $item->line_total = round(((float) $item->qty) * ((float) $item->unit_price_override), 2);
         $item->save();

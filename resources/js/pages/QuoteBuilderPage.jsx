@@ -21,6 +21,15 @@ const defaultPose = {
   is_visible: true,
 };
 
+const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
+
+const normalizeUnit = (value) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  const map = { cad: 'cad.', kg: 'kg.' };
+  const unit = map[normalized] || normalized;
+  return unitOptions.includes(unit) ? unit : 'ml';
+};
+
 function QuoteItemCard({
   item,
   onUpdateItem,
@@ -31,7 +40,7 @@ function QuoteItemCard({
 }) {
   const [itemDraft, setItemDraft] = useState({
     qty: item.qty,
-    unit_override: item.unit_override,
+    unit_override: normalizeUnit(item.unit_override),
     unit_price_override: item.unit_price_override,
     note_shared: item.note_shared || '',
   });
@@ -41,20 +50,22 @@ function QuoteItemCard({
         component.id,
         {
           qty: component.qty,
-          unit_override: component.unit_override,
+          unit_override: normalizeUnit(component.unit_override),
           unit_price_override: component.unit_price_override,
           is_visible: component.is_visible,
         },
       ])
     )
   );
-  const [poseDraft, setPoseDraft] = useState(item.pose?.id ? item.pose : defaultPose);
+  const [poseDraft, setPoseDraft] = useState(
+    item.pose?.id ? { ...item.pose, unit: normalizeUnit(item.pose.unit) } : defaultPose
+  );
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setItemDraft({
       qty: item.qty,
-      unit_override: item.unit_override,
+      unit_override: normalizeUnit(item.unit_override),
       unit_price_override: item.unit_price_override,
       note_shared: item.note_shared || '',
     });
@@ -64,14 +75,14 @@ function QuoteItemCard({
           component.id,
           {
             qty: component.qty,
-            unit_override: component.unit_override,
+            unit_override: normalizeUnit(component.unit_override),
             unit_price_override: component.unit_price_override,
             is_visible: component.is_visible,
           },
         ])
       )
     );
-    setPoseDraft(item.pose?.id ? item.pose : defaultPose);
+    setPoseDraft(item.pose?.id ? { ...item.pose, unit: normalizeUnit(item.pose.unit) } : defaultPose);
   }, [item]);
 
   const saveItem = async () => {
@@ -141,14 +152,19 @@ function QuoteItemCard({
         </label>
         <label className="text-sm">
           <span className="text-slate-600">UM</span>
-          <input
-            type="text"
+          <select
             value={itemDraft.unit_override}
             onChange={(event) =>
               setItemDraft((prev) => ({ ...prev, unit_override: event.target.value }))
             }
             className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-          />
+          >
+            {unitOptions.map((unit) => (
+              <option key={unit} value={unit}>
+                {unit}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="text-sm">
           <span className="text-slate-600">Prezzo</span>
@@ -229,9 +245,8 @@ function QuoteItemCard({
                         />
                       </td>
                       <td className="px-3 py-2">
-                        <input
-                          type="text"
-                          value={draft.unit_override ?? ''}
+                        <select
+                          value={draft.unit_override ?? 'ml'}
                           onChange={(event) =>
                             setComponentDrafts((prev) => ({
                               ...prev,
@@ -241,8 +256,14 @@ function QuoteItemCard({
                               },
                             }))
                           }
-                          className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-xs"
-                        />
+                          className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-xs"
+                        >
+                          {unitOptions.map((unit) => (
+                            <option key={unit} value={unit}>
+                              {unit}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-3 py-2">
                         <input
@@ -333,14 +354,19 @@ function QuoteItemCard({
             </label>
             <label className="text-sm">
               <span className="text-slate-600">UM</span>
-              <input
-                type="text"
+              <select
                 value={poseDraft.unit}
                 onChange={(event) =>
                   setPoseDraft((prev) => ({ ...prev, unit: event.target.value }))
                 }
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              />
+              >
+                {unitOptions.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="text-sm">
               <span className="text-slate-600">Qta</span>

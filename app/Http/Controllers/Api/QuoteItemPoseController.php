@@ -8,6 +8,7 @@ use App\Http\Resources\QuoteItemPoseResource;
 use App\Models\QuoteItem;
 use App\Models\QuoteItemPose;
 use App\Services\QuoteTotalsService;
+use App\Support\Units;
 
 class QuoteItemPoseController extends Controller
 {
@@ -21,6 +22,7 @@ class QuoteItemPoseController extends Controller
         $qty = (float) ($data['qty'] ?? 0);
         $unitPrice = (float) ($data['unit_price'] ?? 0);
         $isIncluded = (bool) ($data['is_included'] ?? false);
+        $unit = Units::normalize($data['unit'] ?? null);
 
         $data['pose_total'] = $isIncluded ? 0 : round($qty * $unitPrice, 2);
         $data['is_included'] = $isIncluded;
@@ -30,7 +32,7 @@ class QuoteItemPoseController extends Controller
             ['quote_item_id' => $item->id],
             [
                 'pose_type' => $data['pose_type'],
-                'unit' => $data['unit'],
+                'unit' => $unit,
                 'qty' => $qty,
                 'unit_price' => $unitPrice,
                 'pose_total' => $data['pose_total'],
