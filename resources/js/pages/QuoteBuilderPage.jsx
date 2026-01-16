@@ -335,7 +335,13 @@ function QuoteItemCard({
                       ? normalizeNumber(draft.qty) * normalizeNumber(draft.unit_price_override)
                       : 0;
                   return (
-                    <tr key={component.id} className="border-t border-slate-200/60">
+                    <tr
+                      key={component.id}
+                      className={[
+                        'border-t border-slate-200/60',
+                        draft.is_visible ? 'text-slate-700' : 'bg-slate-50 text-slate-400',
+                      ].join(' ')}
+                    >
                       <td className="px-3 py-2 font-medium text-slate-700">
                         {component.name_snapshot}
                       </td>
