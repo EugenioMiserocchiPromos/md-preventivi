@@ -111,6 +111,24 @@ export async function fetchQuoteTitleTemplates() {
   return request('/api/quote-title-templates', { method: 'GET' });
 }
 
+export async function createQuoteTitleTemplate(payload) {
+  return request('/api/quote-title-templates', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateQuoteTitleTemplate(id, payload) {
+  return request(`/api/quote-title-templates/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteQuoteTitleTemplate(id) {
+  return request(`/api/quote-title-templates/${id}`, { method: 'DELETE' });
+}
+
 export async function fetchQuote(quoteId) {
   return request(`/api/quotes/${quoteId}`, { method: 'GET' });
 }
