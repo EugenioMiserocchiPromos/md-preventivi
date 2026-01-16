@@ -1,0 +1,539 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  createQuoteExtra,
+  deleteQuoteExtra,
+  fetchQuote,
+  fetchQuoteExtras,
+  updateQuoteExtra,
+  updateQuotePricing,
+} from '../api/client';
+import TotalsPanel from '../components/TotalsPanel';
+
+const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
+
+const normalizeUnit = (value) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  const map = { cad: 'cad.', kg: 'kg.' };
+  const unit = map[normalized] || normalized;
+  return unitOptions.includes(unit) ? unit : 'ml';
+};
+
+const defaultNewExtra = {
+  description: '',
+  unit: 'ml',
+  qty: 1,
+  unit_price: 0,
+  notes: '',
+  is_included: true,
+};
+
+export default function QuoteExtrasPage() {
+  const { quoteId } = useParams();
+  const navigate = useNavigate();
+  const [quote, setQuote] = useState(null);
+  const [extras, setExtras] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [rowErrors, setRowErrors] = useState({});
+  const [savingId, setSavingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [newExtra, setNewExtra] = useState(defaultNewExtra);
+  const [createError, setCreateError] = useState(null);
+  const [pricingForm, setPricingForm] = useState({
+    discount_type: 'none',
+    discount_value: '',
+  });
+  const [pricingSaving, setPricingSaving] = useState(false);
+  const [pricingError, setPricingError] = useState(null);
+  const [closing, setClosing] = useState(false);
+  const [closeError, setCloseError] = useState(null);
+
+  const totals = quote
+    ? {
+        subtotal: Number(quote.subtotal ?? 0),
+        discount_amount: Number(quote.discount_amount ?? 0),
+        taxable_total: Number(quote.taxable_total ?? 0),
+        vat_amount: Number(quote.vat_amount ?? 0),
+        grand_total: Number(quote.grand_total ?? 0),
+      }
+    : null;
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [quoteResponse, extrasResponse] = await Promise.all([
+        fetchQuote(quoteId),
+        fetchQuoteExtras(quoteId),
+      ]);
+      const quoteData = quoteResponse.data ?? quoteResponse;
+      const extrasPayload = extrasResponse.data ?? extrasResponse;
+      const extrasList = Array.isArray(extrasPayload) ? extrasPayload : extrasPayload.data || [];
+      setQuote(quoteData);
+      setPricingForm({
+        discount_type: quoteData.discount_type ?? 'none',
+        discount_value:
+          quoteData.discount_value !== null && quoteData.discount_value !== undefined
+            ? String(quoteData.discount_value)
+            : '',
+      });
+      setExtras(
+        extrasList.map((extra) => ({
+          ...extra,
+          unit: normalizeUnit(extra.unit),
+        }))
+      );
+    } catch (err) {
+      setError(err?.message || 'Errore nel caricamento righe extra.');
+    } finally {
+      setLoading(false);
+    }
+  }, [quoteId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const updateExtraField = (id, field, value) => {
+    setExtras((prev) =>
+      prev.map((extra) => (extra.id === id ? { ...extra, [field]: value } : extra))
+    );
+  };
+
+  const handleSaveExtra = async (extra) => {
+    setSavingId(extra.id);
+    setRowErrors((prev) => ({ ...prev, [extra.id]: null }));
+    try {
+      const payload = {
+        unit: normalizeUnit(extra.unit),
+        qty: Number(extra.qty),
+        unit_price: Number(extra.unit_price),
+        notes: extra.notes || '',
+        is_included: Boolean(extra.is_included),
+      };
+      if (!extra.is_fixed) {
+        payload.description = extra.description;
+      }
+      const response = await updateQuoteExtra(extra.id, payload);
+      const data = response.data ?? response;
+      if (data.extra) {
+        setExtras((prev) =>
+          prev.map((item) => (item.id === extra.id ? data.extra : item))
+        );
+      }
+      if (data.totals) {
+        setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+      }
+    } catch (err) {
+      const message =
+        err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
+      setRowErrors((prev) => ({ ...prev, [extra.id]: message }));
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleDeleteExtra = async (extra) => {
+    if (extra.is_fixed) return;
+    setDeletingId(extra.id);
+    setRowErrors((prev) => ({ ...prev, [extra.id]: null }));
+    try {
+      const response = await deleteQuoteExtra(extra.id);
+      const data = response.data ?? response;
+      setExtras((prev) => prev.filter((item) => item.id !== extra.id));
+      if (data.totals) {
+        setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+      }
+    } catch (err) {
+      setRowErrors((prev) => ({
+        ...prev,
+        [extra.id]: err?.message || 'Errore durante eliminazione.',
+      }));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleCreateExtra = async (event) => {
+    event.preventDefault();
+    setCreateError(null);
+    try {
+      const payload = {
+        description: newExtra.description,
+        unit: normalizeUnit(newExtra.unit),
+        qty: Number(newExtra.qty),
+        unit_price: Number(newExtra.unit_price),
+        notes: newExtra.notes || '',
+        is_included: Boolean(newExtra.is_included),
+      };
+      const response = await createQuoteExtra(quoteId, payload);
+      const data = response.data ?? response;
+      if (data.extra) {
+        setExtras((prev) => [...prev, data.extra]);
+      }
+      if (data.totals) {
+        setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+      }
+      setNewExtra(defaultNewExtra);
+    } catch (err) {
+      setCreateError(err?.message || 'Errore durante creazione riga.');
+    }
+  };
+
+  const handlePricingSubmit = async (event) => {
+    event.preventDefault();
+    if (!quote) return;
+
+    setPricingSaving(true);
+    setPricingError(null);
+
+    const payload = {
+      discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
+      discount_value:
+        pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
+    };
+
+    try {
+      const response = await updateQuotePricing(quote.id, payload);
+      const data = response.data ?? response;
+      setQuote((prev) => {
+        if (!prev) return data;
+        return {
+          ...prev,
+          ...data,
+        };
+      });
+      setPricingForm({
+        discount_type: data.discount_type ?? 'none',
+        discount_value:
+          data.discount_value !== null && data.discount_value !== undefined
+            ? String(data.discount_value)
+            : '',
+      });
+    } catch (err) {
+      setPricingError(err?.message || 'Errore durante aggiornamento totali.');
+    } finally {
+      setPricingSaving(false);
+    }
+  };
+
+  const getListPath = (type) => {
+    const key = String(type || '').toLowerCase();
+    if (key === 'fp') return '/preventivi/fp';
+    if (key === 'as') return '/preventivi/as';
+    if (key === 'vm') return '/preventivi/vm';
+    return '/preventivi/fp';
+  };
+
+  const handleSaveAndClose = async () => {
+    if (!quote) return;
+    setClosing(true);
+    setCloseError(null);
+    setRowErrors({});
+
+    const warrantyError = extras.find(
+      (extra) =>
+        extra.fixed_key === 'warranty_10y' &&
+        Boolean(extra.is_included) &&
+        Number(extra.unit_price) <= 0
+    );
+    if (warrantyError) {
+      setRowErrors((prev) => ({
+        ...prev,
+        [warrantyError.id]:
+          'La garanzia 10 anni richiede un prezzo maggiore di 0 quando inclusa.',
+      }));
+      setClosing(false);
+      return;
+    }
+
+    try {
+      for (const extra of extras) {
+        const payload = {
+          unit: normalizeUnit(extra.unit),
+          qty: Number(extra.qty),
+          unit_price: Number(extra.unit_price),
+          notes: extra.notes || '',
+          is_included: Boolean(extra.is_included),
+        };
+        if (!extra.is_fixed) {
+          payload.description = extra.description;
+        }
+        const response = await updateQuoteExtra(extra.id, payload);
+        const data = response.data ?? response;
+        if (data.extra) {
+          setExtras((prev) =>
+            prev.map((item) => (item.id === extra.id ? data.extra : item))
+          );
+        }
+        if (data.totals) {
+          setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+        }
+      }
+
+      const pricingPayload = {
+        discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
+        discount_value:
+          pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
+      };
+      const pricingResponse = await updateQuotePricing(quote.id, pricingPayload);
+      const pricingData = pricingResponse.data ?? pricingResponse;
+      setQuote((prev) => (prev ? { ...prev, ...pricingData } : prev));
+
+      navigate(getListPath(quote.quote_type));
+    } catch (err) {
+      const message =
+        err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
+      setCloseError(message);
+    } finally {
+      setClosing(false);
+    }
+  };
+
+  return (
+    <section className="space-y-6">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Step</p>
+          <h1 className="text-2xl font-semibold">Righe extra</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(`/builder/${quoteId}`)}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Indietro
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAndClose}
+            disabled={closing}
+            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {closing ? 'Salvataggio...' : 'Salva e chiudi'}
+          </button>
+        </div>
+      </header>
+
+      {loading ? <p className="text-sm text-slate-500">Caricamento...</p> : null}
+      {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+
+      {!loading && !error ? (
+        <div className="space-y-4">
+          {extras.length === 0 ? (
+            <p className="text-sm text-slate-500">Nessuna riga extra presente.</p>
+          ) : null}
+          <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Descrizione</th>
+                  <th className="px-3 py-2 font-medium">UM</th>
+                  <th className="px-3 py-2 font-medium">Qt</th>
+                  <th className="px-3 py-2 font-medium">Prezzo</th>
+                  <th className="px-3 py-2 font-medium">Note</th>
+                  <th className="px-3 py-2 font-medium">Azioni</th>
+                </tr>
+              </thead>
+              <tbody>
+                {extras.map((extra) => {
+                  const isWarranty = extra.fixed_key === 'warranty_10y';
+                  return (
+                    <tr key={extra.id} className="border-t border-slate-200/60">
+                      <td className="px-3 py-2">
+                        {extra.is_fixed ? (
+                          <span className="font-medium text-slate-700">{extra.description}</span>
+                        ) : (
+                          <input
+                            value={extra.description}
+                            onChange={(event) =>
+                              updateExtraField(extra.id, 'description', event.target.value)
+                            }
+                            className="w-full rounded-lg border border-slate-200 px-2 py-1"
+                          />
+                        )}
+                        {isWarranty ? (
+                          <label className="mt-2 flex items-center gap-2 text-xs text-slate-600">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(extra.is_included)}
+                              onChange={(event) =>
+                                updateExtraField(extra.id, 'is_included', event.target.checked)
+                              }
+                            />
+                            Compresa
+                          </label>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-2">
+                        <select
+                          value={extra.unit}
+                          onChange={(event) =>
+                            updateExtraField(extra.id, 'unit', event.target.value)
+                          }
+                          className="rounded-lg border border-slate-200 px-2 py-1"
+                        >
+                          {unitOptions.map((unit) => (
+                            <option key={unit} value={unit}>
+                              {unit}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={extra.qty}
+                          onChange={(event) =>
+                            updateExtraField(extra.id, 'qty', event.target.value)
+                          }
+                          className="w-24 rounded-lg border border-slate-200 px-2 py-1"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={extra.unit_price}
+                          onChange={(event) =>
+                            updateExtraField(extra.id, 'unit_price', event.target.value)
+                          }
+                          className="w-28 rounded-lg border border-slate-200 px-2 py-1"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          value={extra.notes || ''}
+                          onChange={(event) =>
+                            updateExtraField(extra.id, 'notes', event.target.value)
+                          }
+                          className="w-full rounded-lg border border-slate-200 px-2 py-1"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleSaveExtra(extra)}
+                            disabled={savingId === extra.id}
+                            className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 disabled:opacity-60"
+                          >
+                            {savingId === extra.id ? 'Salvo...' : 'Salva'}
+                          </button>
+                          {!extra.is_fixed ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExtra(extra)}
+                              disabled={deletingId === extra.id}
+                              className="rounded-lg border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 disabled:opacity-60"
+                            >
+                              Elimina
+                            </button>
+                          ) : null}
+                        </div>
+                        {rowErrors[extra.id] ? (
+                          <p className="mt-1 text-xs text-rose-600">{rowErrors[extra.id]}</p>
+                        ) : null}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <form
+            onSubmit={handleCreateExtra}
+            className="rounded-2xl border border-slate-200/70 bg-white p-4"
+          >
+            <p className="text-sm font-semibold text-slate-700">Nuova riga extra</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-5">
+              <input
+                placeholder="Descrizione"
+                value={newExtra.description}
+                onChange={(event) =>
+                  setNewExtra((prev) => ({ ...prev, description: event.target.value }))
+                }
+                className="rounded-lg border border-slate-200 px-3 py-2"
+                required
+              />
+              <select
+                value={newExtra.unit}
+                onChange={(event) =>
+                  setNewExtra((prev) => ({ ...prev, unit: event.target.value }))
+                }
+                className="rounded-lg border border-slate-200 px-3 py-2"
+              >
+                {unitOptions.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                step="0.01"
+                value={newExtra.qty}
+                onChange={(event) =>
+                  setNewExtra((prev) => ({ ...prev, qty: event.target.value }))
+                }
+                className="rounded-lg border border-slate-200 px-3 py-2"
+                required
+              />
+              <input
+                type="number"
+                step="0.01"
+                value={newExtra.unit_price}
+                onChange={(event) =>
+                  setNewExtra((prev) => ({ ...prev, unit_price: event.target.value }))
+                }
+                className="rounded-lg border border-slate-200 px-3 py-2"
+                required
+              />
+              <input
+                placeholder="Note"
+                value={newExtra.notes}
+                onChange={(event) =>
+                  setNewExtra((prev) => ({ ...prev, notes: event.target.value }))
+                }
+                className="rounded-lg border border-slate-200 px-3 py-2"
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={Boolean(newExtra.is_included)}
+                  onChange={(event) =>
+                    setNewExtra((prev) => ({ ...prev, is_included: event.target.checked }))
+                  }
+                />
+                Compresa
+              </label>
+              <button
+                type="submit"
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Aggiungi
+              </button>
+            </div>
+            {createError ? <p className="mt-2 text-sm text-rose-600">{createError}</p> : null}
+          </form>
+        </div>
+      ) : null}
+      {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
+
+      <TotalsPanel
+        totals={totals}
+        pricingForm={pricingForm}
+        onPricingChange={setPricingForm}
+        onSubmit={handlePricingSubmit}
+        saving={pricingSaving}
+        error={pricingError}
+      />
+    </section>
+  );
+}

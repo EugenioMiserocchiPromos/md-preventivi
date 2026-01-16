@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   createQuoteItem,
   deleteQuoteItem,
@@ -11,6 +11,7 @@ import {
   upsertQuoteItemPose,
   updateQuotePricing,
 } from '../api/client';
+import TotalsPanel from '../components/TotalsPanel';
 
 const defaultPose = {
   pose_type: 'Posa in opera',
@@ -552,6 +553,7 @@ function QuoteItemCard({
 
 export default function QuoteBuilderPage() {
   const { quoteId } = useParams();
+  const navigate = useNavigate();
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -728,6 +730,28 @@ export default function QuoteBuilderPage() {
     return [...quote.items].sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
   }, [quote]);
 
+  const groupedItems = useMemo(() => {
+    const map = new Map();
+    sortedItems.forEach((item) => {
+      const key = item.category_name_snapshot || 'Senza categoria';
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key).push(item);
+    });
+    const categories = Array.from(map.keys());
+    const colorMap = new Map();
+    categories.forEach((category, index) => {
+      const hue = Math.round((index * 360) / Math.max(categories.length, 1));
+      colorMap.set(category, hue);
+    });
+    return Array.from(map.entries()).map(([category, items]) => ({
+      category,
+      items,
+      color: colorMap.get(category),
+    }));
+  }, [sortedItems]);
+
   const totals = quote
     ? {
         subtotal: Number(quote.subtotal ?? 0),
@@ -737,8 +761,6 @@ export default function QuoteBuilderPage() {
         grand_total: Number(quote.grand_total ?? 0),
       }
     : null;
-
-  const formatMoney = (value) => `€ ${Number(value || 0).toFixed(2)}`;
 
   const handlePricingSubmit = async (event) => {
     event.preventDefault();
@@ -852,94 +874,51 @@ export default function QuoteBuilderPage() {
         {!loading && sortedItems.length === 0 ? (
           <p className="text-sm text-slate-500">Nessuna riga presente.</p>
         ) : null}
-        {sortedItems.map((item) => (
-          <QuoteItemCard
-            key={item.id}
-            item={item}
-            isOpen={openItemId === item.id}
-            onOpen={(id) => setOpenItemId(id)}
-            onUpdateItem={updateItem}
-            onDeleteItem={removeItem}
-            onUpdateComponent={updateComponent}
-            onUpsertPose={upsertPose}
-            onDeletePose={removePose}
-            onSaveAll={saveAll}
-            onRegisterSave={registerSaveHandler}
-          />
+        {groupedItems.map((group) => (
+          <div key={group.category} className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span
+                className="h-3 w-3 rounded-sm"
+                style={{ backgroundColor: `hsl(${group.color} 70% 45%)` }}
+              />
+              <h3 className="text-sm font-semibold text-slate-700">{group.category}</h3>
+            </div>
+            {group.items.map((item) => (
+              <QuoteItemCard
+                key={item.id}
+                item={item}
+                isOpen={openItemId === item.id}
+                onOpen={(id) => setOpenItemId(id)}
+                onUpdateItem={updateItem}
+                onDeleteItem={removeItem}
+                onUpdateComponent={updateComponent}
+                onUpsertPose={upsertPose}
+                onDeletePose={removePose}
+                onSaveAll={saveAll}
+                onRegisterSave={registerSaveHandler}
+              />
+            ))}
+          </div>
         ))}
       </section>
 
-      <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
-        <div className="mx-auto max-w-5xl space-y-4">
-          <div className="grid gap-4 md:grid-cols-4">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">Subtotale</p>
-              <p className="text-lg font-semibold">
-                {totals ? formatMoney(totals.subtotal) : '0.00'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">Sconto</p>
-              <p className="text-lg font-semibold">
-                {totals ? formatMoney(totals.discount_amount) : '0.00'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">Imponibile</p>
-              <p className="text-lg font-semibold">
-                {totals ? formatMoney(totals.taxable_total) : '0.00'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">Totale</p>
-              <p className="text-lg font-semibold">
-                {totals ? formatMoney(totals.grand_total) : '0.00'}
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handlePricingSubmit} className="grid gap-3 md:grid-cols-3">
-            <label className="text-sm">
-              <span className="text-slate-600">Tipo sconto</span>
-              <select
-                value={pricingForm.discount_type}
-                onChange={(event) =>
-                  setPricingForm((prev) => ({ ...prev, discount_type: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              >
-                <option value="none">Nessuno</option>
-                <option value="percent">Percentuale</option>
-                <option value="amount">Importo</option>
-              </select>
-            </label>
-            <label className="text-sm">
-              <span className="text-slate-600">Valore sconto</span>
-              <input
-                type="number"
-                step="0.01"
-                value={pricingForm.discount_value}
-                onChange={(event) =>
-                  setPricingForm((prev) => ({ ...prev, discount_value: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              />
-            </label>
-            <div className="flex items-end gap-2">
-              <button
-                type="submit"
-                disabled={pricingSaving}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-              >
-                {pricingSaving ? 'Salvataggio...' : 'Applica'}
-              </button>
-              {pricingError ? (
-                <span className="text-xs text-amber-700">{pricingError}</span>
-              ) : null}
-            </div>
-          </form>
-        </div>
-      </div>
+      <TotalsPanel
+        totals={totals}
+        pricingForm={pricingForm}
+        onPricingChange={setPricingForm}
+        onSubmit={handlePricingSubmit}
+        saving={pricingSaving}
+        error={pricingError}
+        secondaryAction={
+          <button
+            type="button"
+            onClick={() => navigate(`/builder/${quoteId}/extras`)}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Continua
+          </button>
+        }
+      />
     </section>
   );
 }
