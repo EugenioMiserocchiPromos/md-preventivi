@@ -89,11 +89,11 @@ function QuoteRow({ row, onOpen }) {
           <p className="truncate text-sm" title={row.title_text || ''}>
             {row.title_text || '—'}
           </p>
-          <p className="text-right text-sm font-semibold tabular-nums">
+          <p className="text-right text-sm font-semibold tabular-nums whitespace-nowrap">
             {formatMoney(row.grand_total)}
           </p>
-          <p className="text-right text-sm tabular-nums">{row.date || '—'}</p>
-          <div className="flex justify-end">
+          <p className="text-right text-sm tabular-nums whitespace-nowrap">{row.date || '—'}</p>
+          <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={() => onOpen(row.id)}
