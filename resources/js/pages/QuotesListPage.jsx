@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuotes } from '../api/client';
+import { protForUi } from '../lib/prot';
 
 const headers = ['PROT', 'Cliente', 'Titolo', 'Cantiere', 'Totale', 'Data', 'Azioni'];
 
@@ -89,7 +90,7 @@ export default function QuotesListPage({ type, label }) {
             ) : (
               rows.map((row) => (
                 <tr key={row.id} className="border-t border-slate-200/60 text-slate-700">
-                  <td className="px-4 py-3 font-medium">{row.prot_display || '—'}</td>
+                  <td className="px-4 py-3 font-medium">{protForUi(row) || '—'}</td>
                   <td className="px-4 py-3">{row.customer_title_snapshot || '—'}</td>
                   <td className="px-4 py-3">{row.title_text || '—'}</td>
                   <td className="px-4 py-3">{row.cantiere || '—'}</td>

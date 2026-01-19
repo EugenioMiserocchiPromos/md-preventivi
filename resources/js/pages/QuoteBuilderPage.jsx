@@ -13,6 +13,7 @@ import {
   saveQuoteRevision,
 } from '../api/client';
 import TotalsPanel from '../components/TotalsPanel';
+import { protForUi } from '../lib/prot';
 
 const defaultPose = {
   pose_type: 'Posa in opera',
@@ -835,7 +836,7 @@ export default function QuoteBuilderPage() {
           <h1 className="text-2xl font-semibold">Preventivo</h1>
           {quote ? (
             <p className="text-sm text-slate-500">
-              PROT: {quote.prot_display || '—'} — {quote.customer_title_snapshot}
+              PROT: {protForUi(quote) || '—'} — {quote.customer_title_snapshot}
             </p>
           ) : null}
         </div>

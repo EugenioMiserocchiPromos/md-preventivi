@@ -10,6 +10,7 @@ import {
   updateQuotePricing,
 } from '../api/client';
 import TotalsPanel from '../components/TotalsPanel';
+import { protForUi } from '../lib/prot';
 
 const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
 
@@ -302,6 +303,11 @@ export default function QuoteExtrasPage() {
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-500">Step</p>
           <h1 className="text-2xl font-semibold">Righe extra</h1>
+          {quote ? (
+            <p className="text-sm text-slate-500">
+              PROT: {protForUi(quote) || '—'} — {quote.customer_title_snapshot}
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <button
