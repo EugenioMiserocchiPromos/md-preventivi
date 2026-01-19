@@ -12,8 +12,9 @@ class ProtGeneratorService
         $year = $year ?? (int) now()->format('Y');
         $initials = $this->resolveInitials($user);
         $quoteType = strtoupper($quoteType);
+        $formatter = new ProtFormatter();
 
-        return DB::transaction(function () use ($year, $initials, $quoteType) {
+        return DB::transaction(function () use ($year, $initials, $quoteType, $formatter) {
             $counter = DB::table('quote_counters')
                 ->where('year', $year)
                 ->lockForUpdate()
@@ -51,10 +52,8 @@ class ProtGeneratorService
                     'updated_at' => now(),
                 ]);
 
-            $padded = str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
-            $yearShort = substr((string) $year, -2);
-            $protDisplay = "{$initials}/{$quoteType} {$padded}-{$yearShort}";
-            $protInternal = "{$initials}/{$quoteType} {$padded}-{$yearShort}-REV1";
+            $protDisplay = $formatter->makeDisplay($initials, $quoteType, $nextNumber, $year);
+            $protInternal = $formatter->makeInternal($protDisplay, 1);
 
             return [
                 'prot_year' => $year,
