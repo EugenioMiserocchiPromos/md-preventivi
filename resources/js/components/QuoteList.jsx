@@ -54,9 +54,9 @@ function QuoteRow({ row, onOpen }) {
               <button
                 type="button"
                 onClick={() => onOpen(row.id)}
-                title="Apri preventivo"
-                aria-label="Apri preventivo"
-                className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900"
+                title="Modifica"
+                aria-label="Modifica preventivo"
+                className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -97,9 +97,9 @@ function QuoteRow({ row, onOpen }) {
             <button
               type="button"
               onClick={() => onOpen(row.id)}
-              title="Apri preventivo"
-              aria-label="Apri preventivo"
-              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900"
+              title="Modifica"
+              aria-label="Modifica preventivo"
+              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
