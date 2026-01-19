@@ -131,6 +131,7 @@ class QuotesController extends Controller
                 $locked->prot_display,
                 (int) $locked->revision_number
             );
+            $locked->date = now()->toDateString();
             $locked->save();
 
             return $locked;
