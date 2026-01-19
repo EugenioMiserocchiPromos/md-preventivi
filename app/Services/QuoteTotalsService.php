@@ -26,7 +26,15 @@ class QuoteTotalsService
 
         $extrasTotal = (float) DB::table('quote_extras')
             ->where('quote_id', $quote->id)
-            ->where('is_included', true)
+            ->where(function ($query) {
+                $query
+                    ->where('is_included', true)
+                    ->orWhere(function ($subQuery) {
+                        $subQuery
+                            ->where('fixed_key', 'warranty_10y')
+                            ->where('unit_price', '>', 0);
+                    });
+            })
             ->sum(DB::raw('COALESCE(line_total, amount)'));
 
         $subtotal = round($itemsTotal + $componentsTotal + $poseTotal + $extrasTotal, 2);

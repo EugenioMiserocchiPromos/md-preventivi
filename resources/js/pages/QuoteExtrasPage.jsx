@@ -27,7 +27,6 @@ const defaultNewExtra = {
   qty: 1,
   unit_price: 0,
   notes: '',
-  is_included: true,
 };
 
 export default function QuoteExtrasPage() {
@@ -139,7 +138,6 @@ export default function QuoteExtrasPage() {
         qty: Number(newExtra.qty),
         unit_price: Number(newExtra.unit_price),
         notes: newExtra.notes || '',
-        is_included: Boolean(newExtra.is_included),
       };
       const response = await createQuoteExtra(quoteId, payload);
       const data = response.data ?? response;
@@ -251,22 +249,6 @@ export default function QuoteExtrasPage() {
     setClosing(true);
     setCloseError(null);
     setRowErrors({});
-
-    const warrantyError = extras.find(
-      (extra) =>
-        extra.fixed_key === 'warranty_10y' &&
-        Boolean(extra.is_included) &&
-        Number(extra.unit_price) <= 0
-    );
-    if (warrantyError) {
-      setRowErrors((prev) => ({
-        ...prev,
-        [warrantyError.id]:
-          'La garanzia 10 anni richiede un prezzo maggiore di 0 quando inclusa.',
-      }));
-      setClosing(false);
-      return;
-    }
 
     try {
       for (const extra of extras) {
@@ -422,18 +404,6 @@ export default function QuoteExtrasPage() {
                                 className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
                               />
                             </label>
-                            {isWarranty ? (
-                              <label className="flex items-center gap-2 text-xs text-slate-600">
-                                <input
-                                  type="checkbox"
-                                  checked={Boolean(extra.is_included)}
-                                  onChange={(event) =>
-                                    updateExtraField(extra.id, 'is_included', event.target.checked)
-                                  }
-                                />
-                                Compresa
-                              </label>
-                            ) : null}
                             {!extra.is_fixed ? (
                               <button
                                 type="button"
@@ -447,6 +417,11 @@ export default function QuoteExtrasPage() {
                           </div>
                           {rowErrors[extra.id] ? (
                             <p className="mt-2 text-xs text-rose-600">{rowErrors[extra.id]}</p>
+                          ) : null}
+                          {isWarranty && Number(extra.unit_price) === 0 ? (
+                            <p className="mt-2 text-xs text-slate-500">
+                              Nota: prezzo 0 → Garanzia non compresa.
+                            </p>
                           ) : null}
                         </td>
                       </tr>
@@ -529,16 +504,6 @@ export default function QuoteExtrasPage() {
                     className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
                     required
                   />
-                </label>
-                <label className="flex items-center gap-2 text-xs text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(newExtra.is_included)}
-                    onChange={(event) =>
-                      setNewExtra((prev) => ({ ...prev, is_included: event.target.checked }))
-                    }
-                  />
-                  Compresa
                 </label>
               </div>
               <div>
