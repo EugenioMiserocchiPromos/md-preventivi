@@ -93,7 +93,7 @@ export default function QuotesListPage({ type, label }) {
                 <tr key={row.id} className="border-t border-slate-200/60 text-slate-700">
                   <td className="px-4 py-4" colSpan={headers.length}>
                     <div className="space-y-2">
-                      <div className="flex flex-wrap gap-8 text-sm">
+                      <div className="grid gap-2 md:grid md:grid-cols-[20%_40%_40%] md:gap-3 items-start text-sm">
                         <div>
                           <span className="text-xs uppercase tracking-wide text-slate-500">
                             PROT
@@ -104,21 +104,30 @@ export default function QuotesListPage({ type, label }) {
                           <span className="text-xs uppercase tracking-wide text-slate-500">
                             Cliente
                           </span>
-                          <p>{row.customer_title_snapshot || '—'}</p>
+                          <p
+                            className="truncate"
+                            title={row.customer_title_snapshot || ''}
+                          >
+                            {row.customer_title_snapshot || '—'}
+                          </p>
                         </div>
                         <div>
                           <span className="text-xs uppercase tracking-wide text-slate-500">
                             Cantiere
                           </span>
-                          <p>{row.cantiere || '—'}</p>
+                          <p className="truncate" title={row.cantiere || ''}>
+                            {row.cantiere || '—'}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-end gap-8">
+                      <div className="mt-2 grid gap-2 md:grid md:grid-cols-[50%_15%_15%_15%] md:gap-3 items-end">
                         <div>
                           <span className="text-xs uppercase tracking-wide text-slate-500">
                             Titolo
                           </span>
-                          <p className="max-w-xl text-sm">{row.title_text || '—'}</p>
+                          <p className="truncate text-sm" title={row.title_text || ''}>
+                            {row.title_text || '—'}
+                          </p>
                         </div>
                         <div>
                           <span className="text-xs uppercase tracking-wide text-slate-500">
@@ -132,7 +141,7 @@ export default function QuotesListPage({ type, label }) {
                           </span>
                           <p className="text-sm">{row.date || '—'}</p>
                         </div>
-                        <div className="ml-auto flex items-center gap-2">
+                        <div className="flex justify-end">
                           <button
                             type="button"
                             onClick={() => navigate(`/builder/${row.id}`)}
