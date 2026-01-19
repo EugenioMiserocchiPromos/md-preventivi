@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuotes } from '../api/client';
 import { protForUi } from '../lib/prot';
+import { formatMoney } from '../lib/formatters';
 
 const headers = ['PROT', 'Cliente', 'Titolo', 'Cantiere', 'Totale', 'Data', 'Azioni'];
 
@@ -94,7 +95,7 @@ export default function QuotesListPage({ type, label }) {
                   <td className="px-4 py-3">{row.customer_title_snapshot || '—'}</td>
                   <td className="px-4 py-3">{row.title_text || '—'}</td>
                   <td className="px-4 py-3">{row.cantiere || '—'}</td>
-                  <td className="px-4 py-3">{row.grand_total ?? 0}</td>
+                  <td className="px-4 py-3">{formatMoney(row.grand_total)}</td>
                   <td className="px-4 py-3">{row.date || '—'}</td>
                   <td className="px-4 py-3">
                     <button
