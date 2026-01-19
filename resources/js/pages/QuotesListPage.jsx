@@ -1,10 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuotes } from '../api/client';
-import { protForUi } from '../lib/prot';
-import { formatMoney } from '../lib/formatters';
-
-const headers = ['PROT', 'Cliente', 'Titolo', 'Cantiere', 'Totale', 'Data', 'Azioni'];
+import QuoteList from '../components/QuoteList';
 
 export default function QuotesListPage({ type, label }) {
   const navigate = useNavigate();
@@ -70,109 +67,13 @@ export default function QuotesListPage({ type, label }) {
         </button>
       </form>
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/70">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-            <tr>
-              {headers.map((header) => (
-                <th key={header} className="px-4 py-3 font-medium">
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td className="px-4 py-6 text-slate-500" colSpan={headers.length}>
-                  {loading ? 'Caricamento...' : 'Nessun preventivo trovato.'}
-                </td>
-              </tr>
-            ) : (
-              rows.map((row) => (
-                <tr key={row.id} className="border-t border-slate-200/60 text-slate-700">
-                  <td className="px-4 py-4" colSpan={headers.length}>
-                    <div className="space-y-2">
-                      <div className="grid gap-2 md:grid md:grid-cols-[20%_40%_40%] md:gap-3 items-start text-sm">
-                        <div>
-                          <span className="text-xs uppercase tracking-wide text-slate-500">
-                            PROT
-                          </span>
-                          <p className="font-medium">{protForUi(row) || '—'}</p>
-                        </div>
-                        <div>
-                          <span className="text-xs uppercase tracking-wide text-slate-500">
-                            Cliente
-                          </span>
-                          <p
-                            className="truncate"
-                            title={row.customer_title_snapshot || ''}
-                          >
-                            {row.customer_title_snapshot || '—'}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-xs uppercase tracking-wide text-slate-500">
-                            Cantiere
-                          </span>
-                          <p className="truncate" title={row.cantiere || ''}>
-                            {row.cantiere || '—'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-2 grid gap-2 md:grid md:grid-cols-[50%_15%_15%_15%] md:gap-3 items-end">
-                        <div>
-                          <span className="text-xs uppercase tracking-wide text-slate-500">
-                            Titolo
-                          </span>
-                          <p className="truncate text-sm" title={row.title_text || ''}>
-                            {row.title_text || '—'}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-xs uppercase tracking-wide text-slate-500">
-                            Totale
-                          </span>
-                          <p className="text-sm font-semibold">{formatMoney(row.grand_total)}</p>
-                        </div>
-                        <div>
-                          <span className="text-xs uppercase tracking-wide text-slate-500">
-                            Data
-                          </span>
-                          <p className="text-sm">{row.date || '—'}</p>
-                        </div>
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/builder/${row.id}`)}
-                            title="Apri preventivo"
-                            aria-label="Apri preventivo"
-                            className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="h-4 w-4"
-                            >
-                              <path d="M12 20h9" />
-                              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {rows.length === 0 ? (
+        <div className="rounded-2xl border border-slate-200/70 bg-white px-4 py-6 text-slate-500">
+          {loading ? 'Caricamento...' : 'Nessun preventivo trovato.'}
+        </div>
+      ) : (
+        <QuoteList rows={rows} onOpen={(id) => navigate(`/builder/${id}`)} />
+      )}
 
       <div className="flex items-center gap-3 text-sm text-slate-500">
         <button
