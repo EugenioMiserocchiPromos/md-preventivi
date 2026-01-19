@@ -38,10 +38,10 @@ export default function QuoteExtrasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rowErrors, setRowErrors] = useState({});
-  const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [newExtra, setNewExtra] = useState(defaultNewExtra);
   const [createError, setCreateError] = useState(null);
+  const [dirtyIds, setDirtyIds] = useState(new Set());
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
@@ -101,39 +101,11 @@ export default function QuoteExtrasPage() {
     setExtras((prev) =>
       prev.map((extra) => (extra.id === id ? { ...extra, [field]: value } : extra))
     );
-  };
-
-  const handleSaveExtra = async (extra) => {
-    setSavingId(extra.id);
-    setRowErrors((prev) => ({ ...prev, [extra.id]: null }));
-    try {
-      const payload = {
-        unit: normalizeUnit(extra.unit),
-        qty: Number(extra.qty),
-        unit_price: Number(extra.unit_price),
-        notes: extra.notes || '',
-        is_included: Boolean(extra.is_included),
-      };
-      if (!extra.is_fixed) {
-        payload.description = extra.description;
-      }
-      const response = await updateQuoteExtra(extra.id, payload);
-      const data = response.data ?? response;
-      if (data.extra) {
-        setExtras((prev) =>
-          prev.map((item) => (item.id === extra.id ? data.extra : item))
-        );
-      }
-      if (data.totals) {
-        setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
-      }
-    } catch (err) {
-      const message =
-        err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
-      setRowErrors((prev) => ({ ...prev, [extra.id]: message }));
-    } finally {
-      setSavingId(null);
-    }
+    setDirtyIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
   };
 
   const handleDeleteExtra = async (extra) => {
@@ -183,12 +155,57 @@ export default function QuoteExtrasPage() {
     }
   };
 
+  const saveDirtyExtras = async () => {
+    const ids = Array.from(dirtyIds);
+    if (ids.length === 0) return;
+    const nextErrors = {};
+
+    for (const id of ids) {
+      const extra = extras.find((item) => item.id === id);
+      if (!extra) continue;
+      try {
+        const payload = {
+          unit: normalizeUnit(extra.unit),
+          qty: Number(extra.qty),
+          unit_price: Number(extra.unit_price),
+          notes: extra.notes || '',
+          is_included: Boolean(extra.is_included),
+        };
+        if (!extra.is_fixed) {
+          payload.description = extra.description;
+        }
+        const response = await updateQuoteExtra(extra.id, payload);
+        const data = response.data ?? response;
+        if (data.extra) {
+          setExtras((prev) =>
+            prev.map((item) => (item.id === extra.id ? data.extra : item))
+          );
+        }
+        if (data.totals) {
+          setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+        }
+      } catch (err) {
+        nextErrors[id] =
+          err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
+      }
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setRowErrors((prev) => ({ ...prev, ...nextErrors }));
+      throw new Error('Errore durante salvataggio righe extra.');
+    }
+
+    setDirtyIds(new Set());
+  };
+
   const handlePricingSubmit = async (event) => {
     event.preventDefault();
     if (!quote) return;
 
     setPricingSaving(true);
     setPricingError(null);
+
+    setRowErrors({});
 
     const payload = {
       discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
@@ -197,6 +214,7 @@ export default function QuoteExtrasPage() {
     };
 
     try {
+      await saveDirtyExtras();
       const response = await updateQuotePricing(quote.id, payload);
       const data = response.data ?? response;
       setQuote((prev) => {
@@ -336,120 +354,115 @@ export default function QuoteExtrasPage() {
           {extras.length === 0 ? (
             <p className="text-sm text-slate-500">Nessuna riga extra presente.</p>
           ) : null}
-          <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Descrizione</th>
-                  <th className="px-3 py-2 font-medium">UM</th>
-                  <th className="px-3 py-2 font-medium">Qt</th>
-                  <th className="px-3 py-2 font-medium">Prezzo</th>
-                  <th className="px-3 py-2 font-medium">Note</th>
-                  <th className="px-3 py-2 font-medium">Azioni</th>
-                </tr>
-              </thead>
               <tbody>
                 {extras.map((extra) => {
                   const isWarranty = extra.fixed_key === 'warranty_10y';
                   return (
-                    <tr key={extra.id} className="border-t border-slate-200/60">
-                      <td className="px-3 py-2">
-                        {extra.is_fixed ? (
-                          <span className="font-medium text-slate-700">{extra.description}</span>
-                        ) : (
-                          <input
-                            value={extra.description}
-                            onChange={(event) =>
-                              updateExtraField(extra.id, 'description', event.target.value)
-                            }
-                            className="w-full rounded-lg border border-slate-200 px-2 py-1"
-                          />
-                        )}
-                        {isWarranty ? (
-                          <label className="mt-2 flex items-center gap-2 text-xs text-slate-600">
+                    <React.Fragment key={extra.id}>
+                      <tr className="border-t border-slate-200/60">
+                        <td className="px-3 py-3" colSpan={6}>
+                          <p className="text-xs uppercase tracking-wide text-slate-500">
+                            Descrizione
+                          </p>
+                          {extra.is_fixed ? (
+                            <p className="mt-1 font-medium text-slate-700">{extra.description}</p>
+                          ) : (
                             <input
-                              type="checkbox"
-                              checked={Boolean(extra.is_included)}
+                              value={extra.description}
                               onChange={(event) =>
-                                updateExtraField(extra.id, 'is_included', event.target.checked)
+                                updateExtraField(extra.id, 'description', event.target.value)
                               }
+                              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
                             />
-                            Compresa
-                          </label>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-2">
-                        <select
-                          value={extra.unit}
-                          onChange={(event) =>
-                            updateExtraField(extra.id, 'unit', event.target.value)
-                          }
-                          className="rounded-lg border border-slate-200 px-2 py-1"
-                        >
-                          {unitOptions.map((unit) => (
-                            <option key={unit} value={unit}>
-                              {unit}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={extra.qty}
-                          onChange={(event) =>
-                            updateExtraField(extra.id, 'qty', event.target.value)
-                          }
-                          className="w-24 rounded-lg border border-slate-200 px-2 py-1"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={extra.unit_price}
-                          onChange={(event) =>
-                            updateExtraField(extra.id, 'unit_price', event.target.value)
-                          }
-                          className="w-28 rounded-lg border border-slate-200 px-2 py-1"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          value={extra.notes || ''}
-                          onChange={(event) =>
-                            updateExtraField(extra.id, 'notes', event.target.value)
-                          }
-                          className="w-full rounded-lg border border-slate-200 px-2 py-1"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleSaveExtra(extra)}
-                            disabled={savingId === extra.id}
-                            className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 disabled:opacity-60"
-                          >
-                            {savingId === extra.id ? 'Salvo...' : 'Salva'}
-                          </button>
-                          {!extra.is_fixed ? (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteExtra(extra)}
-                              disabled={deletingId === extra.id}
-                              className="rounded-lg border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 disabled:opacity-60"
-                            >
-                              Elimina
-                            </button>
+                          )}
+                        </td>
+                      </tr>
+                      <tr className="border-t border-slate-200/60">
+                        <td className="px-3 py-3" colSpan={6}>
+                          <div className="flex flex-wrap items-end gap-3">
+                            <label className="text-xs text-slate-500">
+                              UM
+                              <select
+                                value={extra.unit}
+                                onChange={(event) =>
+                                  updateExtraField(extra.id, 'unit', event.target.value)
+                                }
+                                className="mt-1 block rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                              >
+                                {unitOptions.map((unit) => (
+                                  <option key={unit} value={unit}>
+                                    {unit}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="text-xs text-slate-500">
+                              Qt
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={extra.qty}
+                                onChange={(event) =>
+                                  updateExtraField(extra.id, 'qty', event.target.value)
+                                }
+                                className="mt-1 w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                              />
+                            </label>
+                            <label className="text-xs text-slate-500">
+                              Prezzo
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={extra.unit_price}
+                                onChange={(event) =>
+                                  updateExtraField(extra.id, 'unit_price', event.target.value)
+                                }
+                                className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                              />
+                            </label>
+                            {isWarranty ? (
+                              <label className="flex items-center gap-2 text-xs text-slate-600">
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(extra.is_included)}
+                                  onChange={(event) =>
+                                    updateExtraField(extra.id, 'is_included', event.target.checked)
+                                  }
+                                />
+                                Compresa
+                              </label>
+                            ) : null}
+                            {!extra.is_fixed ? (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteExtra(extra)}
+                                disabled={deletingId === extra.id}
+                                className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 disabled:opacity-60"
+                              >
+                                Elimina
+                              </button>
+                            ) : null}
+                          </div>
+                          {rowErrors[extra.id] ? (
+                            <p className="mt-2 text-xs text-rose-600">{rowErrors[extra.id]}</p>
                           ) : null}
-                        </div>
-                        {rowErrors[extra.id] ? (
-                          <p className="mt-1 text-xs text-rose-600">{rowErrors[extra.id]}</p>
-                        ) : null}
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+                      <tr className="border-t border-slate-200/60">
+                        <td className="px-3 py-3" colSpan={6}>
+                          <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>
+                          <input
+                            value={extra.notes || ''}
+                            onChange={(event) =>
+                              updateExtraField(extra.id, 'notes', event.target.value)
+                            }
+                            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                          />
+                        </td>
+                      </tr>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -461,69 +474,86 @@ export default function QuoteExtrasPage() {
             className="rounded-2xl border border-slate-200/70 bg-white p-4"
           >
             <p className="text-sm font-semibold text-slate-700">Nuova riga extra</p>
-            <div className="mt-3 grid gap-3 md:grid-cols-5">
-              <input
-                placeholder="Descrizione"
-                value={newExtra.description}
-                onChange={(event) =>
-                  setNewExtra((prev) => ({ ...prev, description: event.target.value }))
-                }
-                className="rounded-lg border border-slate-200 px-3 py-2"
-                required
-              />
-              <select
-                value={newExtra.unit}
-                onChange={(event) =>
-                  setNewExtra((prev) => ({ ...prev, unit: event.target.value }))
-                }
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              >
-                {unitOptions.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                step="0.01"
-                value={newExtra.qty}
-                onChange={(event) =>
-                  setNewExtra((prev) => ({ ...prev, qty: event.target.value }))
-                }
-                className="rounded-lg border border-slate-200 px-3 py-2"
-                required
-              />
-              <input
-                type="number"
-                step="0.01"
-                value={newExtra.unit_price}
-                onChange={(event) =>
-                  setNewExtra((prev) => ({ ...prev, unit_price: event.target.value }))
-                }
-                className="rounded-lg border border-slate-200 px-3 py-2"
-                required
-              />
-              <input
-                placeholder="Note"
-                value={newExtra.notes}
-                onChange={(event) =>
-                  setNewExtra((prev) => ({ ...prev, notes: event.target.value }))
-                }
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
-            </div>
-            <div className="mt-3 flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-slate-600">
+            <div className="mt-3 space-y-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Descrizione</p>
                 <input
-                  type="checkbox"
-                  checked={Boolean(newExtra.is_included)}
+                  placeholder="Descrizione"
+                  value={newExtra.description}
                   onChange={(event) =>
-                    setNewExtra((prev) => ({ ...prev, is_included: event.target.checked }))
+                    setNewExtra((prev) => ({ ...prev, description: event.target.value }))
                   }
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                  required
                 />
-                Compresa
-              </label>
+              </div>
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="text-xs text-slate-500">
+                  UM
+                  <select
+                    value={newExtra.unit}
+                    onChange={(event) =>
+                      setNewExtra((prev) => ({ ...prev, unit: event.target.value }))
+                    }
+                    className="mt-1 block rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  >
+                    {unitOptions.map((unit) => (
+                      <option key={unit} value={unit}>
+                        {unit}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs text-slate-500">
+                  Qt
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newExtra.qty}
+                    onChange={(event) =>
+                      setNewExtra((prev) => ({ ...prev, qty: event.target.value }))
+                    }
+                    className="mt-1 w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    required
+                  />
+                </label>
+                <label className="text-xs text-slate-500">
+                  Prezzo
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newExtra.unit_price}
+                    onChange={(event) =>
+                      setNewExtra((prev) => ({ ...prev, unit_price: event.target.value }))
+                    }
+                    className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    required
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-xs text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(newExtra.is_included)}
+                    onChange={(event) =>
+                      setNewExtra((prev) => ({ ...prev, is_included: event.target.checked }))
+                    }
+                  />
+                  Compresa
+                </label>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>
+                <input
+                  placeholder="Note"
+                  value={newExtra.notes}
+                  onChange={(event) =>
+                    setNewExtra((prev) => ({ ...prev, notes: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-end">
               <button
                 type="submit"
                 className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
