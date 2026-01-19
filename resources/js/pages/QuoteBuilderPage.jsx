@@ -10,8 +10,10 @@ import {
   updateQuoteItemComponent,
   upsertQuoteItemPose,
   updateQuotePricing,
+  saveQuoteRevision,
 } from '../api/client';
 import TotalsPanel from '../components/TotalsPanel';
+import { protForUi } from '../lib/prot';
 
 const defaultPose = {
   pose_type: 'Posa in opera',
@@ -570,6 +572,8 @@ export default function QuoteBuilderPage() {
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
+  const [closeSaving, setCloseSaving] = useState(false);
+  const [closeError, setCloseError] = useState(null);
 
   const loadQuote = useCallback(async () => {
     setLoading(true);
@@ -800,17 +804,52 @@ export default function QuoteBuilderPage() {
     }
   };
 
+  const getListPath = (type) => {
+    const key = String(type || '').toLowerCase();
+    if (key === 'fp') return '/preventivi/fp';
+    if (key === 'as') return '/preventivi/as';
+    if (key === 'vm') return '/preventivi/vm';
+    return '/preventivi/fp';
+  };
+
+  const handleSaveAndClose = async () => {
+    if (!quote) return;
+    setCloseSaving(true);
+    setCloseError(null);
+    try {
+      const response = await saveQuoteRevision(quote.id);
+      const data = response.data ?? response;
+      setQuote((prev) => (prev ? { ...prev, ...data } : data));
+      navigate(getListPath(quote.quote_type));
+    } catch (err) {
+      setCloseError(err?.message || 'Errore durante salvataggio revisione.');
+    } finally {
+      setCloseSaving(false);
+    }
+  };
+
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Builder</p>
-        <h1 className="text-2xl font-semibold">Preventivo</h1>
-        {quote ? (
-          <p className="text-sm text-slate-500">
-            PROT: {quote.prot_display || '—'} — {quote.customer_title_snapshot}
-          </p>
-        ) : null}
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Builder</p>
+          <h1 className="text-2xl font-semibold">Preventivo</h1>
+          {quote ? (
+            <p className="text-sm text-slate-500">
+              PROT: {protForUi(quote) || '—'} — {quote.customer_title_snapshot}
+            </p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={handleSaveAndClose}
+          disabled={!quote || closeSaving}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-60"
+        >
+          {closeSaving ? 'Salvataggio...' : 'Salva e chiudi'}
+        </button>
       </header>
+      {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
 
       {loading ? <p className="text-sm text-slate-500">Caricamento preventivo...</p> : null}
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}

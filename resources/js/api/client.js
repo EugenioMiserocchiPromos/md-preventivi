@@ -187,6 +187,10 @@ export async function updateQuotePricing(quoteId, payload) {
   });
 }
 
+export async function saveQuoteRevision(quoteId) {
+  return request(`/api/quotes/${quoteId}/revision`, { method: 'POST' });
+}
+
 export async function fetchQuoteExtras(quoteId) {
   return request(`/api/quotes/${quoteId}/extras`, { method: 'GET' });
 }

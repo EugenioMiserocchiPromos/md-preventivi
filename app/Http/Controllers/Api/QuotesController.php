@@ -8,6 +8,7 @@ use App\Http\Resources\QuoteListResource;
 use App\Http\Resources\QuoteResource;
 use App\Models\Customer;
 use App\Models\Quote;
+use App\Services\ProtFormatter;
 use App\Services\ProtGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -114,5 +115,28 @@ class QuotesController extends Controller
         ]);
 
         return new QuoteResource($quote);
+    }
+
+    public function revision(Quote $quote, ProtFormatter $formatter)
+    {
+        // Explicit-only: revision_number increments only through this endpoint.
+        $updated = DB::transaction(function () use ($quote, $formatter) {
+            $locked = Quote::query()
+                ->whereKey($quote->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $locked->revision_number = (int) $locked->revision_number + 1;
+            $locked->prot_internal = $formatter->makeInternal(
+                $locked->prot_display,
+                (int) $locked->revision_number
+            );
+            $locked->date = now()->toDateString();
+            $locked->save();
+
+            return $locked;
+        });
+
+        return new QuoteResource($updated);
     }
 }
