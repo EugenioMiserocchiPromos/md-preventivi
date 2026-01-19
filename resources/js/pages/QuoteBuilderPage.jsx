@@ -571,10 +571,8 @@ export default function QuoteBuilderPage() {
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
-  const [revisionOpen, setRevisionOpen] = useState(false);
-  const [revisionSaving, setRevisionSaving] = useState(false);
-  const [revisionError, setRevisionError] = useState(null);
-  const [revisionSuccess, setRevisionSuccess] = useState(null);
+  const [closeSaving, setCloseSaving] = useState(false);
+  const [closeError, setCloseError] = useState(null);
 
   const loadQuote = useCallback(async () => {
     setLoading(true);
@@ -805,20 +803,27 @@ export default function QuoteBuilderPage() {
     }
   };
 
-  const handleRevisionConfirm = async () => {
+  const getListPath = (type) => {
+    const key = String(type || '').toLowerCase();
+    if (key === 'fp') return '/preventivi/fp';
+    if (key === 'as') return '/preventivi/as';
+    if (key === 'vm') return '/preventivi/vm';
+    return '/preventivi/fp';
+  };
+
+  const handleSaveAndClose = async () => {
     if (!quote) return;
-    setRevisionSaving(true);
-    setRevisionError(null);
+    setCloseSaving(true);
+    setCloseError(null);
     try {
       const response = await saveQuoteRevision(quote.id);
       const data = response.data ?? response;
       setQuote((prev) => (prev ? { ...prev, ...data } : data));
-      setRevisionSuccess('Revisione salvata.');
-      setRevisionOpen(false);
+      navigate(getListPath(quote.quote_type));
     } catch (err) {
-      setRevisionError(err?.message || 'Errore durante salvataggio revisione.');
+      setCloseError(err?.message || 'Errore durante salvataggio revisione.');
     } finally {
-      setRevisionSaving(false);
+      setCloseSaving(false);
     }
   };
 
@@ -836,18 +841,14 @@ export default function QuoteBuilderPage() {
         </div>
         <button
           type="button"
-          onClick={() => {
-            setRevisionError(null);
-            setRevisionOpen(true);
-          }}
-          disabled={!quote || revisionSaving}
+          onClick={handleSaveAndClose}
+          disabled={!quote || closeSaving}
           className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-60"
         >
-          Salva revisione
+          {closeSaving ? 'Salvataggio...' : 'Salva e chiudi'}
         </button>
       </header>
-      {revisionSuccess ? <p className="text-sm text-emerald-600">{revisionSuccess}</p> : null}
-      {revisionError ? <p className="text-sm text-rose-600">{revisionError}</p> : null}
+      {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
 
       {loading ? <p className="text-sm text-slate-500">Caricamento preventivo...</p> : null}
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}
@@ -956,35 +957,6 @@ export default function QuoteBuilderPage() {
           </button>
         }
       />
-      {revisionOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
-            <h2 className="text-lg font-semibold">Conferma revisione</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Vuoi salvare una nuova revisione del preventivo? L&apos;azione incrementa la
-              revisione in modo permanente.
-            </p>
-            {revisionError ? <p className="mt-2 text-sm text-rose-600">{revisionError}</p> : null}
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setRevisionOpen(false)}
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
-              >
-                Annulla
-              </button>
-              <button
-                type="button"
-                onClick={handleRevisionConfirm}
-                disabled={revisionSaving}
-                className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-              >
-                {revisionSaving ? 'Salvataggio...' : 'Conferma'}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }

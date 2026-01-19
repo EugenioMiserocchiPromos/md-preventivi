@@ -5,6 +5,7 @@ import {
   deleteQuoteExtra,
   fetchQuote,
   fetchQuoteExtras,
+  saveQuoteRevision,
   updateQuoteExtra,
   updateQuotePricing,
 } from '../api/client';
@@ -280,6 +281,10 @@ export default function QuoteExtrasPage() {
       const pricingResponse = await updateQuotePricing(quote.id, pricingPayload);
       const pricingData = pricingResponse.data ?? pricingResponse;
       setQuote((prev) => (prev ? { ...prev, ...pricingData } : prev));
+
+      const revisionResponse = await saveQuoteRevision(quote.id);
+      const revisionData = revisionResponse.data ?? revisionResponse;
+      setQuote((prev) => (prev ? { ...prev, ...revisionData } : prev));
 
       navigate(getListPath(quote.quote_type));
     } catch (err) {
