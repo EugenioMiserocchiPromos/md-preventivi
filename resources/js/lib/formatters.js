@@ -10,8 +10,11 @@ export function formatMoney(value) {
     return '€ 0,00';
   }
 
-  return new Intl.NumberFormat('it-IT', {
-    style: 'currency',
-    currency: 'EUR',
+  const formatted = new Intl.NumberFormat('it-IT', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true,
   }).format(numberValue);
+
+  return `€ ${formatted}`;
 }
