@@ -132,13 +132,27 @@ export default function QuotesListPage({ type, label }) {
                           </span>
                           <p className="text-sm">{row.date || '—'}</p>
                         </div>
-                        <div className="ml-auto">
+                        <div className="ml-auto flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => navigate(`/builder/${row.id}`)}
-                            className="text-xs font-semibold text-slate-600 underline underline-offset-4"
+                            title="Apri preventivo"
+                            aria-label="Apri preventivo"
+                            className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900"
                           >
-                            Apri
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-4 w-4"
+                            >
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                            </svg>
                           </button>
                         </div>
                       </div>
