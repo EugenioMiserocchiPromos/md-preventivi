@@ -11,6 +11,7 @@ import {
 } from '../api/client';
 import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
+import { formatMoney } from '../lib/formatters';
 
 const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
 
@@ -20,8 +21,6 @@ const normalizeUnit = (value) => {
   const unit = map[normalized] || normalized;
   return unitOptions.includes(unit) ? unit : 'ml';
 };
-
-const formatMoney = (value) => `€ ${Number(value || 0).toFixed(2)}`;
 
 const defaultNewExtra = {
   description: '',

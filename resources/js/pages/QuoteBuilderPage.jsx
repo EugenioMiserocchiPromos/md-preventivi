@@ -14,6 +14,7 @@ import {
 } from '../api/client';
 import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
+import { formatMoney } from '../lib/formatters';
 
 const defaultPose = {
   pose_type: 'Posa in opera',
@@ -119,8 +120,6 @@ function QuoteItemCard({
   };
 
   const normalizeNumber = (value) => Number(value || 0);
-  const formatMoney = (value) => `€ ${normalizeNumber(value).toFixed(2)}`;
-
   const componentTotals = (item.components || []).map((component) => {
     const draft = componentDrafts[component.id] || {};
     const qty = normalizeNumber(draft.qty);

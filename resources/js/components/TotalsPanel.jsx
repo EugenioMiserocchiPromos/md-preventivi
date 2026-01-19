@@ -1,6 +1,5 @@
 import React from 'react';
-
-const formatMoney = (value) => `€ ${Number(value || 0).toFixed(2)}`;
+import { formatMoney } from '../lib/formatters';
 
 export default function TotalsPanel({
   totals,
@@ -18,25 +17,25 @@ export default function TotalsPanel({
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Subtotale</p>
             <p className="text-lg font-semibold">
-              {totals ? formatMoney(totals.subtotal) : '€ 0.00'}
+              {totals ? formatMoney(totals.subtotal) : formatMoney(0)}
             </p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Sconto</p>
             <p className="text-lg font-semibold">
-              {totals ? formatMoney(totals.discount_amount) : '€ 0.00'}
+              {totals ? formatMoney(totals.discount_amount) : formatMoney(0)}
             </p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Imponibile</p>
             <p className="text-lg font-semibold">
-              {totals ? formatMoney(totals.taxable_total) : '€ 0.00'}
+              {totals ? formatMoney(totals.taxable_total) : formatMoney(0)}
             </p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Totale</p>
             <p className="text-lg font-semibold">
-              {totals ? formatMoney(totals.grand_total) : '€ 0.00'}
+              {totals ? formatMoney(totals.grand_total) : formatMoney(0)}
             </p>
           </div>
         </div>

@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuotes } from '../api/client';
-import { protForUi } from '../lib/prot';
-
-const headers = ['PROT', 'Cliente', 'Titolo', 'Cantiere', 'Totale', 'Data', 'Azioni'];
+import QuoteList from '../components/QuoteList';
 
 export default function QuotesListPage({ type, label }) {
   const navigate = useNavigate();
@@ -69,48 +67,13 @@ export default function QuotesListPage({ type, label }) {
         </button>
       </form>
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/70">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-            <tr>
-              {headers.map((header) => (
-                <th key={header} className="px-4 py-3 font-medium">
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td className="px-4 py-6 text-slate-500" colSpan={headers.length}>
-                  {loading ? 'Caricamento...' : 'Nessun preventivo trovato.'}
-                </td>
-              </tr>
-            ) : (
-              rows.map((row) => (
-                <tr key={row.id} className="border-t border-slate-200/60 text-slate-700">
-                  <td className="px-4 py-3 font-medium">{protForUi(row) || '—'}</td>
-                  <td className="px-4 py-3">{row.customer_title_snapshot || '—'}</td>
-                  <td className="px-4 py-3">{row.title_text || '—'}</td>
-                  <td className="px-4 py-3">{row.cantiere || '—'}</td>
-                  <td className="px-4 py-3">{row.grand_total ?? 0}</td>
-                  <td className="px-4 py-3">{row.date || '—'}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/builder/${row.id}`)}
-                      className="text-xs font-semibold text-slate-600 underline underline-offset-4"
-                    >
-                      Apri
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {rows.length === 0 ? (
+        <div className="rounded-2xl border border-slate-200/70 bg-white px-4 py-6 text-slate-500">
+          {loading ? 'Caricamento...' : 'Nessun preventivo trovato.'}
+        </div>
+      ) : (
+        <QuoteList rows={rows} onOpen={(id) => navigate(`/builder/${id}`)} />
+      )}
 
       <div className="flex items-center gap-3 text-sm text-slate-500">
         <button
