@@ -119,6 +119,7 @@ class QuotesController extends Controller
 
     public function revision(Quote $quote, ProtFormatter $formatter)
     {
+        // Explicit-only: revision_number increments only through this endpoint.
         $updated = DB::transaction(function () use ($quote, $formatter) {
             $locked = Quote::query()
                 ->whereKey($quote->id)
