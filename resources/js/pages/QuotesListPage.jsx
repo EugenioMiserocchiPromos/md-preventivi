@@ -91,20 +91,58 @@ export default function QuotesListPage({ type, label }) {
             ) : (
               rows.map((row) => (
                 <tr key={row.id} className="border-t border-slate-200/60 text-slate-700">
-                  <td className="px-4 py-3 font-medium">{protForUi(row) || '—'}</td>
-                  <td className="px-4 py-3">{row.customer_title_snapshot || '—'}</td>
-                  <td className="px-4 py-3">{row.title_text || '—'}</td>
-                  <td className="px-4 py-3">{row.cantiere || '—'}</td>
-                  <td className="px-4 py-3">{formatMoney(row.grand_total)}</td>
-                  <td className="px-4 py-3">{row.date || '—'}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/builder/${row.id}`)}
-                      className="text-xs font-semibold text-slate-600 underline underline-offset-4"
-                    >
-                      Apri
-                    </button>
+                  <td className="px-4 py-4" colSpan={headers.length}>
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-8 text-sm">
+                        <div>
+                          <span className="text-xs uppercase tracking-wide text-slate-500">
+                            PROT
+                          </span>
+                          <p className="font-medium">{protForUi(row) || '—'}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs uppercase tracking-wide text-slate-500">
+                            Cliente
+                          </span>
+                          <p>{row.customer_title_snapshot || '—'}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs uppercase tracking-wide text-slate-500">
+                            Cantiere
+                          </span>
+                          <p>{row.cantiere || '—'}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-end gap-8">
+                        <div>
+                          <span className="text-xs uppercase tracking-wide text-slate-500">
+                            Titolo
+                          </span>
+                          <p className="max-w-xl text-sm">{row.title_text || '—'}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs uppercase tracking-wide text-slate-500">
+                            Totale
+                          </span>
+                          <p className="text-sm font-semibold">{formatMoney(row.grand_total)}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs uppercase tracking-wide text-slate-500">
+                            Data
+                          </span>
+                          <p className="text-sm">{row.date || '—'}</p>
+                        </div>
+                        <div className="ml-auto">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/builder/${row.id}`)}
+                            className="text-xs font-semibold text-slate-600 underline underline-offset-4"
+                          >
+                            Apri
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))
