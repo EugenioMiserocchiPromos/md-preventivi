@@ -839,14 +839,23 @@ export default function QuoteBuilderPage() {
             </p>
           ) : null}
         </div>
-        <button
-          type="button"
-          onClick={handleSaveAndClose}
-          disabled={!quote || closeSaving}
-          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-60"
-        >
-          {closeSaving ? 'Salvataggio...' : 'Salva e chiudi'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(`/builder/${quoteId}/extras`)}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Continua
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAndClose}
+            disabled={!quote || closeSaving}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-60"
+          >
+            {closeSaving ? 'Salvataggio...' : 'Salva e chiudi'}
+          </button>
+        </div>
       </header>
       {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
 
@@ -947,15 +956,6 @@ export default function QuoteBuilderPage() {
         onSubmit={handlePricingSubmit}
         saving={pricingSaving}
         error={pricingError}
-        secondaryAction={
-          <button
-            type="button"
-            onClick={() => navigate(`/builder/${quoteId}/extras`)}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
-          >
-            Continua
-          </button>
-        }
       />
     </section>
   );
