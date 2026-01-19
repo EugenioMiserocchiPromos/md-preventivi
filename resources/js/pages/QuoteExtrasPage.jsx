@@ -21,6 +21,8 @@ const normalizeUnit = (value) => {
   return unitOptions.includes(unit) ? unit : 'ml';
 };
 
+const formatMoney = (value) => `€ ${Number(value || 0).toFixed(2)}`;
+
 const defaultNewExtra = {
   description: '',
   unit: 'ml',
@@ -341,6 +343,9 @@ export default function QuoteExtrasPage() {
               <tbody>
                 {extras.map((extra) => {
                   const isWarranty = extra.fixed_key === 'warranty_10y';
+                  const qtyValue = Number(extra.qty || 0);
+                  const priceValue = Number(extra.unit_price || 0);
+                  const lineTotal = qtyValue * priceValue;
                   return (
                     <React.Fragment key={extra.id}>
                       <tr className="border-t border-slate-200/60">
@@ -363,15 +368,27 @@ export default function QuoteExtrasPage() {
                       </tr>
                       <tr className="border-t border-slate-200/60">
                         <td className="px-3 py-3" colSpan={6}>
-                          <div className="flex flex-wrap items-end gap-3">
-                            <label className="text-xs text-slate-500">
-                              UM
+                          <div className="mt-1 grid gap-3 md:grid-cols-4">
+                            <label className="text-sm">
+                              <span className="text-slate-600">Qtà</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={extra.qty}
+                                onChange={(event) =>
+                                  updateExtraField(extra.id, 'qty', event.target.value)
+                                }
+                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                              />
+                            </label>
+                            <label className="text-sm">
+                              <span className="text-slate-600">UM</span>
                               <select
                                 value={extra.unit}
                                 onChange={(event) =>
                                   updateExtraField(extra.id, 'unit', event.target.value)
                                 }
-                                className="mt-1 block rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                               >
                                 {unitOptions.map((unit) => (
                                   <option key={unit} value={unit}>
@@ -380,20 +397,8 @@ export default function QuoteExtrasPage() {
                                 ))}
                               </select>
                             </label>
-                            <label className="text-xs text-slate-500">
-                              Qt
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={extra.qty}
-                                onChange={(event) =>
-                                  updateExtraField(extra.id, 'qty', event.target.value)
-                                }
-                                className="mt-1 w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                              />
-                            </label>
-                            <label className="text-xs text-slate-500">
-                              Prezzo
+                            <label className="text-sm">
+                              <span className="text-slate-600">Prezzo</span>
                               <input
                                 type="number"
                                 step="0.01"
@@ -401,9 +406,17 @@ export default function QuoteExtrasPage() {
                                 onChange={(event) =>
                                   updateExtraField(extra.id, 'unit_price', event.target.value)
                                 }
-                                className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                               />
                             </label>
+                            <div className="text-sm">
+                              <span className="text-slate-600">Totale riga</span>
+                              <p className="mt-2 text-base font-semibold text-slate-800">
+                                {formatMoney(lineTotal)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
                             {!extra.is_fixed ? (
                               <button
                                 type="button"
@@ -463,24 +476,8 @@ export default function QuoteExtrasPage() {
                 />
               </div>
               <div className="flex flex-wrap items-end gap-3">
-                <label className="text-xs text-slate-500">
-                  UM
-                  <select
-                    value={newExtra.unit}
-                    onChange={(event) =>
-                      setNewExtra((prev) => ({ ...prev, unit: event.target.value }))
-                    }
-                    className="mt-1 block rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  >
-                    {unitOptions.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="text-xs text-slate-500">
-                  Qt
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-500">Qtà</label>
                   <input
                     type="number"
                     step="0.01"
@@ -488,12 +485,28 @@ export default function QuoteExtrasPage() {
                     onChange={(event) =>
                       setNewExtra((prev) => ({ ...prev, qty: event.target.value }))
                     }
-                    className="mt-1 w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
                     required
                   />
-                </label>
-                <label className="text-xs text-slate-500">
-                  Prezzo
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-500">UM</label>
+                  <select
+                    value={newExtra.unit}
+                    onChange={(event) =>
+                      setNewExtra((prev) => ({ ...prev, unit: event.target.value }))
+                    }
+                    className="block rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  >
+                    {unitOptions.map((unit) => (
+                      <option key={unit} value={unit}>
+                        {unit}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-500">Prezzo</label>
                   <input
                     type="number"
                     step="0.01"
@@ -501,10 +514,10 @@ export default function QuoteExtrasPage() {
                     onChange={(event) =>
                       setNewExtra((prev) => ({ ...prev, unit_price: event.target.value }))
                     }
-                    className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
                     required
                   />
-                </label>
+                </div>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>
