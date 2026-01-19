@@ -10,8 +10,8 @@ class QuoteExtrasService
     public const FIXED_KEYS = ['warranty_10y', 'extra_2', 'extra_3'];
     private const DESCRIPTIONS = [
         'warranty_10y' => 'Garanzia 10 anni',
-        'extra_2' => 'Extra 2',
-        'extra_3' => 'Extra 3',
+        'extra_2' => 'Assistenza tecnica in cantiere e Progettazione vasca',
+        'extra_3' => 'Oneri derivanti da trasferte personale applicatore tecnico',
     ];
 
     public function ensureFixedRows(Quote $quote): void
@@ -21,6 +21,17 @@ class QuoteExtrasService
             ->whereNotNull('fixed_key')
             ->pluck('fixed_key')
             ->all();
+
+        foreach (self::FIXED_KEYS as $key) {
+            $description = self::DESCRIPTIONS[$key] ?? 'Extra';
+            DB::table('quote_extras')
+                ->where('quote_id', $quote->id)
+                ->where('fixed_key', $key)
+                ->update([
+                    'description' => $description,
+                    'updated_at' => now(),
+                ]);
+        }
 
         $missingKeys = array_values(array_diff(self::FIXED_KEYS, $existingKeys));
         if (empty($missingKeys)) {

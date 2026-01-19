@@ -11,7 +11,6 @@ use App\Models\QuoteExtra;
 use App\Services\QuoteExtrasService;
 use App\Services\QuoteTotalsService;
 use App\Support\Units;
-use Illuminate\Validation\ValidationException;
 
 class QuoteExtrasController extends Controller
 {
@@ -73,12 +72,6 @@ class QuoteExtrasController extends Controller
             $data['line_total'] = round($nextQty * $nextUnitPrice, 2);
         }
 
-        $nextIncluded = array_key_exists('is_included', $data)
-            ? (bool) $data['is_included']
-            : (bool) $extra->is_included;
-
-        $this->ensureWarrantyPriceRule($extra, $nextIncluded, $nextUnitPrice);
-
         $extra->fill($data);
         $extra->save();
 
@@ -108,16 +101,4 @@ class QuoteExtrasController extends Controller
         ]);
     }
 
-    private function ensureWarrantyPriceRule(QuoteExtra $extra, bool $included, float $unitPrice): void
-    {
-        if ($extra->fixed_key !== 'warranty_10y' || ! $included) {
-            return;
-        }
-
-        if ($unitPrice <= 0) {
-            throw ValidationException::withMessages([
-                'unit_price' => 'La garanzia 10 anni richiede un prezzo maggiore di 0 quando inclusa.',
-            ]);
-        }
-    }
 }

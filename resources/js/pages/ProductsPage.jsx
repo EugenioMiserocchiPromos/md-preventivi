@@ -204,7 +204,7 @@ export default function ProductsPage() {
                         <th className="px-4 py-3 font-medium">Ordine</th>
                         <th className="px-4 py-3 font-medium">Componente</th>
                         <th className="px-4 py-3 font-medium">UM</th>
-                        <th className="px-4 py-3 font-medium">Qta</th>
+                        <th className="px-4 py-3 font-medium">Qtà</th>
                         <th className="px-4 py-3 font-medium">Prezzo</th>
                         <th className="px-4 py-3 font-medium">Visibile</th>
                       </tr>

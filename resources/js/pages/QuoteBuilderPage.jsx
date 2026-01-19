@@ -256,7 +256,7 @@ function QuoteItemCard({
 
       <div className="mt-4 grid gap-3 md:grid-cols-4">
         <label className="text-sm">
-          <span className="text-slate-600">Qta</span>
+          <span className="text-slate-600">Qtà</span>
           <input
             type="number"
             step="0.01"
@@ -321,7 +321,7 @@ function QuoteItemCard({
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-3 py-2 font-medium">Nome</th>
-                  <th className="px-3 py-2 font-medium">Qta</th>
+                  <th className="px-3 py-2 font-medium">Qtà</th>
                   <th className="px-3 py-2 font-medium">UM</th>
                   <th className="px-3 py-2 font-medium">Prezzo</th>
                   <th className="px-3 py-2 font-medium">Totale</th>
@@ -482,7 +482,7 @@ function QuoteItemCard({
               </select>
             </label>
             <label className="text-sm">
-              <span className="text-slate-600">Qta</span>
+              <span className="text-slate-600">Qtà</span>
               <input
                 type="number"
                 step="0.01"
