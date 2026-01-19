@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->delete('/quote-title-templates/{template}', [
 Route::middleware('auth:sanctum')->get('/quotes/{quote}', [QuotesController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/quotes', [QuotesController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/quotes', [QuotesController::class, 'index']);
+Route::middleware('auth:sanctum')->post('/quotes/{quote}/revision', [QuotesController::class, 'revision']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/items', [QuoteItemsController::class, 'store']);
 Route::middleware('auth:sanctum')->patch('/quotes/{quote}/pricing', [QuotePricingController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/quotes/{quote}/extras', [QuoteExtrasController::class, 'index']);
