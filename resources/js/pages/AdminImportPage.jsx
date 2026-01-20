@@ -102,6 +102,11 @@ export default function AdminImportPage() {
         description="Carica il CSV con product_code, component_name e campi opzionali. Supportati CSV con ',' o ';'."
         endpoint="/api/products/components/import"
       />
+      <ImportSection
+        title="Import clienti"
+        description="CSV con titolo,email,anagrafica (email opzionale, multipla con virgola). Supporta ',' o ';'."
+        endpoint="/api/customers/import"
+      />
     </div>
   );
 }
