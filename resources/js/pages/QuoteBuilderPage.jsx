@@ -3,12 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   createQuoteItem,
   deleteQuoteItem,
-  deleteQuoteItemPose,
   fetchProducts,
   fetchQuote,
   updateQuoteItem,
   updateQuoteItemComponent,
-  upsertQuoteItemPose,
   updateQuotePricing,
   saveQuoteRevision,
 } from '../api/client';
@@ -16,20 +14,7 @@ import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
 
-const defaultPose = {
-  pose_type: 'Posa in opera',
-  unit: 'intervento',
-  qty: 1,
-  unit_price: 0,
-  is_included: false,
-};
-
 const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
-const poseTypeOptions = [
-  'Posa in opera',
-  "Posa di competenza dell'impresa",
-  'Fornitura e posa in opera',
-];
 
 const normalizeUnit = (value) => {
   const normalized = String(value || '').trim().toLowerCase();
@@ -45,8 +30,6 @@ function QuoteItemCard({
   onUpdateItem,
   onDeleteItem,
   onUpdateComponent,
-  onUpsertPose,
-  onDeletePose,
   onSaveAll,
   onRegisterSave,
 }) {
@@ -68,9 +51,6 @@ function QuoteItemCard({
         },
       ])
     )
-  );
-  const [poseDraft, setPoseDraft] = useState(
-    item.pose?.id ? { ...item.pose, unit: normalizeUnit(item.pose.unit) } : defaultPose
   );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -95,7 +75,6 @@ function QuoteItemCard({
         ])
       )
     );
-    setPoseDraft(item.pose?.id ? { ...item.pose, unit: normalizeUnit(item.pose.unit) } : defaultPose);
   }, [item]);
 
   const saveItem = async () => {
@@ -107,16 +86,6 @@ function QuoteItemCard({
       note_shared: itemDraft.note_shared,
     });
     setSaving(false);
-  };
-
-  const savePose = async () => {
-    await onUpsertPose(item.id, {
-      pose_type: poseDraft.pose_type,
-      unit: poseDraft.unit,
-      qty: Number(poseDraft.qty),
-      unit_price: Number(poseDraft.unit_price),
-      is_included: Boolean(poseDraft.is_included),
-    });
   };
 
   const normalizeNumber = (value) => Number(value || 0);
@@ -132,13 +101,8 @@ function QuoteItemCard({
   });
 
   const componentsTotal = componentTotals.reduce((sum, row) => sum + row.total, 0);
-  const poseTotal = item.pose
-    ? poseDraft.is_included
-      ? 0
-      : normalizeNumber(poseDraft.qty) * normalizeNumber(poseDraft.unit_price)
-    : 0;
   const itemTotal = normalizeNumber(itemDraft.qty) * normalizeNumber(itemDraft.unit_price_override);
-  const cardTotal = itemTotal + componentsTotal + poseTotal;
+  const cardTotal = itemTotal + componentsTotal;
 
   const handleSaveAll = useCallback(async (mode) => {
     setSaving(true);
@@ -164,21 +128,12 @@ function QuoteItemCard({
             },
           };
         }),
-        pose: item.pose
-          ? {
-              pose_type: poseDraft.pose_type,
-              unit: poseDraft.unit,
-              qty: Number(poseDraft.qty),
-              unit_price: Number(poseDraft.unit_price),
-              is_included: Boolean(poseDraft.is_included),
-            }
-          : null,
       },
       mode,
       setSaveError
     );
     setSaving(false);
-  }, [item.id, item.components, item.pose, itemDraft, componentDrafts, poseDraft, onSaveAll]);
+  }, [item.id, item.components, itemDraft, componentDrafts, onSaveAll]);
 
   useEffect(() => {
     if (onRegisterSave) {
@@ -197,14 +152,9 @@ function QuoteItemCard({
       const price = normalizeNumber(component.unit_price_override);
       return sum + qty * price;
     }, 0);
-    const collapsedPoseTotal = item.pose
-      ? item.pose.is_included
-        ? 0
-        : normalizeNumber(item.pose.qty) * normalizeNumber(item.pose.unit_price)
-      : 0;
     const collapsedItemTotal =
       normalizeNumber(item.qty) * normalizeNumber(item.unit_price_override);
-    const collapsedTotal = collapsedItemTotal + collapsedComponentsTotal + collapsedPoseTotal;
+    const collapsedTotal = collapsedItemTotal + collapsedComponentsTotal;
 
     return (
       <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
@@ -424,107 +374,6 @@ function QuoteItemCard({
         )}
       </div>
 
-      <div className="mt-6 space-y-3">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-slate-700">Posa</h4>
-          {item.pose ? (
-            <button
-              type="button"
-              onClick={() => onDeletePose(item.id)}
-              className="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-600"
-            >
-              Rimuovi posa
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={savePose}
-              className="rounded-lg border border-slate-200 px-3 py-1 text-xs text-slate-600"
-            >
-              Aggiungi posa
-            </button>
-          )}
-        </div>
-
-        {item.pose ? (
-          <div className="grid gap-3 md:grid-cols-3">
-            <label className="text-sm">
-              <span className="text-slate-600">Tipo</span>
-              <select
-                value={poseDraft.pose_type}
-                onChange={(event) =>
-                  setPoseDraft((prev) => ({ ...prev, pose_type: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              >
-                {poseTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm">
-              <span className="text-slate-600">UM</span>
-              <select
-                value={poseDraft.unit}
-                onChange={(event) =>
-                  setPoseDraft((prev) => ({ ...prev, unit: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              >
-                {unitOptions.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm">
-              <span className="text-slate-600">Qtà</span>
-              <input
-                type="number"
-                step="0.01"
-                value={poseDraft.qty}
-                onChange={(event) =>
-                  setPoseDraft((prev) => ({ ...prev, qty: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              />
-            </label>
-            <label className="text-sm">
-              <span className="text-slate-600">Prezzo</span>
-              <input
-                type="number"
-                step="0.01"
-                value={poseDraft.unit_price}
-                onChange={(event) =>
-                  setPoseDraft((prev) => ({ ...prev, unit_price: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              />
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={Boolean(poseDraft.is_included)}
-                onChange={(event) =>
-                  setPoseDraft((prev) => ({ ...prev, is_included: event.target.checked }))
-                }
-              />
-              <span className="text-slate-600">Compreso</span>
-            </label>
-            <div className="text-sm">
-              <span className="text-slate-600">Totale posa</span>
-              <p className="mt-2 font-semibold text-slate-800">{formatMoney(poseTotal)}</p>
-            </div>
-            <div className="flex items-end" />
-          </div>
-        ) : (
-          <p className="text-sm text-slate-500">Nessuna posa associata.</p>
-        )}
-      </div>
-
       <div className="mt-4 flex justify-end gap-2">
         <div className="mr-auto text-sm">
           <span className="text-slate-600">Totale prodotto</span>
@@ -669,24 +518,6 @@ export default function QuoteBuilderPage() {
     }
   };
 
-  const upsertPose = async (itemId, payload) => {
-    try {
-      await upsertQuoteItemPose(itemId, payload);
-      await loadQuote();
-    } catch (err) {
-      setError(err?.message || 'Errore durante aggiornamento posa.');
-    }
-  };
-
-  const removePose = async (itemId) => {
-    try {
-      await deleteQuoteItemPose(itemId);
-      await loadQuote();
-    } catch (err) {
-      setError(err?.message || 'Errore durante rimozione posa.');
-    }
-  };
-
   const removeItem = async (itemId) => {
     try {
       await deleteQuoteItem(itemId);
@@ -706,9 +537,6 @@ export default function QuoteBuilderPage() {
         for (const component of payload.components) {
           await updateQuoteItemComponent(component.id, component.payload);
         }
-      }
-      if (payload.pose) {
-        await upsertQuoteItemPose(itemId, payload.pose);
       }
       await loadQuote();
       if (mode === 'save') {
@@ -939,8 +767,6 @@ export default function QuoteBuilderPage() {
                 onUpdateItem={updateItem}
                 onDeleteItem={removeItem}
                 onUpdateComponent={updateComponent}
-                onUpsertPose={upsertPose}
-                onDeletePose={removePose}
                 onSaveAll={saveAll}
                 onRegisterSave={registerSaveHandler}
               />

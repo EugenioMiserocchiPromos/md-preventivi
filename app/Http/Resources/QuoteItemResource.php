@@ -28,7 +28,6 @@ class QuoteItemResource extends JsonResource
             'note_shared' => $this->note_shared,
             'sort_index' => $this->sort_index,
             'components' => QuoteItemComponentResource::collection($this->whenLoaded('components')),
-            'pose' => new QuoteItemPoseResource($this->whenLoaded('pose')),
         ];
     }
 }

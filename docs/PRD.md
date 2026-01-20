@@ -111,9 +111,8 @@ Ogni riga contiene:
 - unità di misura (default da prodotto ma modificabile)
 - prezzo unitario (default da prodotto ma modificabile)
 - totale riga calcolato
-- **NOTE condivise**: una nota unica per prodotto + sottovoci + posa
+- **NOTE condivise**: una nota unica per prodotto + sottovoci (componenti)
 - sottovoci clonate (componenti)
-- variabile posa opzionale
 
 ### 10.2 Sottovoci su riga (Quote Item Components)
 - clonate dal template prodotto
@@ -121,14 +120,7 @@ Ogni riga contiene:
 - calcolo totale sottovoce
 - flag `is_visible` per stampa PDF (singolarmente)
 
-### 10.3 Variabile posa (Quote Item Pose) — opzionale
-Campo extra per la riga prodotto:
-- `pose_type` (valori predefiniti, almeno "Posa in opera")
-- unità, quantità, prezzo, totale
-- `is_included` (Compreso): totale 0
-- `is_visible` per stampa
-
-### 10.4 Righe extra finali (Quote Extras)
+### 10.3 Righe extra finali (Quote Extras)
 Righe fuori listino, a fine preventivo:
 - descrizione
 - importo
@@ -137,10 +129,7 @@ Righe fuori listino, a fine preventivo:
 ## 11) Calcoli (MVP)
 - Totale riga prodotto = qty * unit_price
 - Totale sottovoce = qty * unit_price
-- Totale posa:
-  - se included -> 0
-  - altrimenti qty * unit_price
-- Subtotale imponibile = somma(righe prodotto + sottovoci + posa + righe extra)
+- Subtotale imponibile = somma(righe prodotto + sottovoci + righe extra)
 - Sconto pre-IVA:
   - percentuale o importo fisso
 - IVA unica sul totale (vat_rate)
@@ -165,7 +154,7 @@ Header per pagina:
 
 Corpo:
 - tabella righe raggruppate per categoria (ordine deterministico)
-- riga prodotto + sottovoci visibili + posa visibile
+- riga prodotto + sottovoci visibili
 - note condivise come blocco
 
 Footer:

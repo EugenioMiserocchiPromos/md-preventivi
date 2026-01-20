@@ -5,7 +5,6 @@ Definire lo schema dati per:
 - clienti
 - listino prodotti e sottovoci template
 - preventivi, righe e sottovoci clonate
-- variabile posa
 - righe extra finali
 - contatore PROT annuo globale
 
@@ -55,6 +54,7 @@ Campi:
 - name VARCHAR(255) NOT NULL
 - unit_default VARCHAR(32) NOT NULL
 - price_default DECIMAL(12,2) NOT NULL DEFAULT 0
+- note_default TEXT NULL
 - is_active BOOLEAN NOT NULL DEFAULT 1
 - created_at, updated_at
 
@@ -209,27 +209,7 @@ Indici:
 
 ---
 
-### 3.10 quote_item_pose
-Variabile posa opzionale per riga.
-
-Campi:
-- id
-- quote_item_id (FK quote_items.id) NOT NULL UNIQUE
-- pose_type VARCHAR(64) NOT NULL  -- enum app (e.g. "Posa in opera")
-- unit VARCHAR(32) NOT NULL
-- qty DECIMAL(12,2) NOT NULL DEFAULT 0
-- unit_price DECIMAL(12,2) NOT NULL DEFAULT 0
-- pose_total DECIMAL(12,2) NOT NULL DEFAULT 0
-- is_included BOOLEAN NOT NULL DEFAULT 0
-- is_visible BOOLEAN NOT NULL DEFAULT 1
-- created_at, updated_at
-
-Constraint:
-- FK quote_item_id ON DELETE CASCADE
-
----
-
-### 3.11 quote_extras
+### 3.10 quote_extras
 Righe extra finali fuori listino.
 
 Campi:
@@ -250,7 +230,6 @@ Indici:
 - Customer 1—N Quotes
 - Quote 1—N QuoteItems
 - QuoteItem 1—N QuoteItemComponents
-- QuoteItem 0—1 QuoteItemPose
 - Quote 1—N QuoteExtras
 - Product 1—N ProductComponents (template)
 - QuoteItemComponents sono copie derivate dai template ProductComponents
@@ -260,4 +239,4 @@ Indici:
 - Le transazioni sono richieste per:
   - generazione PROT progressivo annuo
   - duplicazione preventivo
-  - salvataggi complessi righe+componenti+posa+extra
+  - salvataggi complessi righe+componenti+extra

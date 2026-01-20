@@ -48,7 +48,7 @@ class QuoteItemsController extends Controller
         $item->line_total = round(((float) $item->qty) * ((float) $item->unit_price_override), 2);
         $item->save();
 
-        $item->load(['components', 'pose']);
+        $item->load(['components']);
 
         $updatedQuote = $totalsService->recalculateAndPersist($item->quote()->first());
 

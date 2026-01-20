@@ -94,12 +94,12 @@ export default function AdminImportPage() {
 
       <ImportSection
         title="Import prodotti"
-        description="Carica il CSV con category_name, name, unit_default, price_default."
+        description="Carica il CSV con intestazioni canoniche o equivalenti (es. category_name/categoria, name/descrizione, unit_default/um, price_default/prezzo). Supportati CSV con ',' o ';'. Opzionale: note/nota."
         endpoint="/api/products/import"
       />
       <ImportSection
         title="Import componenti"
-        description="Carica il CSV con product_code, component_name e campi opzionali."
+        description="Carica il CSV con product_code, component_name e campi opzionali. Supportati CSV con ',' o ';'."
         endpoint="/api/products/components/import"
       />
     </div>

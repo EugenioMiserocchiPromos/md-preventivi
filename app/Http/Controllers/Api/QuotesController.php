@@ -111,7 +111,6 @@ class QuotesController extends Controller
             'items.components' => function ($query) {
                 $query->orderBy('sort_index')->orderBy('id');
             },
-            'items.pose',
         ]);
 
         return new QuoteResource($quote);
