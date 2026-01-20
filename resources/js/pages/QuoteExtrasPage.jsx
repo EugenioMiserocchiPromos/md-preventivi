@@ -300,12 +300,12 @@ export default function QuoteExtrasPage() {
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Step</p>
-          <h1 className="text-2xl font-semibold">Righe extra</h1>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <div className="text-xs uppercase tracking-widest text-slate-500">Step</div>
+          <h1 className="text-3xl font-semibold leading-tight">Righe extra</h1>
           {quote ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600 leading-snug">
               PROT: {protForUi(quote) || '—'} — {quote.customer_title_snapshot}
             </p>
           ) : null}
@@ -327,7 +327,7 @@ export default function QuoteExtrasPage() {
             {closing ? 'Salvataggio...' : 'Salva e chiudi'}
           </button>
         </div>
-      </header>
+      </div>
 
       {loading ? <p className="text-sm text-slate-500">Caricamento...</p> : null}
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
@@ -474,9 +474,9 @@ export default function QuoteExtrasPage() {
                   required
                 />
               </div>
-              <div className="flex flex-wrap items-end gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-500">Qtà</label>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <label className="text-sm">
+                  <span className="text-slate-600">Qtà</span>
                   <input
                     type="number"
                     step="0.01"
@@ -484,18 +484,18 @@ export default function QuoteExtrasPage() {
                     onChange={(event) =>
                       setNewExtra((prev) => ({ ...prev, qty: event.target.value }))
                     }
-                    className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                     required
                   />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-500">UM</label>
+                </label>
+                <label className="text-sm">
+                  <span className="text-slate-600">UM</span>
                   <select
                     value={newExtra.unit}
                     onChange={(event) =>
                       setNewExtra((prev) => ({ ...prev, unit: event.target.value }))
                     }
-                    className="block rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                   >
                     {unitOptions.map((unit) => (
                       <option key={unit} value={unit}>
@@ -503,9 +503,9 @@ export default function QuoteExtrasPage() {
                       </option>
                     ))}
                   </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-500">Prezzo</label>
+                </label>
+                <label className="text-sm">
+                  <span className="text-slate-600">Prezzo</span>
                   <input
                     type="number"
                     step="0.01"
@@ -513,10 +513,10 @@ export default function QuoteExtrasPage() {
                     onChange={(event) =>
                       setNewExtra((prev) => ({ ...prev, unit_price: event.target.value }))
                     }
-                    className="w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                     required
                   />
-                </div>
+                </label>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>

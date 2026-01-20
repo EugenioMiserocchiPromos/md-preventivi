@@ -8,7 +8,6 @@ export default function TotalsPanel({
   onSubmit,
   saving,
   error,
-  secondaryAction,
 }) {
   return (
     <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
@@ -40,7 +39,7 @@ export default function TotalsPanel({
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="grid gap-3 md:grid-cols-3">
+        <form onSubmit={onSubmit} className="grid gap-3 md:grid-cols-2">
           <label className="text-sm">
             <span className="text-slate-600">Tipo sconto</span>
             <select
@@ -55,27 +54,26 @@ export default function TotalsPanel({
               <option value="amount">Importo</option>
             </select>
           </label>
-          <label className="text-sm">
+          <div className="text-sm">
             <span className="text-slate-600">Valore sconto</span>
-            <input
-              type="number"
-              step="0.01"
-              value={pricingForm.discount_value}
-              onChange={(event) =>
-                onPricingChange((prev) => ({ ...prev, discount_value: event.target.value }))
-              }
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-            />
-          </label>
-          <div className="flex items-end justify-end gap-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-            >
-              {saving ? 'Salvataggio...' : 'Applica'}
-            </button>
-            {secondaryAction}
+            <div className="mt-1 flex">
+              <input
+                type="number"
+                step="0.01"
+                value={pricingForm.discount_value}
+                onChange={(event) =>
+                  onPricingChange((prev) => ({ ...prev, discount_value: event.target.value }))
+                }
+                className="w-full rounded-l-xl border border-slate-200 px-3 py-2"
+              />
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-r-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {saving ? 'Salvataggio...' : 'Applica'}
+              </button>
+            </div>
           </div>
         </form>
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
