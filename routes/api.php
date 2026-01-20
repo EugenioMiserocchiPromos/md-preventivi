@@ -10,7 +10,6 @@ use App\Http\Controllers\Api\QuoteTitleTemplatesController;
 use App\Http\Controllers\Api\QuotesController;
 use App\Http\Controllers\Api\QuoteItemsController;
 use App\Http\Controllers\Api\QuoteItemComponentsController;
-use App\Http\Controllers\Api\QuoteItemPoseController;
 use App\Http\Controllers\Api\QuotePricingController;
 use App\Http\Controllers\Api\QuoteExtrasController;
 use Illuminate\Support\Facades\Route;
@@ -51,5 +50,3 @@ Route::middleware('auth:sanctum')->delete('/quote-extras/{extra}', [QuoteExtrasC
 Route::middleware('auth:sanctum')->patch('/quote-items/{item}', [QuoteItemsController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/quote-items/{item}', [QuoteItemsController::class, 'destroy']);
 Route::middleware('auth:sanctum')->patch('/quote-item-components/{component}', [QuoteItemComponentsController::class, 'update']);
-Route::middleware('auth:sanctum')->put('/quote-items/{item}/pose', [QuoteItemPoseController::class, 'upsert']);
-Route::middleware('auth:sanctum')->delete('/quote-items/{item}/pose', [QuoteItemPoseController::class, 'destroy']);

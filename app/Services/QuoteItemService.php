@@ -64,7 +64,7 @@ class QuoteItemService
                 DB::table('quote_item_components')->insert($payload);
             }
 
-            return $item->load(['components', 'pose']);
+            return $item->load(['components']);
         });
     }
 }

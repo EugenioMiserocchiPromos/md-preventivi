@@ -19,11 +19,6 @@ class QuoteTotalsService
             ->where('quote_item_components.is_visible', true)
             ->sum('quote_item_components.component_total');
 
-        $poseTotal = (float) DB::table('quote_item_pose')
-            ->join('quote_items', 'quote_items.id', '=', 'quote_item_pose.quote_item_id')
-            ->where('quote_items.quote_id', $quote->id)
-            ->sum('quote_item_pose.pose_total');
-
         $extrasTotal = (float) DB::table('quote_extras')
             ->where('quote_id', $quote->id)
             ->where(function ($query) {
@@ -37,7 +32,7 @@ class QuoteTotalsService
             })
             ->sum(DB::raw('COALESCE(line_total, amount)'));
 
-        $subtotal = round($itemsTotal + $componentsTotal + $poseTotal + $extrasTotal, 2);
+        $subtotal = round($itemsTotal + $componentsTotal + $extrasTotal, 2);
 
         $discountAmount = 0.0;
         if ($quote->discount_type === 'percent' && $quote->discount_value !== null) {
