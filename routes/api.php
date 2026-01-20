@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProductComponentsController;
 use App\Http\Controllers\Api\ProductImportController;
 use App\Http\Controllers\Api\ProductsController;
 use App\Http\Controllers\Api\CustomersController;
+use App\Http\Controllers\Api\CustomerImportController;
 use App\Http\Controllers\Api\QuoteTitleTemplatesController;
 use App\Http\Controllers\Api\QuotesController;
 use App\Http\Controllers\Api\QuoteItemsController;
@@ -23,6 +24,7 @@ Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
 
 Route::middleware('auth:sanctum')->post('/products/import', [ProductImportController::class, 'import']);
 Route::middleware('auth:sanctum')->post('/products/components/import', [ProductComponentsImportController::class, 'import']);
+Route::middleware('auth:sanctum')->post('/customers/import', [CustomerImportController::class, 'import']);
 Route::middleware('auth:sanctum')->get('/products', [ProductsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/products/{product}/components', [ProductComponentsController::class, 'index']);
 
