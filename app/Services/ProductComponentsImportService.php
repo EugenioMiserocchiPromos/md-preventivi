@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class ProductComponentsImportService
 {
-    private const REQUIRED_FIELDS = ['product_code', 'component_name', 'unit_default', 'default_visible'];
+    private const REQUIRED_FIELDS = ['product_code', 'component_name', 'unit_default'];
 
     private const HEADER_ALIASES = [
         'product_code' => 'product_code',
@@ -19,27 +19,36 @@ class ProductComponentsImportService
         'codice_prodotto' => 'product_code',
         'code' => 'product_code',
         'codice' => 'product_code',
+        'cod' => 'product_code',
         'component_name' => 'component_name',
         'component' => 'component_name',
         'componente' => 'component_name',
         'name' => 'component_name',
+        'descrizione' => 'component_name',
+        'voce' => 'component_name',
         'nome' => 'component_name',
         'unit_default' => 'unit_default',
         'unit' => 'unit_default',
         'unita' => 'unit_default',
+        'um' => 'unit_default',
+        'unita_di_misura' => 'unit_default',
         'qty_default' => 'qty_default',
         'qty' => 'qty_default',
         'quantity' => 'qty_default',
         'quantita' => 'qty_default',
+        'quantita_' => 'qty_default',
         'price_default' => 'price_default',
         'price' => 'price_default',
         'prezzo' => 'price_default',
+        'prezzo_unitario' => 'price_default',
+        'listino' => 'price_default',
         'default_visible' => 'default_visible',
         'visible' => 'default_visible',
         'visibile' => 'default_visible',
         'sort_index' => 'sort_index',
         'sort' => 'sort_index',
         'ordine' => 'sort_index',
+        'pos' => 'sort_index',
         'order' => 'sort_index',
     ];
 
@@ -50,7 +59,19 @@ class ProductComponentsImportService
             return $this->errorResult('Impossibile leggere il file.');
         }
 
-        $headerRow = fgetcsv($handle, 0, ',');
+        $firstLine = fgets($handle);
+        if ($firstLine === false) {
+            fclose($handle);
+
+            return $this->errorResult('Header CSV mancante.');
+        }
+
+        $commaCount = substr_count($firstLine, ',');
+        $semicolonCount = substr_count($firstLine, ';');
+        $delimiter = $semicolonCount > $commaCount ? ';' : ',';
+        rewind($handle);
+
+        $headerRow = fgetcsv($handle, 0, $delimiter);
         if (! $headerRow) {
             fclose($handle);
 
@@ -73,7 +94,7 @@ class ProductComponentsImportService
 
         $rows = [];
         $rowIndex = 1;
-        while (($row = fgetcsv($handle, 0, ',')) !== false) {
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowIndex++;
             if ($this->rowIsEmpty($row)) {
                 continue;
@@ -118,25 +139,36 @@ class ProductComponentsImportService
 
         foreach ($rowsByProduct as $productId => $productRows) {
             DB::transaction(function () use ($productId, $productRows, &$result) {
-                DB::table('product_components')->where('product_id', $productId)->delete();
+                $nextSortIndex = 1;
+                foreach ($productRows as $row) {
+                    $sortIndex = $row['sort_index'] ?? $nextSortIndex;
+                    $nextSortIndex = max($nextSortIndex, $sortIndex + 1);
 
-                $insertRows = array_map(function ($row) use ($productId) {
-                    return [
+                    $payload = [
                         'product_id' => $productId,
                         'name' => $row['component_name'],
                         'unit_default' => $row['unit_default'],
                         'qty_default' => $row['qty_default'],
                         'price_default' => $row['price_default'],
                         'default_visible' => $row['default_visible'],
-                        'sort_index' => $row['sort_index'],
-                        'created_at' => now(),
+                        'sort_index' => $sortIndex,
                         'updated_at' => now(),
                     ];
-                }, $productRows);
 
-                if ($insertRows) {
-                    DB::table('product_components')->insert($insertRows);
-                    $result['created'] += count($insertRows);
+                    $existing = DB::table('product_components')
+                        ->where('product_id', $productId)
+                        ->where('name', $row['component_name'])
+                        ->first();
+
+                    if ($existing) {
+                        DB::table('product_components')
+                            ->where('id', $existing->id)
+                            ->update($payload);
+                    } else {
+                        $payload['created_at'] = now();
+                        DB::table('product_components')->insert($payload);
+                        $result['created']++;
+                    }
                 }
             });
         }
@@ -178,9 +210,12 @@ class ProductComponentsImportService
 
     private function normalizeHeader(string $header): string
     {
+        $header = Str::ascii($header);
         $header = Str::of($header)->lower()->trim();
         $header = str_replace(['-', ' '], '_', $header);
-        return preg_replace('/_+/', '_', $header);
+        $header = preg_replace('/[^a-z0-9_]+/', '_', $header);
+        $header = preg_replace('/_+/', '_', $header);
+        return trim($header, '_');
     }
 
     private function mapRow(array $row, array $headerMap): array
@@ -204,13 +239,21 @@ class ProductComponentsImportService
         }
 
         if (! ctype_digit($productCode)) {
-            return ['valid' => false, 'message' => 'product_code non valido (solo numeri).'];
+            if (is_numeric($productCode)) {
+                $productCode = (string) (int) $productCode;
+            } else {
+                return ['valid' => false, 'message' => 'product_code non valido (solo numeri).'];
+            }
         }
 
         $productCode = str_pad($productCode, 3, '0', STR_PAD_LEFT);
 
         $componentName = trim((string) ($data['component_name'] ?? ''));
-        $unitDefault = Units::normalize($data['unit_default'] ?? null);
+        $unitRaw = trim((string) ($data['unit_default'] ?? ''));
+        if ($unitRaw === '') {
+            return ['valid' => false, 'message' => 'component_name o unit_default mancanti.'];
+        }
+        $unitDefault = Units::normalize($unitRaw);
         $qtyRaw = trim((string) ($data['qty_default'] ?? ''));
         $priceRaw = trim((string) ($data['price_default'] ?? ''));
         $defaultVisibleRaw = trim((string) ($data['default_visible'] ?? ''));
@@ -230,18 +273,26 @@ class ProductComponentsImportService
 
         $price = null;
         if ($priceRaw !== '') {
-            if (! is_numeric(str_replace(',', '.', $priceRaw))) {
+            $priceRaw = str_replace(['€', ' ', "\t"], '', $priceRaw);
+            if (str_contains($priceRaw, ',')) {
+                $priceRaw = str_replace('.', '', $priceRaw);
+                $priceRaw = str_replace(',', '.', $priceRaw);
+            } else {
+                $priceRaw = str_replace(',', '.', $priceRaw);
+            }
+
+            if (! is_numeric($priceRaw)) {
                 return ['valid' => false, 'message' => 'price_default non valido.'];
             }
-            $price = (float) str_replace(',', '.', $priceRaw);
+            $price = (float) $priceRaw;
         }
 
-        $visible = $this->parseBool($defaultVisibleRaw);
+        $visible = $defaultVisibleRaw === '' ? true : $this->parseBool($defaultVisibleRaw);
         if ($visible === null) {
             return ['valid' => false, 'message' => 'default_visible non valido (true/false).'];
         }
 
-        $sortIndex = 0;
+        $sortIndex = null;
         if ($sortRaw !== '') {
             if (! is_numeric($sortRaw)) {
                 return ['valid' => false, 'message' => 'sort_index non valido.'];
@@ -264,6 +315,10 @@ class ProductComponentsImportService
     private function parseBool(string $value): ?bool
     {
         $value = strtolower($value);
+
+        if ($value === '') {
+            return null;
+        }
 
         if (in_array($value, ['true', '1', 'si', 'yes', 'y'], true)) {
             return true;

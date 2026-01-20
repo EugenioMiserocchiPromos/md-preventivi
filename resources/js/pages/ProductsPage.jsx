@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { fetchProductComponents, fetchProducts } from '../api/client';
+import { formatMoney } from '../lib/formatters';
 
 const initialState = {
   data: [],
@@ -105,8 +106,8 @@ export default function ProductsPage() {
           <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3 font-medium">Codice</th>
-              <th className="px-4 py-3 font-medium">Categoria</th>
               <th className="px-4 py-3 font-medium">Nome</th>
+              <th className="px-4 py-3 font-medium">Categoria</th>
               <th className="px-4 py-3 font-medium">UM</th>
               <th className="px-4 py-3 font-medium">Prezzo</th>
               <th className="px-4 py-3 font-medium">Componenti</th>
@@ -123,10 +124,10 @@ export default function ProductsPage() {
               state.data.map((item) => (
                 <tr key={item.id} className="border-t border-slate-200/60 text-slate-700">
                   <td className="px-4 py-3 font-medium">{item.code}</td>
-                  <td className="px-4 py-3">{item.category_name}</td>
                   <td className="px-4 py-3">{item.name}</td>
+                  <td className="px-4 py-3">{item.category_name}</td>
                   <td className="px-4 py-3">{item.unit_default}</td>
-                  <td className="px-4 py-3">{item.price_default}</td>
+                  <td className="px-4 py-3">{formatMoney(item.price_default)}</td>
                   <td className="px-4 py-3">
                     <button
                       type="button"

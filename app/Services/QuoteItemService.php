@@ -37,7 +37,7 @@ class QuoteItemService
                 'qty' => $qty,
                 'unit_price_override' => $unitPrice,
                 'line_total' => $lineTotal,
-                'note_shared' => null,
+                'note_shared' => $product->note_default ?: null,
                 'sort_index' => $sortIndex,
             ]);
 
