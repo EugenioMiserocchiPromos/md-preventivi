@@ -169,17 +169,6 @@ export async function updateQuoteItemComponent(componentId, payload) {
   });
 }
 
-export async function upsertQuoteItemPose(itemId, payload) {
-  return request(`/api/quote-items/${itemId}/pose`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
-}
-
-export async function deleteQuoteItemPose(itemId) {
-  return request(`/api/quote-items/${itemId}/pose`, { method: 'DELETE' });
-}
-
 export async function updateQuotePricing(quoteId, payload) {
   return request(`/api/quotes/${quoteId}/pricing`, {
     method: 'PATCH',
