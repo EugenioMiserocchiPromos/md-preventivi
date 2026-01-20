@@ -300,12 +300,12 @@ export default function QuoteExtrasPage() {
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Step</p>
-          <h1 className="text-2xl font-semibold">Righe extra</h1>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <div className="text-xs uppercase tracking-widest text-slate-500">Step</div>
+          <h1 className="text-3xl font-semibold leading-tight">Righe extra</h1>
           {quote ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600 leading-snug">
               PROT: {protForUi(quote) || '—'} — {quote.customer_title_snapshot}
             </p>
           ) : null}
@@ -327,7 +327,7 @@ export default function QuoteExtrasPage() {
             {closing ? 'Salvataggio...' : 'Salva e chiudi'}
           </button>
         </div>
-      </header>
+      </div>
 
       {loading ? <p className="text-sm text-slate-500">Caricamento...</p> : null}
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}

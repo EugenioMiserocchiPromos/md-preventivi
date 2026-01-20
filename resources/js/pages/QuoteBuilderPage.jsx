@@ -829,12 +829,12 @@ export default function QuoteBuilderPage() {
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-3">
+      <div className="mb-6 flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Builder</p>
-          <h1 className="text-2xl font-semibold">Preventivo</h1>
+          <div className="text-xs uppercase tracking-widest text-slate-500">Builder</div>
+          <h1 className="text-3xl font-semibold leading-tight">Preventivo</h1>
           {quote ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600 leading-snug">
               PROT: {protForUi(quote) || '—'} — {quote.customer_title_snapshot}
             </p>
           ) : null}
@@ -856,7 +856,7 @@ export default function QuoteBuilderPage() {
             {closeSaving ? 'Salvataggio...' : 'Salva e chiudi'}
           </button>
         </div>
-      </header>
+      </div>
       {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
 
       {loading ? <p className="text-sm text-slate-500">Caricamento preventivo...</p> : null}
