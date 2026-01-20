@@ -54,6 +54,7 @@ Campi:
 - name VARCHAR(255) NOT NULL
 - unit_default VARCHAR(32) NOT NULL
 - price_default DECIMAL(12,2) NOT NULL DEFAULT 0
+- note_default TEXT NULL
 - is_active BOOLEAN NOT NULL DEFAULT 1
 - created_at, updated_at
 
