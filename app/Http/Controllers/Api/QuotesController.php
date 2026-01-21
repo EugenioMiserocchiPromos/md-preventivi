@@ -8,10 +8,12 @@ use App\Http\Resources\QuoteListResource;
 use App\Http\Resources\QuoteResource;
 use App\Models\Customer;
 use App\Models\Quote;
+use App\Services\QuotePdfService;
 use App\Services\ProtFormatter;
 use App\Services\ProtGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class QuotesController extends Controller
 {
@@ -137,5 +139,32 @@ class QuotesController extends Controller
         });
 
         return new QuoteResource($updated);
+    }
+
+    public function pdfFrontespizio(Quote $quote, QuotePdfService $pdfService)
+    {
+        $filename = 'preventivo-'.Str::slug((string) $quote->prot_display).'.pdf';
+        $pdf = $pdfService->frontespizio($quote);
+
+        return $pdf->download($filename);
+    }
+
+    public function pdfFull(Quote $quote, QuotePdfService $pdfService)
+    {
+        $quote->load([
+            'items' => function ($query) {
+                $query->orderBy('category_name_snapshot')
+                    ->orderBy('sort_index')
+                    ->orderBy('id');
+            },
+            'items.components' => function ($query) {
+                $query->orderBy('sort_index')->orderBy('id');
+            },
+        ]);
+
+        $filename = 'preventivo-'.Str::slug((string) $quote->prot_display).'.pdf';
+        $pdf = $pdfService->full($quote);
+
+        return $pdf->download($filename);
     }
 }
