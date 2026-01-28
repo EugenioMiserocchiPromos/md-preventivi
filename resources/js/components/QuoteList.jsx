@@ -1,8 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatMoney } from '../lib/formatters';
 import { protForUi } from '../lib/prot';
 
 function QuoteRow({ row, onOpen }) {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(`/api/quotes/${row.id}/pdf/full`, {
+        headers: { Accept: 'application/pdf' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Download non riuscito.');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const filenameBase = `Preventivo-${row.prot_display || row.id}`
+        .toString()
+        .replace(/\//g, '-')
+        .replace(/[^a-zA-Z0-9_-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${filenameBase || 'preventivo'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="relative rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm transition hover:shadow-md">
       <div className="grid grid-cols-1 gap-y-2 gap-x-6 md:grid-cols-[1fr_auto]">
@@ -45,11 +81,13 @@ function QuoteRow({ row, onOpen }) {
           </p>
         </div>
         <div className="flex justify-end gap-2">
-          <a
-            href={`/api/quotes/${row.id}/pdf/full`}
+          <button
+            type="button"
+            onClick={handleDownload}
             title="Scarica PDF"
             aria-label="Scarica PDF preventivo"
-            className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+            disabled={downloading}
+            className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-60"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +103,7 @@ function QuoteRow({ row, onOpen }) {
               <path d="m7 10 5 5 5-5" />
               <path d="M5 21h14" />
             </svg>
-          </a>
+          </button>
           <button
             type="button"
             onClick={() => onOpen(row.id)}
