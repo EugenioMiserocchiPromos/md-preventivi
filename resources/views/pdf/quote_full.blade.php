@@ -7,15 +7,22 @@
       @page {
         margin: 36px 40px 40px 40px;
       }
+      html,
+      body {
+        height: 100%;
+      }
       body {
         font-family: DejaVu Sans, sans-serif;
         font-size: 12px;
         color: #0f172a;
+        margin: 0;
       }
       h1 {
-        font-size: 24px;
-        margin: 0 0 12px 0;
+        font-size: 26px;
+        margin: 0 0 14px 0;
         line-height: 1.2;
+        text-transform: uppercase;
+        color: #b91c1c;
       }
       .subtitle {
         font-size: 12px;
@@ -124,33 +131,70 @@
         letter-spacing: 0.08em;
         margin-bottom: 6px;
       }
+      .frontespizio-wrap {
+        height: 100%;
+        width: 100%;
+        text-align: center;
+      }
+      .frontespizio-cell {
+        vertical-align: middle;
+        text-align: center;
+      }
+      .frontespizio-content {
+        display: inline-block;
+        text-align: center;
+        padding-top: 20%;
+      }
+      .frontespizio-box {
+        padding:5%;
+        margin:0 20% 0 20%;
+        border-radius: 50px;
+        background: #f1f5f9;
+        display: flex;
+        justify-content:center;
+        text-align: center;
+        max-width:100%;
+        border:1px solid #babec2;
+      }
+      .frontespizio-lines {
+        display: flex;
+        justify-content:center;
+        text-align:center;
+        font-size: 18px;
+        line-height: 1.25;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        margin:0px;
+        padding:0px;
+      }
+      .frontespizio-label {
+        color: #b91c1c;
+        font-weight: 600;
+        margin:0px;
+        padding:0px;
+        line-height:1.2em;
+      }
     </style>
   </head>
   <body>
-    <div>
-      <div class="subtitle">Preventivo</div>
-      <h1>{{ $quote->title_text }}</h1>
-
-      <div class="field">
-        <div class="label">PROT</div>
-        <div class="value prot">{{ $quote->prot_display }}</div>
-      </div>
-
-      <div class="field">
-        <div class="label">Cliente</div>
-        <div class="value">{{ $quote->customer_title_snapshot }}</div>
-      </div>
-
-      <div class="field">
-        <div class="label">Data</div>
-        <div class="value">{{ $quote->date }}</div>
-      </div>
-
-      <div class="field">
-        <div class="label">Cantiere</div>
-        <div class="value">{{ $quote->cantiere }}</div>
-      </div>
-    </div>
+    <table class="frontespizio-wrap">
+      <tr>
+        <td class="frontespizio-cell">
+          <div class="frontespizio-content">
+            <div class="subtitle">Preventivo</div>
+            <h1>{{ $quote->title_text }}</h1>
+            <div class="frontespizio-box">
+              <div class="frontespizio-lines prot">
+                <span class="frontespizio-label">PROT:</span> {{ $quote->prot_display }}<br />
+                <span class="frontespizio-label">Cliente:</span> {{ $quote->customer_title_snapshot }}<br />
+                <span class="frontespizio-label">Data:</span> {{ $quote->date }}<br />
+                <span class="frontespizio-label">Cantiere:</span> {{ $quote->cantiere }}
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
 
     @if ($quote->items->count() > 0)
       <div class="page-break"></div>

@@ -141,14 +141,6 @@ class QuotesController extends Controller
         return new QuoteResource($updated);
     }
 
-    public function pdfFrontespizio(Quote $quote, QuotePdfService $pdfService)
-    {
-        $filename = 'preventivo-'.Str::slug((string) $quote->prot_display).'.pdf';
-        $pdf = $pdfService->frontespizio($quote);
-
-        return $pdf->download($filename);
-    }
-
     public function pdfFull(Quote $quote, QuotePdfService $pdfService)
     {
         $quote->load([

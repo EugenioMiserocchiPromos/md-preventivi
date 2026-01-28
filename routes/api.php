@@ -40,7 +40,6 @@ Route::middleware('auth:sanctum')->patch('/quote-title-templates/{template}', [Q
 Route::middleware('auth:sanctum')->delete('/quote-title-templates/{template}', [QuoteTitleTemplatesController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/quotes/{quote}', [QuotesController::class, 'show']);
-Route::middleware('auth:sanctum')->get('/quotes/{quote}/pdf/frontespizio', [QuotesController::class, 'pdfFrontespizio']);
 Route::middleware('auth:sanctum')->get('/quotes/{quote}/pdf/full', [QuotesController::class, 'pdfFull']);
 Route::middleware('auth:sanctum')->post('/quotes', [QuotesController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/quotes', [QuotesController::class, 'index']);
