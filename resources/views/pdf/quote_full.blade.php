@@ -5,7 +5,7 @@
     <title>Preventivo {{ $quote->prot_display }}</title>
     <style>
       @page {
-        margin: 36px 40px 40px 40px;
+        margin: 36px 40px 24px 40px;
       }
       html,
       body {
@@ -73,9 +73,24 @@
         padding: 6px 4px;
         border-bottom: 1px solid #e2e8f0;
       }
-      .items td {
-        padding: 6px 4px;
+      .items {
+        table-layout: fixed;
+        width: 100%;
+      }
+      .items td,
+      .items th {
+        padding: 0;
         vertical-align: top;
+        font-size: 10px;
+        word-wrap: break-word;
+        box-sizing: border-box;
+      }
+      .cell-pad {
+        padding: 4px 2px;
+        display: block;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
       }
       .category-row {
         background: #f8fafc;
@@ -90,10 +105,10 @@
         color: #475569;
       }
       .text-right {
-        text-align: right;
+        text-align: right!important;
       }
-      .nowrap {
-        white-space: nowrap;
+      .note-cell {
+        white-space: normal;
       }
       .avoid-break {
         page-break-inside: avoid;
@@ -118,11 +133,10 @@
       }
       .footer-signatures {
         width: 100%;
-        margin-top: 24px;
       }
       .signature-box {
         border: 1px solid #cbd5f5;
-        height: 60px;
+        height: 48px;
       }
       .signature-label {
         font-size: 10px;
@@ -130,6 +144,15 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         margin-bottom: 6px;
+      }
+      .signature-table {
+        width: 100%;
+      }
+      .signature-table td {
+        width: 50%;
+      }
+      .signature-table .signature-spacer {
+        width: 24px;
       }
       .frontespizio-wrap {
         height: 100%;
@@ -163,16 +186,17 @@
         font-size: 18px;
         line-height: 1.25;
         word-wrap: break-word;
-        white-space: pre-wrap;
         margin:0px;
         padding:0px;
       }
       .frontespizio-label {
         color: #b91c1c;
         font-weight: 600;
-        margin:0px;
+        margin-bottom:50px;
         padding:0px;
         line-height:1.2em;
+        min-width:100%!important;
+        text-align:center!important;
       }
     </style>
   </head>
@@ -185,9 +209,9 @@
             <h1>{{ $quote->title_text }}</h1>
             <div class="frontespizio-box">
               <div class="frontespizio-lines prot">
-                <span class="frontespizio-label">PROT:</span> {{ $quote->prot_display }}<br />
-                <span class="frontespizio-label">Cliente:</span> {{ $quote->customer_title_snapshot }}<br />
-                <span class="frontespizio-label">Data:</span> {{ $quote->date }}<br />
+                <span class="frontespizio-label">PROT:</span> {{ $quote->prot_display }}<br /><br />
+                <span class="frontespizio-label">Cliente:</span> {{ $quote->customer_title_snapshot }}<br /><br />
+                <span class="frontespizio-label">Data:</span> {{ $quote->date }}<br /><br />
                 <span class="frontespizio-label">Cantiere:</span> {{ $quote->cantiere }}
               </div>
             </div>
@@ -212,66 +236,69 @@
     @endphp
 
     @if ($sortedItems->count() > 0)
+      <table class="header-block">
+        <tr>
+          <td class="header-left">
+            <strong>MD ITALIA</strong><br />
+            Via esempio 123<br />
+            16100 Genova (GE)<br />
+            P.IVA 00000000000
+          </td>
+          <td class="header-right">
+            <div><strong>PROT:</strong> {{ $quote->prot_display }}</div>
+            <div><strong>Data:</strong> {{ $quote->date }}</div>
+            <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
+            <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
+            <div><strong>Titolo:</strong> {{ $quote->title_text }}</div>
+          </td>
+        </tr>
+      </table>
+
       <table class="items">
+        <colgroup>
+          <col style="width:8%;" />
+          <col style="width:30%;" />
+          <col style="width:6%;" />
+          <col style="width:6%;" />
+          <col style="width:15%;" />
+          <col style="width:15%;" />
+          <col style="width:20%;" />
+        </colgroup>
         <thead>
           <tr>
-            <td colspan="6">
-              <table class="header-block">
-                <tr>
-                  <td class="header-left">
-                    <strong>MD ITALIA</strong><br />
-                    Via esempio 123<br />
-                    16100 Genova (GE)<br />
-                    P.IVA 00000000000
-                  </td>
-                  <td class="header-right">
-                    <div><strong>PROT:</strong> {{ $quote->prot_display }}</div>
-                    <div><strong>Data:</strong> {{ $quote->date }}</div>
-                    <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
-                    <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
-                    <div><strong>Titolo:</strong> {{ $quote->title_text }}</div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <th>Codice</th>
-            <th>Voce</th>
-            <th class="text-right nowrap">UM</th>
-            <th class="text-right nowrap">Qtà</th>
-            <th class="text-right nowrap">Prezzo</th>
-            <th class="text-right nowrap">Totale</th>
+            <th style="width:8%;"><div class="cell-pad">Codice</div></th>
+            <th style="width:30%;"><div class="cell-pad">Voce</div></th>
+            <th class="text-right" style="width:6%;"><div class="cell-pad">UM</div></th>
+            <th class="text-right" style="width:6%;"><div class="cell-pad">Qtà</div></th>
+            <th class="text-right" style="width:15%;"><div class="cell-pad">Prezzo</div></th>
+            <th class="text-right" style="width:15%;"><div class="cell-pad">Totale</div></th>
+            <th class="text-right note-cell" style="width:20%;"><div class="cell-pad">Note</div></th>
           </tr>
         </thead>
         <tbody>
           @foreach ($grouped as $category => $items)
             <tr class="category-row">
-              <td colspan="6">{{ $category }}</td>
+              <td colspan="7">{{ $category }}</td>
             </tr>
             @foreach ($items as $item)
               <tr class="avoid-break">
-                <td class="nowrap">{{ $item->product_code_snapshot }}</td>
-                <td>{{ $item->name_snapshot }}</td>
-                <td class="text-right nowrap">{{ $item->unit_override }}</td>
-                <td class="text-right nowrap">{{ number_format((float) $item->qty, 2, ',', '.') }}</td>
-                <td class="text-right nowrap">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</td>
-                <td class="text-right nowrap">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</td>
+                <td style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+                <td style="width:30%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
+                <td class="text-right" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
+                <td class="text-right" style="width:6%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
+                <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
+                <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
+                <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
               </tr>
-              @if (!empty($item->note_shared))
-                <tr class="note-row avoid-break">
-                  <td></td>
-                  <td colspan="5"><strong>Note:</strong> {{ $item->note_shared }}</td>
-                </tr>
-              @endif
               @foreach ($item->components->where('is_visible', true) as $component)
                 <tr class="component-row avoid-break">
-                  <td></td>
-                  <td>— {{ $component->name_snapshot }}</td>
-                  <td class="text-right nowrap">{{ $component->unit_override }}</td>
-                  <td class="text-right nowrap">{{ number_format((float) $component->qty, 2, ',', '.') }}</td>
-                  <td class="text-right nowrap">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</td>
-                  <td class="text-right nowrap">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</td>
+                  <td style="width:8%;"><div class="cell-pad"></div></td>
+                  <td style="width:30%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
+                  <td class="text-right" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
+                  <td class="text-right" style="width:6%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
+                  <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
+                  <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
+                  <td style="width:20%;"><div class="cell-pad"></div></td>
                 </tr>
               @endforeach
             @endforeach
@@ -279,16 +306,16 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="6">
-              <table class="footer-signatures">
+            <td colspan="7">
+              <table class="footer-signatures signature-table">
                 <tr>
                   <td>
-                    <div class="signature-label">Firma</div>
+                    <div class="signature-label">MD Italia Srl</div>
                     <div class="signature-box"></div>
                   </td>
-                  <td style="width: 20px;"></td>
+                  <td class="signature-spacer"></td>
                   <td>
-                    <div class="signature-label">Timbro</div>
+                    <div class="signature-label">Firma dell’acquirente per accettazione</div>
                     <div class="signature-box"></div>
                   </td>
                 </tr>
