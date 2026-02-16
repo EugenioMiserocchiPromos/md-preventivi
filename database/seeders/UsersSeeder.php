@@ -19,6 +19,7 @@ class UsersSeeder extends Seeder
                 'surname' => 'Miserocchi',
                 'initials' => 'EM',
                 'password' => Hash::make('secret'),
+                'email_verified_at' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]
