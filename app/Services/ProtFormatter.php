@@ -14,6 +14,21 @@ class ProtFormatter
 
     public function makeInternal(string $display, int $revisionNumber): string
     {
+        if ($revisionNumber <= 0) {
+            return $display;
+        }
+
         return sprintf('%s-REV%d', $display, $revisionNumber);
+    }
+
+    public function makeInternalWithInitials(string $display, int $revisionNumber, ?string $initials = null): string
+    {
+        $base = $this->makeInternal($display, $revisionNumber);
+
+        if ($revisionNumber <= 0 || ! $initials) {
+            return $base;
+        }
+
+        return sprintf('%s/%s', $base, strtoupper($initials));
     }
 }

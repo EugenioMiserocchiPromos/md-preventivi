@@ -118,7 +118,7 @@ class QuotesController extends Controller
         return new QuoteResource($quote);
     }
 
-    public function revision(Quote $quote, ProtFormatter $formatter)
+    public function revision(Quote $quote, ProtFormatter $formatter, Request $request)
     {
         // Explicit-only: revision_number increments only through this endpoint.
         $updated = DB::transaction(function () use ($quote, $formatter) {
@@ -128,7 +128,7 @@ class QuotesController extends Controller
                 ->firstOrFail();
 
             $locked->revision_number = (int) $locked->revision_number + 1;
-            $locked->prot_internal = $formatter->makeInternal(
+            $locked->prot_internal = $formatter->makeInternalWithInitials(
                 $locked->prot_display,
                 (int) $locked->revision_number
             );
@@ -137,6 +137,21 @@ class QuotesController extends Controller
 
             return $locked;
         });
+
+        if ($updated->revision_number > 0 && $request->user()) {
+            $initials = strtoupper(trim((string) $request->user()->initials));
+            if ($initials === '') {
+                $initials = strtoupper(substr((string) $request->user()->name, 0, 1).substr((string) $request->user()->surname, 0, 1));
+            }
+            if ($initials !== '') {
+                $updated->prot_internal = $formatter->makeInternalWithInitials(
+                    $updated->prot_display,
+                    (int) $updated->revision_number,
+                    $initials
+                );
+                $updated->save();
+            }
+        }
 
         return new QuoteResource($updated);
     }
