@@ -53,12 +53,12 @@ class ProtGeneratorService
                 ]);
 
             $protDisplay = $formatter->makeDisplay($initials, $quoteType, $nextNumber, $year);
-            $protInternal = $formatter->makeInternal($protDisplay, 1);
+            $protInternal = $formatter->makeInternal($protDisplay, 0);
 
             return [
                 'prot_year' => $year,
                 'prot_number' => $nextNumber,
-                'revision_number' => 1,
+                'revision_number' => -1,
                 'prot_display' => $protDisplay,
                 'prot_internal' => $protInternal,
             ];
