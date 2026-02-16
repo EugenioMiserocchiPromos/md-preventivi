@@ -10,6 +10,7 @@ class Units
         'intervento',
         'ml',
         'mc',
+        'a corpo',
         'cad.',
         'kg.',
     ];
@@ -17,6 +18,10 @@ class Units
     public static function normalize(?string $value): string
     {
         $normalized = strtolower(trim((string) $value));
+
+        if ($normalized === 'a_corpo' || $normalized === 'a-corpo') {
+            $normalized = 'a corpo';
+        }
 
         if ($normalized === 'cad') {
             $normalized = 'cad.';

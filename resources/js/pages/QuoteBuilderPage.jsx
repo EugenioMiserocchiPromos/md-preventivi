@@ -8,7 +8,6 @@ import {
   updateQuoteItem,
   updateQuoteItemComponent,
   updateQuotePricing,
-  saveQuoteRevision,
 } from '../api/client';
 import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
@@ -420,8 +419,6 @@ export default function QuoteBuilderPage() {
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
-  const [closeSaving, setCloseSaving] = useState(false);
-  const [closeError, setCloseError] = useState(null);
 
   const loadQuote = useCallback(async () => {
     setLoading(true);
@@ -639,22 +636,6 @@ export default function QuoteBuilderPage() {
     return '/preventivi/fp';
   };
 
-  const handleSaveAndClose = async () => {
-    if (!quote) return;
-    setCloseSaving(true);
-    setCloseError(null);
-    try {
-      const response = await saveQuoteRevision(quote.id);
-      const data = response.data ?? response;
-      setQuote((prev) => (prev ? { ...prev, ...data } : data));
-      navigate(getListPath(quote.quote_type));
-    } catch (err) {
-      setCloseError(err?.message || 'Errore durante salvataggio revisione.');
-    } finally {
-      setCloseSaving(false);
-    }
-  };
-
   return (
     <section className="space-y-6">
       <div className="mb-6 flex items-start justify-between gap-4">
@@ -675,17 +656,8 @@ export default function QuoteBuilderPage() {
           >
             Continua
           </button>
-          <button
-            type="button"
-            onClick={handleSaveAndClose}
-            disabled={!quote || closeSaving}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-60"
-          >
-            {closeSaving ? 'Salvataggio...' : 'Salva e chiudi'}
-          </button>
         </div>
       </div>
-      {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
 
       {loading ? <p className="text-sm text-slate-500">Caricamento preventivo...</p> : null}
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}
@@ -751,12 +723,11 @@ export default function QuoteBuilderPage() {
         ) : null}
         {groupedItems.map((group) => (
           <div key={group.category} className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span
-                className="h-3 w-3 rounded-sm"
-                style={{ backgroundColor: `hsl(${group.color} 70% 45%)` }}
-              />
-              <h3 className="text-sm font-semibold text-slate-700">{group.category}</h3>
+            <div
+              className="flex items-center gap-3 rounded-xl px-3 py-2"
+              style={{ backgroundColor: `hsl(${group.color} 70% 45%)` }}
+            >
+              <h3 className="text-lg font-regular text-white">{group.category}</h3>
             </div>
             {group.items.map((item) => (
               <QuoteItemCard
