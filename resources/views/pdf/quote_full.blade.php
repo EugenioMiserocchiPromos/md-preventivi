@@ -76,17 +76,19 @@
       .items {
         table-layout: fixed;
         width: 100%;
+        border-collapse: collapse;
       }
       .items td,
       .items th {
-        padding: 0;
-        vertical-align: top;
+        padding: 2px;
+        vertical-align: middle;
         font-size: 10px;
         word-wrap: break-word;
         box-sizing: border-box;
+        border: 1px solid #e2e8f0;
       }
       .cell-pad {
-        padding: 4px 2px;
+        padding: 2px;
         display: block;
         overflow-wrap: break-word;
         word-break: break-word;
@@ -107,7 +109,20 @@
       .text-right {
         text-align: right!important;
       }
+      .text-center {
+        text-align: center!important;
+      }
+      .symbol-cell {
+        text-align: center!important;
+        vertical-align: middle!important;
+      }
+      .um-cell {
+        text-align: center!important;
+        vertical-align: middle!important;
+      }
       .note-cell {
+        text-align: center!important;
+        vertical-align: middle!important;
         white-space: normal;
       }
       .avoid-break {
@@ -209,7 +224,7 @@
             <h1>{{ $quote->title_text }}</h1>
             <div class="frontespizio-box">
               <div class="frontespizio-lines prot">
-                <span class="frontespizio-label">PROT:</span> {{ $quote->prot_display }}<br /><br />
+                <span class="frontespizio-label">PROT:</span> {{ $quote->prot_internal ?? $quote->prot_display }}<br /><br />
                 <span class="frontespizio-label">Cliente:</span> {{ $quote->customer_title_snapshot }}<br /><br />
                 <span class="frontespizio-label">Data:</span> {{ $quote->date }}<br /><br />
                 <span class="frontespizio-label">Cantiere:</span> {{ $quote->cantiere }}
@@ -245,7 +260,7 @@
             P.IVA 00000000000
           </td>
           <td class="header-right">
-            <div><strong>PROT:</strong> {{ $quote->prot_display }}</div>
+            <div><strong>PROT:</strong> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
             <div><strong>Data:</strong> {{ $quote->date }}</div>
             <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
             <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
@@ -257,47 +272,55 @@
       <table class="items">
         <colgroup>
           <col style="width:8%;" />
-          <col style="width:30%;" />
+          <col style="width:28%;" />
           <col style="width:6%;" />
-          <col style="width:6%;" />
-          <col style="width:15%;" />
-          <col style="width:15%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:12%;" />
           <col style="width:20%;" />
         </colgroup>
         <thead>
           <tr>
             <th style="width:8%;"><div class="cell-pad">Codice</div></th>
-            <th style="width:30%;"><div class="cell-pad">Voce</div></th>
-            <th class="text-right" style="width:6%;"><div class="cell-pad">UM</div></th>
-            <th class="text-right" style="width:6%;"><div class="cell-pad">Qtà</div></th>
-            <th class="text-right" style="width:15%;"><div class="cell-pad">Prezzo</div></th>
-            <th class="text-right" style="width:15%;"><div class="cell-pad">Totale</div></th>
-            <th class="text-right note-cell" style="width:20%;"><div class="cell-pad">Note</div></th>
+            <th style="width:28%;"><div class="cell-pad">Voce</div></th>
+            <th class="um-cell" style="width:6%;"><div class="cell-pad">UM</div></th>
+            <th class="text-right" style="width:10%;"><div class="cell-pad">Qtà</div></th>
+            <th class="symbol-cell" style="width:3%;"><div class="cell-pad"></div></th>
+            <th class="text-right" style="width:10%;"><div class="cell-pad">Prezzo</div></th>
+            <th class="symbol-cell" style="width:3%;"><div class="cell-pad"></div></th>
+            <th class="text-right" style="width:12%;"><div class="cell-pad">Totale</div></th>
+            <th class="note-cell" style="width:20%;"><div class="cell-pad">Note</div></th>
           </tr>
         </thead>
         <tbody>
           @foreach ($grouped as $category => $items)
             <tr class="category-row">
-              <td colspan="7">{{ $category }}</td>
+              <td colspan="9">{{ $category }}</td>
             </tr>
             @foreach ($items as $item)
               <tr class="avoid-break">
                 <td style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
-                <td style="width:30%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
-                <td class="text-right" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
-                <td class="text-right" style="width:6%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
-                <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
-                <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
+                <td style="width:28%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
+                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
+                <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
+                <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+                <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
+                <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+                <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
                 <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
               </tr>
               @foreach ($item->components->where('is_visible', true) as $component)
                 <tr class="component-row avoid-break">
                   <td style="width:8%;"><div class="cell-pad"></div></td>
-                  <td style="width:30%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
-                  <td class="text-right" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
-                  <td class="text-right" style="width:6%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
-                  <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
-                  <td class="text-right" style="width:15%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
+                  <td style="width:28%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
+                  <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
+                  <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
+                  <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+                  <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
+                  <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+                  <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
                   <td style="width:20%;"><div class="cell-pad"></div></td>
                 </tr>
               @endforeach
@@ -306,7 +329,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="7">
+            <td colspan="9">
               <table class="footer-signatures signature-table">
                 <tr>
                   <td>
