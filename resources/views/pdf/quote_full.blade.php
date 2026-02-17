@@ -73,6 +73,13 @@
         padding: 6px 4px;
         border-bottom: 1px solid #e2e8f0;
       }
+      .items thead .col-widths th {
+        padding: 0;
+        border: none;
+        height: 0;
+        line-height: 0;
+        font-size: 0;
+      }
       .items {
         table-layout: fixed;
         width: 100%;
@@ -251,24 +258,6 @@
     @endphp
 
     @if ($sortedItems->count() > 0)
-      <table class="header-block">
-        <tr>
-          <td class="header-left">
-            <strong>MD ITALIA</strong><br />
-            Via esempio 123<br />
-            16100 Genova (GE)<br />
-            P.IVA 00000000000
-          </td>
-          <td class="header-right">
-            <div><strong>PROT:</strong> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
-            <div><strong>Data:</strong> {{ $quote->date }}</div>
-            <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
-            <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
-            <div><strong>Titolo:</strong> {{ $quote->title_text }}</div>
-          </td>
-        </tr>
-      </table>
-
       <table class="items">
         <colgroup>
           <col style="width:8%;" />
@@ -282,6 +271,38 @@
           <col style="width:20%;" />
         </colgroup>
         <thead>
+          <tr class="col-widths">
+            <th style="width:8%;"></th>
+            <th style="width:28%;"></th>
+            <th style="width:6%;"></th>
+            <th style="width:10%;"></th>
+            <th style="width:3%;"></th>
+            <th style="width:10%;"></th>
+            <th style="width:3%;"></th>
+            <th style="width:12%;"></th>
+            <th style="width:20%;"></th>
+          </tr>
+          <tr>
+            <th colspan="9" style="padding:0; border:none;">
+              <table class="header-block">
+                <tr>
+                  <td class="header-left">
+                    <strong>MD ITALIA</strong><br />
+                    Via esempio 123<br />
+                    16100 Genova (GE)<br />
+                    P.IVA 00000000000
+                  </td>
+                  <td class="header-right">
+                    <div><strong>PROT:</strong> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
+                    <div><strong>Data:</strong> {{ $quote->date }}</div>
+                    <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
+                    <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
+                    <div><strong>Titolo:</strong> {{ $quote->title_text }}</div>
+                  </td>
+                </tr>
+              </table>
+            </th>
+          </tr>
           <tr>
             <th style="width:8%;"><div class="cell-pad">Codice</div></th>
             <th style="width:28%;"><div class="cell-pad">Voce</div></th>
@@ -294,6 +315,25 @@
             <th class="note-cell" style="width:20%;"><div class="cell-pad">Note</div></th>
           </tr>
         </thead>
+        <tfoot>
+          <tr>
+            <td colspan="9">
+              <table class="footer-signatures signature-table">
+                <tr>
+                  <td>
+                    <div class="signature-label">MD Italia Srl</div>
+                    <div class="signature-box"></div>
+                  </td>
+                  <td class="signature-spacer"></td>
+                  <td>
+                    <div class="signature-label">Firma dell’acquirente per accettazione</div>
+                    <div class="signature-box"></div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </tfoot>
         <tbody>
           @foreach ($grouped as $category => $items)
             <tr class="category-row">
@@ -327,25 +367,6 @@
             @endforeach
           @endforeach
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="9">
-              <table class="footer-signatures signature-table">
-                <tr>
-                  <td>
-                    <div class="signature-label">MD Italia Srl</div>
-                    <div class="signature-box"></div>
-                  </td>
-                  <td class="signature-spacer"></td>
-                  <td>
-                    <div class="signature-label">Firma dell’acquirente per accettazione</div>
-                    <div class="signature-box"></div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </tfoot>
       </table>
     @endif
   </body>
