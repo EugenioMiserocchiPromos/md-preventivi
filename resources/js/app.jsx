@@ -7,7 +7,6 @@ import AdminImportPage from './pages/AdminImportPage';
 import QuotesListPage from './pages/QuotesListPage';
 import ProductsPage from './pages/ProductsPage';
 import CustomersPage from './pages/CustomersPage';
-import QuoteTitleTemplatesPage from './pages/QuoteTitleTemplatesPage';
 import QuoteBuilderPage from './pages/QuoteBuilderPage';
 import QuoteExtrasPage from './pages/QuoteExtrasPage';
 import NewQuotePage from './pages/NewQuotePage';
@@ -112,16 +111,6 @@ function App() {
           <RequireAuth>
             <AppLayout>
               <CustomersPage />
-            </AppLayout>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/titoli"
-        element={
-          <RequireAuth>
-            <AppLayout>
-              <QuoteTitleTemplatesPage />
             </AppLayout>
           </RequireAuth>
         }
