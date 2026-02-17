@@ -245,7 +245,7 @@ function QuoteItemCard({
         </label>
         <div className="text-sm">
           <span className="text-slate-600">Totale riga</span>
-          <p className="mt-2 text-base font-semibold text-slate-800">{formatMoney(item.line_total)}</p>
+          <p className="mt-2 text-base font-semibold text-slate-800">{formatMoney(itemTotal)}</p>
         </div>
       </div>
 
@@ -381,14 +381,6 @@ function QuoteItemCard({
         {saveError ? <span className="text-xs text-amber-700">{saveError}</span> : null}
         <button
           type="button"
-          onClick={() => handleSaveAll('update')}
-          disabled={saving}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 disabled:opacity-60"
-        >
-          Aggiorna
-        </button>
-        <button
-          type="button"
           onClick={() => handleSaveAll('save')}
           disabled={saving}
           className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
@@ -412,7 +404,16 @@ export default function QuoteBuilderPage() {
   const [searchError, setSearchError] = useState(null);
   const [adding, setAdding] = useState(false);
   const [openItemId, setOpenItemId] = useState(null);
+  const itemRefs = useRef({});
   const saveHandlersRef = useRef({});
+  const existingProductIds = useMemo(() => {
+    const ids = new Set();
+    (quote?.items || []).forEach((item) => {
+      const id = item?.product_id ?? item?.product?.id ?? null;
+      if (id) ids.add(id);
+    });
+    return ids;
+  }, [quote?.items]);
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
@@ -451,6 +452,15 @@ export default function QuoteBuilderPage() {
       setOpenItemId(null);
     }
   }, [quote, openItemId]);
+
+  useEffect(() => {
+    if (!openItemId) return;
+    const target = itemRefs.current[openItemId];
+    if (!target) return;
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [openItemId, quote?.items?.length]);
 
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
@@ -693,23 +703,35 @@ export default function QuoteBuilderPage() {
                 </tr>
               </thead>
               <tbody>
-                {searchResults.map((product) => (
-                  <tr key={product.id} className="border-t border-slate-200/60">
-                    <td className="px-3 py-2 font-medium">{product.code}</td>
-                    <td className="px-3 py-2">{product.name}</td>
-                    <td className="px-3 py-2">{product.price_default}</td>
-                    <td className="px-3 py-2">
-                      <button
-                        type="button"
-                        onClick={() => handleAddProduct(product.id)}
-                        disabled={adding}
-                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 disabled:opacity-60"
-                      >
-                        Aggiungi
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {searchResults.map((product) => {
+                  const isPresent = existingProductIds.has(product.id);
+                  return (
+                    <tr
+                      key={product.id}
+                      className={`border-t border-slate-200/60 ${
+                        isPresent ? 'bg-slate-50 text-slate-400' : ''
+                      }`}
+                    >
+                      <td className="px-3 py-2 font-medium">{product.code}</td>
+                      <td className="px-3 py-2">{product.name}</td>
+                      <td className="px-3 py-2">{product.price_default}</td>
+                      <td className="px-3 py-2">
+                        {isPresent ? (
+                          <span className="text-xs font-semibold text-slate-400">Già presente</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleAddProduct(product.id)}
+                            disabled={adding}
+                            className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 disabled:opacity-60"
+                          >
+                            Aggiungi
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -730,17 +752,23 @@ export default function QuoteBuilderPage() {
               <h3 className="text-lg font-regular text-white">{group.category}</h3>
             </div>
             {group.items.map((item) => (
-              <QuoteItemCard
+              <div
                 key={item.id}
-                item={item}
-                isOpen={openItemId === item.id}
-                onOpen={(id) => setOpenItemId(id)}
-                onUpdateItem={updateItem}
-                onDeleteItem={removeItem}
-                onUpdateComponent={updateComponent}
-                onSaveAll={saveAll}
-                onRegisterSave={registerSaveHandler}
-              />
+                ref={(node) => {
+                  if (node) itemRefs.current[item.id] = node;
+                }}
+              >
+                <QuoteItemCard
+                  item={item}
+                  isOpen={openItemId === item.id}
+                  onOpen={(id) => setOpenItemId(id)}
+                  onUpdateItem={updateItem}
+                  onDeleteItem={removeItem}
+                  onUpdateComponent={updateComponent}
+                  onSaveAll={saveAll}
+                  onRegisterSave={registerSaveHandler}
+                />
+              </div>
             ))}
           </div>
         ))}
