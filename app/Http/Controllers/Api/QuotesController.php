@@ -161,6 +161,9 @@ class QuotesController extends Controller
             'items.components' => function ($query) {
                 $query->orderBy('sort_index')->orderBy('id');
             },
+            'extras' => function ($query) {
+                $query->orderBy('sort_index')->orderBy('id');
+            },
         ]);
 
         $filename = 'Preventivo-'.Str::slug((string) $quote->prot_display).'.pdf';
