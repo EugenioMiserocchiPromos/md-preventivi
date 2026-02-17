@@ -60,12 +60,6 @@ class QuotesController extends Controller
 
         $quote = DB::transaction(function () use ($data, $user, $protGenerator) {
             $customer = Customer::findOrFail($data['customer_id']);
-            $template = DB::table('quote_title_templates')
-                ->where('id', $data['title_template_id'])
-                ->first();
-            if (! $template) {
-                abort(422, 'Template titolo non valido.');
-            }
 
             $prot = $protGenerator->allocateForUser(
                 $user,
@@ -85,8 +79,8 @@ class QuotesController extends Controller
                 'revision_number' => $prot['revision_number'],
                 'date' => $data['date'],
                 'cantiere' => $data['cantiere'],
-                'title_template_id' => $template->id,
-                'title_text' => $template->label,
+                'title_template_id' => null,
+                'title_text' => $data['title_text'],
                 'discount_type' => null,
                 'discount_value' => null,
                 'vat_rate' => $data['vat_rate'] ?? 22,

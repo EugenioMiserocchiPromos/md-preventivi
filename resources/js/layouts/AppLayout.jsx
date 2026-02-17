@@ -9,7 +9,6 @@ const navItems = [
   { to: '/clienti', label: 'Clienti' },
   { to: '/prodotti', label: 'Prodotti' },
   { to: '/admin/import', label: 'Import CSV' },
-  { to: '/admin/titoli', label: 'Titoli preventivo' },
 ];
 
 export default function AppLayout({ children }) {
