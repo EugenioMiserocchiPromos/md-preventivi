@@ -66,6 +66,15 @@
         background: #f8fafc;
         font-weight: 600;
       }
+      .category-header-row th {
+        padding-top: 6px;
+        padding-bottom: 6px;
+      }
+      .category-header {
+        text-align: center;
+        padding-top: 6px;
+        padding-bottom: 6px;
+      }
       .component-row {
         color: #475569;
         font-size: 11px;
@@ -148,6 +157,16 @@
       $grouped = $sortedItems->groupBy(function ($item) {
         return $item->category_name_snapshot ?: 'Senza categoria';
       });
+      $extras = $quote->extras ?? collect();
+    @endphp
+
+    @php
+      $quoteTypeLabel = match ($quote->quote_type) {
+          'FP' => 'Fornitura e Posa',
+          'AS' => 'Assistenza',
+          'VM' => 'Vendita Materiale',
+          default => $quote->quote_type,
+      };
     @endphp
 
     <table class="items">
@@ -195,6 +214,11 @@
             </table>
           </th>
         </tr>
+        <tr class="category-row category-header-row">
+          <th colspan="9">
+            <div class="cell-pad category-header">{{ $quoteTypeLabel }}</div>
+          </th>
+        </tr>
         <tr>
           <th style="width:8%;"><div class="cell-pad">Codice</div></th>
           <th style="width:28%;"><div class="cell-pad">Voce</div></th>
@@ -239,6 +263,27 @@
             @endforeach
           @endforeach
         @endforeach
+
+        @if ($extras->count() > 0)
+          <tr>
+            <td colspan="9">&nbsp;</td>
+          </tr>
+          <tr>
+            <td colspan="9">&nbsp;</td>
+          </tr>
+          @foreach ($extras as $extra)
+            <tr class="avoid-break">
+              <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
+              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
+              <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
+              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+              <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>
+              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+              <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $extra->line_total, 2, ',', '.') }}</div></td>
+              <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $extra->notes }}</div></td>
+            </tr>
+          @endforeach
+        @endif
       </tbody>
     </table>
 
