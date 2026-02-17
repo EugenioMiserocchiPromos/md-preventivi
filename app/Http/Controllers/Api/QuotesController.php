@@ -163,9 +163,12 @@ class QuotesController extends Controller
             },
         ]);
 
-        $filename = 'preventivo-'.Str::slug((string) $quote->prot_display).'.pdf';
+        $filename = 'Preventivo-'.Str::slug((string) $quote->prot_display).'.pdf';
         $pdf = $pdfService->full($quote);
 
-        return $pdf->download($filename);
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 }
