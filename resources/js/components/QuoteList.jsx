@@ -40,7 +40,18 @@ function QuoteRow({ row, onOpen }) {
   };
 
   return (
-    <div className="relative rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm transition hover:shadow-md">
+    <>
+      {downloading ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40">
+          <div className="rounded-2xl bg-white px-6 py-4 shadow-lg">
+            <div className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+              Download PDF in corso...
+            </div>
+          </div>
+        </div>
+      ) : null}
+      <div className="relative rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm transition hover:shadow-md">
       <div className="grid grid-cols-1 gap-y-2 gap-x-6 md:grid-cols-[1fr_auto]">
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-500">PROT</p>
@@ -127,7 +138,8 @@ function QuoteRow({ row, onOpen }) {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
