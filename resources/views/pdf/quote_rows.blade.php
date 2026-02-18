@@ -32,10 +32,10 @@
       }
       .items th {
         font-size: 10px;
-        text-transform: uppercase;
+        text-transform: none;
         letter-spacing: 0.08em;
         color: #64748b;
-        text-align: left;
+        text-align: center;
         padding: 6px 4px;
         border-bottom: 1px solid #e2e8f0;
       }
@@ -66,6 +66,9 @@
         background: #f8fafc;
         font-weight: 600;
       }
+      .category-row td {
+        font-family: DejaVu Sans, sans-serif;
+      }
       .category-header-row th {
         padding-top: 6px;
         padding-bottom: 6px;
@@ -84,6 +87,10 @@
       }
       .text-center {
         text-align: center !important;
+      }
+      .code-cell {
+        text-align: center !important;
+        vertical-align: middle !important;
       }
       .symbol-cell {
         text-align: center !important;
@@ -111,8 +118,10 @@
       }
       .header-left {
         width: 50%;
-        font-size: 11px;
+        font-size: 8px!important;
+        line-height:10px;
         color: #475569;
+        font-weight: 400;
       }
       .header-right {
         width: 50%;
@@ -131,9 +140,13 @@
       .signature-table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
       }
       .signature-spacer {
         width: 4%;
+      }
+      .signature-col {
+        width: 48%;
       }
       .signature-box {
         border: 1px solid #cbd5f5;
@@ -198,10 +211,22 @@
             <table class="header-block">
               <tr>
                 <td class="header-left">
-                  <strong>MD ITALIA</strong><br />
-                  Via esempio 123<br />
-                  16100 Genova (GE)<br />
-                  P.IVA 00000000000
+                  <div style="margin-bottom:6px;">
+                    <img src="{{ public_path('pdf/logo-md.png') }}" alt="MD Italia" style="width:65%; display:block;" />
+                  </div>
+                  <div style="margin-bottom:6px;">
+                    <strong>MD ITALIA SRL con Unico Socio</strong><br />
+                    Via Ravenna, 151/EFG - 47814 - Bellaria Igea Marina (Rn) <br />
+                    P.I./C.F. 04172350409 - Cod. SDI: M5UXCR1<br />
+                    Resp.: Geom. Dellamotta Marco - Cell. 320 2122135<br />
+                    Tel. 0541 341240-fax 0541/1788614<br />
+                    e-mail: direzione.tecnica@mditaliasrl.it<br />
+                    <br />
+                    <strong>Distributore Esclusivo per: Romagna-Marche-Ferrara</strong>
+                  </div>
+                  <div style="margin-top:4px;">
+                    <img src="{{ public_path('pdf/logo-penetron.svg') }}" alt="Penetron" style="width:65%; display:block;" />
+                  </div>
                 </td>
                 <td class="header-right">
                   <div><strong>PROT:</strong> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
@@ -220,14 +245,14 @@
           </th>
         </tr>
         <tr>
-          <th style="width:8%;"><div class="cell-pad">Codice</div></th>
+          <th class="code-cell" style="width:8%;"><div class="cell-pad">Codice</div></th>
           <th style="width:28%;"><div class="cell-pad">Voce</div></th>
           <th class="um-cell" style="width:6%;"><div class="cell-pad">UM</div></th>
-          <th class="text-right" style="width:10%;"><div class="cell-pad">Qtà</div></th>
+          <th style="width:10%;"><div class="cell-pad">Qtà</div></th>
           <th class="symbol-cell" style="width:3%;"><div class="cell-pad"></div></th>
-          <th class="text-right" style="width:10%;"><div class="cell-pad">Prezzo</div></th>
+          <th style="width:10%;"><div class="cell-pad">Prezzo</div></th>
           <th class="symbol-cell" style="width:3%;"><div class="cell-pad"></div></th>
-          <th class="text-right" style="width:12%;"><div class="cell-pad">Totale</div></th>
+          <th style="width:12%;"><div class="cell-pad">Totale</div></th>
           <th class="note-cell" style="width:20%;"><div class="cell-pad">Note</div></th>
         </tr>
       </thead>
@@ -238,7 +263,7 @@
           </tr>
           @foreach ($items as $item)
             <tr class="avoid-break">
-              <td style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+              <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
               <td style="width:28%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
               <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
               <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
@@ -250,7 +275,7 @@
             </tr>
             @foreach ($item->components->where('is_visible', true) as $component)
               <tr class="component-row avoid-break">
-                <td style="width:8%;"><div class="cell-pad"></div></td>
+                <td class="code-cell" style="width:8%;"><div class="cell-pad"></div></td>
                 <td style="width:28%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
                 <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
                 <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
@@ -290,12 +315,12 @@
     <div class="pdf-footer">
       <table class="footer-signatures signature-table">
         <tr>
-          <td>
+          <td class="signature-col">
             <div class="signature-label">MD Italia Srl</div>
             <div class="signature-box"></div>
           </td>
           <td class="signature-spacer"></td>
-          <td>
+          <td class="signature-col">
             <div class="signature-label">Firma dell’acquirente per accettazione</div>
             <div class="signature-box"></div>
           </td>
