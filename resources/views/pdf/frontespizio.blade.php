@@ -70,11 +70,20 @@
       }
       h1 {
         font-family: 'Jost', 'Open Sans', sans-serif;
-        font-size: 36px;
-        margin: 0 0 14px 0;
-        line-height: 1.2;
-        text-transform: uppercase;
-        color: #b91c1c;
+        font-size: 25px;
+        margin: 0 0 50px 0;
+        line-height: 1.1;
+        color: #95817b;
+        font-weight: 600;
+      }
+      .frontespizio-subtitle {
+        line-height: 1.1;
+        font-family: 'Jost', 'Open Sans', sans-serif;
+        font-size: 25px;
+        letter-spacing: 1px;
+        color: #cd1719;
+        margin: 0 0 6px 0;
+        font-weight: 600;
       }
       .frontespizio-wrap {
         width: 100%;
@@ -99,7 +108,7 @@
         height: 100%;
       }
       .frontespizio-content {
-        padding: 40% 10% 0 10%;
+        padding: 20% 10% 0 10%;
       }
       .frontespizio-center {
         height: 100%;
@@ -110,13 +119,6 @@
         display: table-cell;
         vertical-align: middle;
         text-align: center;
-      }
-      .frontespizio-box {
-        border: 1px solid #babec2;
-        border-radius: 50px;
-        padding: 14px 18px;
-        margin: 0 auto;
-        width: 80%;
       }
       .frontespizio-lines {
         text-align: center;
@@ -134,31 +136,85 @@
         margin-bottom: 0;
       }
       .frontespizio-label {
-        color: #b91c1c;
+        color: #95817b;
         font-weight: 600;
         padding: 0;
         line-height: 1.2em;
         text-align: center !important;
       }
+      .frontespizio-info {
+        width: 60%;
+        border-collapse: collapse;
+        margin: 0 auto;
+      }
+      .frontespizio-info tr {
+        border-bottom: 1px solid #95817b;
+      }
+      .frontespizio-info td {
+        padding: 8px 0;
+      }
+      .frontespizio-info .info-label {
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: #95817b;
+        text-align: left;
+      }
+      .frontespizio-info .info-value {
+        text-align: right;
+        font-size: 14px;
+        color: #95817b;
+      }
+      .frontespizio-logo {
+        margin: 0 auto 25% auto;
+        text-align: center;
+      }
+      .frontespizio-logo img {
+        width: 40%;
+        height: auto;
+        display: inline-block;
+      }
     </style>
   </head>
   <body>
     <section class="page frontespizio">
+      @php
+        $quoteTypeLabel = match ($quote->quote_type) {
+            'FP' => 'Fornitura e Posa',
+            'AS' => 'Assistenza',
+            'VM' => 'Vendita Materiale',
+            default => $quote->quote_type,
+        };
+      @endphp
       <table class="frontespizio-wrap">
         <tr>
           <td class="frontespizio-cell">
             <div class="frontespizio-center">
               <div class="frontespizio-center-cell">
                 <div class="frontespizio-content">
-                  <h1>{{ $quote->title_text }}</h1>
-                  <div class="frontespizio-box">
-                    <div class="frontespizio-lines prot">
-                      <div class="frontespizio-line"><span class="frontespizio-label">PROT:</span> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
-                      <div class="frontespizio-line"><span class="frontespizio-label">Cliente:</span> {{ $quote->customer_title_snapshot }}</div>
-                      <div class="frontespizio-line"><span class="frontespizio-label">Data:</span> {{ $quote->date }}</div>
-                      <div class="frontespizio-line"><span class="frontespizio-label">Cantiere:</span> {{ $quote->cantiere }}</div>
-                    </div>
+                  <div class="frontespizio-logo">
+                    <img src="{{ 'file://' . public_path('pdf/logo-md.png') }}" alt="MD Italia" />
                   </div>
+                  <div class="frontespizio-subtitle">Preventivo</div>
+                  <h1>{{ $quoteTypeLabel }}</h1>
+                  <table class="frontespizio-info">
+                    <tr>
+                      <td class="info-label">PROT. NUMERO</td>
+                      <td class="info-value">{{ $quote->prot_internal ?? $quote->prot_display }}</td>
+                    </tr>
+                    <tr>
+                      <td class="info-label">DATA</td>
+                      <td class="info-value">{{ $quote->date }}</td>
+                    </tr>
+                    <tr>
+                      <td class="info-label">CLIENTE</td>
+                      <td class="info-value">{{ $quote->customer_title_snapshot }}</td>
+                    </tr>
+                    <tr>
+                      <td class="info-label">CANTIERE</td>
+                      <td class="info-value">{{ $quote->cantiere }}</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
             </div>
