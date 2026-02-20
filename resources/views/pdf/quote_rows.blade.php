@@ -5,10 +5,22 @@
     <title>Preventivo {{ $quote->prot_display }}</title>
     <style>
       @font-face {
-        font-family: 'Days One';
+        font-family: 'Jost';
         font-style: normal;
-        font-weight: 400;
-        src: url("{{ 'file://' . public_path('fonts/DaysOne/DaysOne-Regular.ttf') }}") format('truetype');
+        font-weight: 600;
+        src: url("{{ 'file://' . public_path('fonts/Jost/Jost-SemiBold.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Jost';
+        font-style: normal;
+        font-weight: 700;
+        src: url("{{ 'file://' . public_path('fonts/Jost/Jost-Bold.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Jost';
+        font-style: normal;
+        font-weight: 500;
+        src: url("{{ 'file://' . public_path('fonts/Jost/Jost-Medium.ttf') }}") format('truetype');
       }
       @font-face {
         font-family: 'Open Sans';
@@ -41,9 +53,13 @@
         src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-ExtraBold.ttf') }}") format('truetype');
       }
       @page {
-        margin: 40px 40px 120px 40px;
+        margin: 300px 40px 120px 40px;
         @bottom-center {
           content: element(pdf-footer);
+          width: 100%;
+        }
+        @top-center {
+          content: element(pdf-header);
           width: 100%;
         }
       }
@@ -131,7 +147,13 @@
         border-top: none;
         border-bottom: none;
       }
-      .item-no-divider td {
+      .row-end td {
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .row-end td[rowspan] {
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .item-no-divider td:not([rowspan]) {
         border-bottom: none;
       }
       .text-right {
@@ -163,6 +185,31 @@
       .header-block {
         width: 100%;
         margin-bottom: 10px;
+      }
+      .pdf-header {
+        position: running(pdf-header);
+        width: 100%;
+      }
+      .header-columns {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      .header-columns th {
+        font-size: 10px;
+        text-transform: none;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        text-align: center;
+        padding: 6px 4px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .header-columns .col-widths th {
+        padding: 0;
+        border: none;
+        height: 0;
+        line-height: 0;
+        font-size: 0;
       }
       .header-left,
       .header-right {
@@ -249,6 +296,70 @@
     @endphp
 
     <section class="page rows">
+      <div class="pdf-header">
+        <table class="header-block">
+          <tr>
+            <td class="header-left">
+              <div style="margin-bottom:6px;">
+                <img src="{{ public_path('pdf/logo-md.png') }}" alt="MD Italia" style="width:65%; display:block;" />
+              </div>
+              <div style="margin-bottom:6px;">
+                <strong>MD ITALIA SRL con Unico Socio</strong><br />
+                Via Ravenna, 151/EFG - 47814 - Bellaria Igea Marina (Rn) <br />
+                P.I./C.F. 04172350409 - Cod. SDI: M5UXCR1<br />
+                Resp.: Geom. Dellamotta Marco - Cell. 320 2122135<br />
+                Tel. 0541 341240-fax 0541/1788614<br />
+                e-mail: direzione.tecnica@mditaliasrl.it<br />
+                <br />
+                <strong>Distributore Esclusivo per: Romagna-Marche-Ferrara</strong>
+              </div>
+              <div style="margin-top:4px;">
+                <img src="{{ public_path('pdf/logo-penetron.svg') }}" alt="Penetron" style="width:65%; display:block;" />
+              </div>
+            </td>
+            <td class="header-right">
+              <div><strong>PROT:</strong> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
+              <div><strong>Data:</strong> {{ $quote->date }}</div>
+              <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
+              <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
+              <div><strong>Titolo:</strong> {{ $quote->title_text }}</div>
+            </td>
+          </tr>
+        </table>
+
+        <table class="header-columns">
+          <colgroup>
+            <col style="width:8%;" />
+            <col style="width:28%;" />
+            <col style="width:6%;" />
+            <col style="width:10%;" />
+            <col style="width:3%;" />
+            <col style="width:10%;" />
+            <col style="width:3%;" />
+            <col style="width:12%;" />
+            <col style="width:20%;" />
+          </colgroup>
+          <thead>
+            <tr class="category-row category-header-row">
+              <th colspan="9">
+                <div class="cell-pad category-header">{{ $quoteTypeLabel }}</div>
+              </th>
+            </tr>
+            <tr>
+              <th class="code-cell"><div class="cell-pad">Codice</div></th>
+              <th><div class="cell-pad">Voce</div></th>
+              <th class="um-cell"><div class="cell-pad">UM</div></th>
+              <th><div class="cell-pad">Qtà</div></th>
+              <th class="symbol-cell"><div class="cell-pad"></div></th>
+              <th><div class="cell-pad">Prezzo</div></th>
+              <th class="symbol-cell"><div class="cell-pad"></div></th>
+              <th><div class="cell-pad">Totale</div></th>
+              <th class="note-cell"><div class="cell-pad">Note</div></th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
       <div class="pdf-footer">
         <table class="footer-signatures signature-table">
           <tr>
@@ -265,124 +376,80 @@
         </table>
       </div>
 
-      <table class="items">
-      <colgroup>
-        <col style="width:8%;" />
-        <col style="width:28%;" />
-        <col style="width:6%;" />
-        <col style="width:10%;" />
-        <col style="width:3%;" />
-        <col style="width:10%;" />
-        <col style="width:3%;" />
-        <col style="width:12%;" />
-        <col style="width:20%;" />
-      </colgroup>
-      <thead>
-        <tr class="col-widths">
-          <th style="width:8%;"></th>
-          <th style="width:28%;"></th>
-          <th style="width:6%;"></th>
-          <th style="width:10%;"></th>
-          <th style="width:3%;"></th>
-          <th style="width:10%;"></th>
-          <th style="width:3%;"></th>
-          <th style="width:12%;"></th>
-          <th style="width:20%;"></th>
-        </tr>
-        <tr>
-          <th colspan="9" style="padding:0; border:none;">
-            <table class="header-block">
-              <tr>
-                <td class="header-left">
-                  <div style="margin-bottom:6px;">
-                    <img src="{{ public_path('pdf/logo-md.png') }}" alt="MD Italia" style="width:65%; display:block;" />
-                  </div>
-                  <div style="margin-bottom:6px;">
-                    <strong>MD ITALIA SRL con Unico Socio</strong><br />
-                    Via Ravenna, 151/EFG - 47814 - Bellaria Igea Marina (Rn) <br />
-                    P.I./C.F. 04172350409 - Cod. SDI: M5UXCR1<br />
-                    Resp.: Geom. Dellamotta Marco - Cell. 320 2122135<br />
-                    Tel. 0541 341240-fax 0541/1788614<br />
-                    e-mail: direzione.tecnica@mditaliasrl.it<br />
-                    <br />
-                    <strong>Distributore Esclusivo per: Romagna-Marche-Ferrara</strong>
-                  </div>
-                  <div style="margin-top:4px;">
-                    <img src="{{ public_path('pdf/logo-penetron.svg') }}" alt="Penetron" style="width:65%; display:block;" />
-                  </div>
-                </td>
-                <td class="header-right">
-                  <div><strong>PROT:</strong> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
-                  <div><strong>Data:</strong> {{ $quote->date }}</div>
-                  <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
-                  <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
-                  <div><strong>Titolo:</strong> {{ $quote->title_text }}</div>
-                </td>
-              </tr>
-            </table>
-          </th>
-        </tr>
-        <tr class="category-row category-header-row">
-          <th colspan="9">
-            <div class="cell-pad category-header">{{ $quoteTypeLabel }}</div>
-          </th>
-        </tr>
-        <tr>
-          <th class="code-cell" style="width:8%;"><div class="cell-pad">Codice</div></th>
-          <th style="width:28%;"><div class="cell-pad">Voce</div></th>
-          <th class="um-cell" style="width:6%;"><div class="cell-pad">UM</div></th>
-          <th style="width:10%;"><div class="cell-pad">Qtà</div></th>
-          <th class="symbol-cell" style="width:3%;"><div class="cell-pad"></div></th>
-          <th style="width:10%;"><div class="cell-pad">Prezzo</div></th>
-          <th class="symbol-cell" style="width:3%;"><div class="cell-pad"></div></th>
-          <th style="width:12%;"><div class="cell-pad">Totale</div></th>
-          <th class="note-cell" style="width:20%;"><div class="cell-pad">Note</div></th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($grouped as $category => $items)
+    @foreach ($grouped as $category => $items)
+      <table class="items category-table">
+        <colgroup>
+          <col style="width:8%;" />
+          <col style="width:28%;" />
+          <col style="width:6%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:12%;" />
+          <col style="width:20%;" />
+        </colgroup>
+        <thead>
           <tr class="category-row">
-            <td colspan="9">{{ $category }}</td>
+            <th colspan="9">{{ $category }}</th>
           </tr>
-          @foreach ($items as $item)
-            @php
-              $visibleComponents = $item->components->where('is_visible', true);
-              $componentCount = $visibleComponents->count();
-            @endphp
-            <tr class="avoid-break {{ $item->components->where('is_visible', true)->count() > 0 ? 'item-no-divider' : '' }}">
-              @if ($componentCount > 0)
-                <td class="code-cell" style="width:8%;" rowspan="{{ $componentCount + 1 }}"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
-              @else
-                <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
-              @endif
-              <td style="width:28%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
-              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
-              <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
-              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
-              <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
-              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
-              <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
-              @if ($componentCount > 0)
-                <td class="note-cell" style="width:20%;" rowspan="{{ $componentCount + 1 }}"><div class="cell-pad">{{ $item->note_shared }}</div></td>
-              @else
-                <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
-              @endif
-            </tr>
-            @foreach ($visibleComponents as $component)
-              <tr class="component-row avoid-break">
-                <td style="width:28%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
-                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
-                <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
+        </thead>
+        @foreach ($items as $item)
+          @php
+            $visibleComponents = $item->components->where('is_visible', true);
+            $componentCount = $visibleComponents->count();
+            $rowspan = $componentCount + 1;
+          @endphp
+          <tbody class="avoid-break">
+            <tr class="avoid-break {{ $componentCount > 0 ? 'item-no-divider' : 'row-end' }}">
+                @if ($componentCount > 0)
+                  <td class="code-cell" style="width:8%;" rowspan="{{ $rowspan }}"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+                @else
+                  <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+                @endif
+                <td style="width:28%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
+                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
+                <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
                 <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
-                <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
+                <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
                 <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
-                <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
+                <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
+                @if ($componentCount > 0)
+                  <td class="note-cell" style="width:20%;" rowspan="{{ $rowspan }}"><div class="cell-pad">{{ $item->note_shared }}</div></td>
+                @else
+                  <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
+                @endif
+            </tr>
+            @foreach ($visibleComponents as $componentIndex => $component)
+              <tr class="component-row avoid-break {{ $loop->last ? 'row-end' : '' }}">
+                  <td style="width:28%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
+                  <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
+                  <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
+                  <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+                  <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
+                  <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+                  <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
               </tr>
             @endforeach
-          @endforeach
+          </tbody>
         @endforeach
+      </table>
+    @endforeach
 
-        @if ($extras->count() > 0)
+    @if ($extras->count() > 0)
+      <table class="items">
+        <colgroup>
+          <col style="width:8%;" />
+          <col style="width:28%;" />
+          <col style="width:6%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:12%;" />
+          <col style="width:20%;" />
+        </colgroup>
+        <tbody>
           <tr>
             <td colspan="9">&nbsp;</td>
           </tr>
@@ -401,9 +468,9 @@
               <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $extra->notes }}</div></td>
             </tr>
           @endforeach
-        @endif
-      </tbody>
+        </tbody>
       </table>
+    @endif
     </section>
   </body>
 </html>
