@@ -5,10 +5,22 @@
     <title>Preventivo {{ $quote->prot_display }}</title>
     <style>
       @font-face {
-        font-family: 'Days One';
+        font-family: 'Jost';
         font-style: normal;
-        font-weight: 400;
-        src: url("{{ 'file://' . public_path('fonts/DaysOne/DaysOne-Regular.ttf') }}") format('truetype');
+        font-weight: 600;
+        src: url("{{ 'file://' . public_path('fonts/Jost/Jost-SemiBold.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Jost';
+        font-style: normal;
+        font-weight: 700;
+        src: url("{{ 'file://' . public_path('fonts/Jost/Jost-Bold.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Jost';
+        font-style: normal;
+        font-weight: 500;
+        src: url("{{ 'file://' . public_path('fonts/Jost/Jost-Medium.ttf') }}") format('truetype');
       }
       @font-face {
         font-family: 'Open Sans';
@@ -57,7 +69,7 @@
         margin: 0;
       }
       h1 {
-        font-family: 'Days One', 'Open Sans', sans-serif;
+        font-family: 'Jost', 'Open Sans', sans-serif;
         font-size: 36px;
         margin: 0 0 14px 0;
         line-height: 1.2;
