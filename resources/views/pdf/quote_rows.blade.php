@@ -41,9 +41,10 @@
         src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-ExtraBold.ttf') }}") format('truetype');
       }
       @page {
-        margin: 40px 40px 40px 40px;
+        margin: 40px 40px 120px 40px;
         @bottom-center {
           content: element(pdf-footer);
+          width: 100%;
         }
       }
       @page :first {
@@ -60,7 +61,7 @@
         font-size: 12px;
         color: #0f172a;
         margin: 0;
-        padding-bottom: 90px;
+        padding-bottom: 0;
       }
       table {
         width: 100%;
@@ -126,6 +127,13 @@
         color: #475569;
         font-size: 11px;
       }
+      .component-row td {
+        border-top: none;
+        border-bottom: none;
+      }
+      .item-no-divider td {
+        border-bottom: none;
+      }
       .text-right {
         text-align: right !important;
       }
@@ -166,6 +174,7 @@
         line-height:10px;
         color: #475569;
         font-weight: 400;
+        text-align: left;
       }
       .header-right {
         width: 50%;
@@ -174,14 +183,28 @@
       }
       .pdf-footer {
         position: running(pdf-footer);
+        height: 70px;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        display: block;
       }
       .footer-signatures {
         width: 100%;
+        margin: 0;
+        padding: 0;
+        display: table;
+        table-layout: fixed;
       }
       .signature-table {
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;
+        margin: 0;
+        padding: 0;
+      }
+      .signature-table td {
+        padding: 0;
       }
       .signature-spacer {
         width: 4%;
@@ -192,6 +215,8 @@
       .signature-box {
         border: 1px solid #cbd5f5;
         height: 44px;
+        width: 100%;
+        box-sizing: border-box;
       }
       .signature-label {
         font-size: 10px;
@@ -320,8 +345,16 @@
             <td colspan="9">{{ $category }}</td>
           </tr>
           @foreach ($items as $item)
-            <tr class="avoid-break">
-              <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+            @php
+              $visibleComponents = $item->components->where('is_visible', true);
+              $componentCount = $visibleComponents->count();
+            @endphp
+            <tr class="avoid-break {{ $item->components->where('is_visible', true)->count() > 0 ? 'item-no-divider' : '' }}">
+              @if ($componentCount > 0)
+                <td class="code-cell" style="width:8%;" rowspan="{{ $componentCount + 1 }}"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+              @else
+                <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+              @endif
               <td style="width:28%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
               <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
               <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
@@ -329,11 +362,14 @@
               <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
               <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
               <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
-              <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
+              @if ($componentCount > 0)
+                <td class="note-cell" style="width:20%;" rowspan="{{ $componentCount + 1 }}"><div class="cell-pad">{{ $item->note_shared }}</div></td>
+              @else
+                <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
+              @endif
             </tr>
-            @foreach ($item->components->where('is_visible', true) as $component)
+            @foreach ($visibleComponents as $component)
               <tr class="component-row avoid-break">
-                <td class="code-cell" style="width:8%;"><div class="cell-pad"></div></td>
                 <td style="width:28%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
                 <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
                 <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
@@ -341,7 +377,6 @@
                 <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
                 <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
                 <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
-                <td style="width:20%;"><div class="cell-pad"></div></td>
               </tr>
             @endforeach
           @endforeach
