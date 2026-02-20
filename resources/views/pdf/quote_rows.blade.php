@@ -4,15 +4,59 @@
     <meta charset="utf-8" />
     <title>Preventivo {{ $quote->prot_display }}</title>
     <style>
+      @font-face {
+        font-family: 'Days One';
+        font-style: normal;
+        font-weight: 400;
+        src: url("{{ 'file://' . public_path('fonts/DaysOne/DaysOne-Regular.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: 300;
+        src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-Light.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: 400;
+        src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-Regular.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: 500;
+        src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-Medium.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: 700;
+        src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-Bold.ttf') }}") format('truetype');
+      }
+      @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: 800;
+        src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-ExtraBold.ttf') }}") format('truetype');
+      }
       @page {
         margin: 40px 40px 40px 40px;
+        @bottom-center {
+          content: element(pdf-footer);
+        }
+      }
+      @page :first {
+        @bottom-center {
+          content: none;
+        }
       }
       html,
       body {
         height: 100%;
       }
       body {
-        font-family: DejaVu Sans, sans-serif;
+        font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         color: #0f172a;
         margin: 0;
@@ -67,7 +111,7 @@
         font-weight: 600;
       }
       .category-row td {
-        font-family: DejaVu Sans, sans-serif;
+        font-family: 'Open Sans', sans-serif;
       }
       .category-header-row th {
         padding-top: 6px;
@@ -129,10 +173,7 @@
         font-size: 11px;
       }
       .pdf-footer {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        position: running(pdf-footer);
       }
       .footer-signatures {
         width: 100%;
@@ -182,7 +223,24 @@
       };
     @endphp
 
-    <table class="items">
+    <section class="page rows">
+      <div class="pdf-footer">
+        <table class="footer-signatures signature-table">
+          <tr>
+            <td class="signature-col">
+              <div class="signature-label">MD Italia Srl</div>
+              <div class="signature-box"></div>
+            </td>
+            <td class="signature-spacer"></td>
+            <td class="signature-col">
+              <div class="signature-label">Firma dell’acquirente per accettazione</div>
+              <div class="signature-box"></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <table class="items">
       <colgroup>
         <col style="width:8%;" />
         <col style="width:28%;" />
@@ -310,22 +368,7 @@
           @endforeach
         @endif
       </tbody>
-    </table>
-
-    <div class="pdf-footer">
-      <table class="footer-signatures signature-table">
-        <tr>
-          <td class="signature-col">
-            <div class="signature-label">MD Italia Srl</div>
-            <div class="signature-box"></div>
-          </td>
-          <td class="signature-spacer"></td>
-          <td class="signature-col">
-            <div class="signature-label">Firma dell’acquirente per accettazione</div>
-            <div class="signature-box"></div>
-          </td>
-        </tr>
       </table>
-    </div>
+    </section>
   </body>
 </html>
