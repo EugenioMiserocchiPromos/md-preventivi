@@ -70,16 +70,16 @@
       }
       h1 {
         font-family: 'Jost', 'Open Sans', sans-serif;
-        font-size: 25px;
+        font-size: 22.5px;
         margin: 0 0 50px 0;
-        line-height: 1.1;
+        line-height: 24px;
         color: #95817b;
         font-weight: 600;
       }
       .frontespizio-subtitle {
-        line-height: 1.1;
+        line-height: 24px;
         font-family: 'Jost', 'Open Sans', sans-serif;
-        font-size: 25px;
+        font-size: 22.5px;
         letter-spacing: 1px;
         color: #cd1719;
         margin: 0 0 6px 0;
@@ -93,7 +93,7 @@
       .frontespizio {
         width: 100%;
         height: 100%;
-        background-image: url("{{ 'file://' . public_path('pdf/frontespizio-bg.png') }}");
+        background-image: url("{{ 'file://' . public_path('pdf/frontespizio-bg.jpg') }}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -155,14 +155,16 @@
       }
       .frontespizio-info .info-label {
         text-transform: uppercase;
-        font-size: 11px;
+        font-size: 14px;
+        line-height:16px;
         letter-spacing: 0.08em;
         color: #95817b;
         text-align: left;
       }
       .frontespizio-info .info-value {
         text-align: right;
-        font-size: 14px;
+        font-size: 17px;
+        line-height: 19px;
         color: #95817b;
       }
       .frontespizio-logo {
