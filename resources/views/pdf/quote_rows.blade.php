@@ -123,12 +123,21 @@
         word-break: break-word;
         hyphens: auto;
       }
-      .category-row {
-        background: #f8fafc;
+      .product-category-row {
+        background: rgba(149, 129, 123, 0.2);
         font-weight: 600;
       }
-      .category-row td {
+      .product-category-row td,
+      .product-category-row th {
         font-family: 'Open Sans', sans-serif;
+        color: #000000;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        padding-left:5px;
+        text-align: left !important;
+        border: none;
+        font-weight:550;
+        font-size: 10px;
       }
       .category-header-row th {
         padding-top: 6px;
@@ -138,6 +147,10 @@
         text-align: center;
         padding-top: 6px;
         padding-bottom: 6px;
+        font-family: 'Jost', 'Open Sans', sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: #95817b;
       }
       .component-row {
         color: #475569;
@@ -225,8 +238,34 @@
       }
       .header-right {
         width: 50%;
-        text-align: right;
+        text-align: left;
         font-size: 11px;
+      }
+      .header-info {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .header-info tr {
+        border-bottom: 1px solid #95817b;
+      }
+      .header-info td {
+        padding: 6px 0;
+        vertical-align: top;
+      }
+      .header-info .info-label {
+        width: 40%;
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        color: #95817b;
+        text-align: left;
+      }
+      .header-info .info-value {
+        width: 60%;
+        font-size: 8px;
+        color: #000000;
+        text-align: right;
+        white-space: pre-wrap;
       }
       .pdf-footer {
         position: running(pdf-footer);
@@ -318,11 +357,28 @@
               </div>
             </td>
             <td class="header-right">
-              <div><strong>PROT:</strong> {{ $quote->prot_internal ?? $quote->prot_display }}</div>
-              <div><strong>Data:</strong> {{ $quote->date }}</div>
-              <div><strong>Cliente:</strong> {{ $quote->customer_title_snapshot }}</div>
-              <div><strong>Cantiere:</strong> {{ $quote->cantiere }}</div>
-              <div><strong>Titolo:</strong> {{ $quote->title_text }}</div>
+              <table class="header-info">
+                <tr>
+                  <td class="info-label">Prot. numero</td>
+                  <td class="info-value">{{ $quote->prot_internal ?? $quote->prot_display }}</td>
+                </tr>
+                <tr>
+                  <td class="info-label">Data</td>
+                  <td class="info-value">{{ $quote->date }}</td>
+                </tr>
+                <tr>
+                  <td class="info-label">Intervento</td>
+                  <td class="info-value">{{ $quote->title_text }}</td>
+                </tr>
+                <tr>
+                  <td class="info-label">Cliente</td>
+                  <td class="info-value">{{ $quote->customer_title_snapshot }}@if(!empty($quote->customer_body_snapshot))&#10;{{ $quote->customer_body_snapshot }}@endif</td>
+                </tr>
+                <tr>
+                  <td class="info-label">Cantiere</td>
+                  <td class="info-value">{{ $quote->cantiere }}</td>
+                </tr>
+              </table>
             </td>
           </tr>
         </table>
@@ -346,14 +402,14 @@
               </th>
             </tr>
             <tr>
-              <th class="code-cell"><div class="cell-pad">Codice</div></th>
-              <th><div class="cell-pad">Voce</div></th>
-              <th class="um-cell"><div class="cell-pad">UM</div></th>
-              <th><div class="cell-pad">Qtà</div></th>
+              <th class="code-cell"><div class="cell-pad">Cod.</div></th>
+              <th><div class="cell-pad">Prodotto</div></th>
+              <th class="um-cell"><div class="cell-pad">U.M.</div></th>
+              <th><div class="cell-pad">Quantità</div></th>
               <th class="symbol-cell"><div class="cell-pad"></div></th>
               <th><div class="cell-pad">Prezzo</div></th>
               <th class="symbol-cell"><div class="cell-pad"></div></th>
-              <th><div class="cell-pad">Totale</div></th>
+              <th><div class="cell-pad">Tot. Parziale</div></th>
               <th class="note-cell"><div class="cell-pad">Note</div></th>
             </tr>
           </thead>
@@ -390,7 +446,7 @@
           <col style="width:20%;" />
         </colgroup>
         <thead>
-          <tr class="category-row">
+          <tr class="product-category-row">
             <th colspan="9">{{ $category }}</th>
           </tr>
         </thead>
