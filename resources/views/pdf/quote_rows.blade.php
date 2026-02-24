@@ -240,11 +240,14 @@
         color: #475569;
         font-weight: 400;
         text-align: left;
+        min-height:250px;
+        height:250px;
       }
       .header-right {
         width: 50%;
         text-align: left;
         font-size: 11px;
+        max-height:250px;
       }
       .header-info {
         width: 100%;
@@ -269,8 +272,8 @@
       }
       .header-info .info-value {
         width: 60%;
-        font-size: 12px;
-        line-height:14px;
+        font-size: 10px;
+        line-height:12px;
         color: #000000;
         text-align: right;
         white-space: pre-wrap;
@@ -307,15 +310,18 @@
         width: 48%;
       }
       .signature-box {
-        border: 1px solid #cbd5f5;
+        border-bottom: 1px solid #95817b;
         height: 44px;
         width: 100%;
         box-sizing: border-box;
       }
       .signature-label {
+        font-family: 'Jost', sans-serif;
+        font-weight: 500;
+        text-align:center;
         font-size: 10px;
-        text-transform: uppercase;
-        color: #64748b;
+        line-height:12px;
+        color: #000000;
         margin-bottom: 6px;
       }
     </style>
