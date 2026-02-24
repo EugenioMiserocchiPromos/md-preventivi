@@ -277,8 +277,8 @@
         color: #475569;
         font-weight: 400;
         text-align: left;
-        min-height:250px;
-        height:250px;
+        min-height:255px;
+        height:255px;
       }
       .header-right {
         width: 50%;
