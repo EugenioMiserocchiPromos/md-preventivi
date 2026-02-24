@@ -81,10 +81,16 @@ export default function QuoteExtrasPage() {
             : '',
       });
       setExtras(
-        extrasList.map((extra) => ({
-          ...extra,
-          unit: normalizeUnit(extra.unit),
-        }))
+        extrasList.map((extra) => {
+          const isWarranty = extra.fixed_key === 'warranty_10y';
+          return {
+            ...extra,
+            unit: normalizeUnit(extra.unit),
+            is_included: isWarranty
+              ? Boolean(extra.is_included)
+              : Boolean(extra.is_included ?? true),
+          };
+        })
       );
     } catch (err) {
       setError(err?.message || 'Errore nel caricamento righe extra.');
@@ -99,13 +105,39 @@ export default function QuoteExtrasPage() {
 
   const updateExtraField = (id, field, value) => {
     setExtras((prev) =>
-      prev.map((extra) => (extra.id === id ? { ...extra, [field]: value } : extra))
+      prev.map((extra) => {
+        if (extra.id !== id) return extra;
+        const next = { ...extra, [field]: value };
+        if (extra.fixed_key === 'warranty_10y' && field === 'unit_price') {
+          const numeric = Number(value);
+          next.is_included = numeric > 0;
+          if (numeric <= 0) {
+            next.qty = 1;
+          }
+        }
+        if (extra.fixed_key === 'warranty_10y' && field === 'is_included') {
+          if (!value) {
+            next.unit_price = 0;
+            next.qty = 1;
+          }
+        }
+        return next;
+      })
     );
     setDirtyIds((prev) => {
       const next = new Set(prev);
       next.add(id);
       return next;
     });
+  };
+
+  const toggleWarrantyIncluded = (extra) => {
+    const nextIncluded = !extra.is_included;
+    updateExtraField(extra.id, 'is_included', nextIncluded);
+    if (!nextIncluded) {
+      updateExtraField(extra.id, 'unit_price', 0);
+      updateExtraField(extra.id, 'qty', 1);
+    }
   };
 
   const handleDeleteExtra = async (extra) => {
@@ -162,6 +194,20 @@ export default function QuoteExtrasPage() {
     for (const id of ids) {
       const extra = extras.find((item) => item.id === id);
       if (!extra) continue;
+      const isWarranty = extra.fixed_key === 'warranty_10y';
+      if (isWarranty) {
+        const normalizedIncluded = Number(extra.unit_price) > 0;
+        if (extra.is_included !== normalizedIncluded) {
+          updateExtraField(extra.id, 'is_included', normalizedIncluded);
+        }
+      }
+      if (isWarranty && extra.is_included && Number(extra.unit_price) <= 0) {
+        nextErrors[id] = 'Inserisci un prezzo valido per la garanzia.';
+        continue;
+      }
+      if (isWarranty && !extra.is_included && Number(extra.unit_price) !== 0) {
+        updateExtraField(extra.id, 'unit_price', 0);
+      }
       try {
         const payload = {
           unit: normalizeUnit(extra.unit),
@@ -342,12 +388,17 @@ export default function QuoteExtrasPage() {
               <tbody>
                 {extras.map((extra) => {
                   const isWarranty = extra.fixed_key === 'warranty_10y';
+                  const warrantyExcluded = isWarranty && !extra.is_included;
                   const qtyValue = Number(extra.qty || 0);
                   const priceValue = Number(extra.unit_price || 0);
                   const lineTotal = qtyValue * priceValue;
                   return (
                     <React.Fragment key={extra.id}>
-                      <tr className="border-t border-slate-200/60">
+                      <tr
+                        className={`border-t border-slate-200/60 ${
+                          warrantyExcluded ? 'bg-slate-100/70' : ''
+                        }`}
+                      >
                         <td className="px-3 py-3" colSpan={6}>
                           <p className="text-xs uppercase tracking-wide text-slate-500">
                             Descrizione
@@ -365,56 +416,93 @@ export default function QuoteExtrasPage() {
                           )}
                         </td>
                       </tr>
-                      <tr className="border-t border-slate-200/60">
+                      <tr
+                        className={`border-t border-slate-200/60 ${
+                          warrantyExcluded ? 'bg-slate-100/70' : ''
+                        }`}
+                      >
                         <td className="px-3 py-3" colSpan={6}>
-                          <div className="mt-1 grid gap-3 md:grid-cols-4">
-                            <label className="text-sm">
-                              <span className="text-slate-600">Qtà</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={extra.qty}
-                                onChange={(event) =>
-                                  updateExtraField(extra.id, 'qty', event.target.value)
-                                }
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                              />
-                            </label>
-                            <label className="text-sm">
-                              <span className="text-slate-600">UM</span>
-                              <select
-                                value={extra.unit}
-                                onChange={(event) =>
-                                  updateExtraField(extra.id, 'unit', event.target.value)
-                                }
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                              >
-                                {unitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-                            <label className="text-sm">
-                              <span className="text-slate-600">Prezzo</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={extra.unit_price}
-                                onChange={(event) =>
-                                  updateExtraField(extra.id, 'unit_price', event.target.value)
-                                }
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                              />
-                            </label>
-                            <div className="text-sm">
-                              <span className="text-slate-600">Totale riga</span>
-                              <p className="mt-2 text-base font-semibold text-slate-800">
-                                {formatMoney(lineTotal)}
-                              </p>
+                          {isWarranty ? (
+                            <div className="mt-1 grid gap-3 md:grid-cols-3">
+                              <label className="flex items-center gap-2 text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={warrantyExcluded}
+                                  onChange={() => toggleWarrantyIncluded(extra)}
+                                  className="h-4 w-4 rounded border-slate-300"
+                                />
+                                <span className="text-slate-700">Non compresa</span>
+                              </label>
+                              <label className="text-sm">
+                                <span className="text-slate-600">Prezzo</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={extra.unit_price}
+                                  onChange={(event) =>
+                                    updateExtraField(extra.id, 'unit_price', event.target.value)
+                                  }
+                                  disabled={warrantyExcluded}
+                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
+                                />
+                              </label>
+                              <div className="text-sm">
+                                <span className="text-slate-600">Totale riga</span>
+                                <p className="mt-2 text-base font-semibold text-slate-800">
+                                  {formatMoney(lineTotal)}
+                                </p>
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="mt-1 grid gap-3 md:grid-cols-4">
+                              <label className="text-sm">
+                                <span className="text-slate-600">Qtà</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={extra.qty}
+                                  onChange={(event) =>
+                                    updateExtraField(extra.id, 'qty', event.target.value)
+                                  }
+                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                                />
+                              </label>
+                              <label className="text-sm">
+                                <span className="text-slate-600">UM</span>
+                                <select
+                                  value={extra.unit}
+                                  onChange={(event) =>
+                                    updateExtraField(extra.id, 'unit', event.target.value)
+                                  }
+                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                                >
+                                  {unitOptions.map((unit) => (
+                                    <option key={unit} value={unit}>
+                                      {unit}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label className="text-sm">
+                                <span className="text-slate-600">Prezzo</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={extra.unit_price}
+                                  onChange={(event) =>
+                                    updateExtraField(extra.id, 'unit_price', event.target.value)
+                                  }
+                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                                />
+                              </label>
+                              <div className="text-sm">
+                                <span className="text-slate-600">Totale riga</span>
+                                <p className="mt-2 text-base font-semibold text-slate-800">
+                                  {formatMoney(lineTotal)}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                           <div className="mt-3 flex flex-wrap items-center gap-2">
                             {!extra.is_fixed ? (
                               <button
@@ -437,18 +525,20 @@ export default function QuoteExtrasPage() {
                           ) : null}
                         </td>
                       </tr>
-                      <tr className="border-t border-slate-200/60">
-                        <td className="px-3 py-3" colSpan={6}>
-                          <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>
-                          <input
-                            value={extra.notes || ''}
-                            onChange={(event) =>
-                              updateExtraField(extra.id, 'notes', event.target.value)
-                            }
-                            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
-                          />
-                        </td>
-                      </tr>
+                      {!isWarranty ? (
+                        <tr className="border-t border-slate-200/60">
+                          <td className="px-3 py-3" colSpan={6}>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>
+                            <input
+                              value={extra.notes || ''}
+                              onChange={(event) =>
+                                updateExtraField(extra.id, 'notes', event.target.value)
+                              }
+                              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                            />
+                          </td>
+                        </tr>
+                      ) : null}
                     </React.Fragment>
                   );
                 })}

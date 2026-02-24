@@ -9,7 +9,7 @@ class QuoteExtrasService
 {
     public const FIXED_KEYS = ['warranty_10y', 'extra_2', 'extra_3'];
     private const DESCRIPTIONS = [
-        'warranty_10y' => 'Garanzia 10 anni',
+        'warranty_10y' => 'Costo una-tantum per Garanzia decennale',
         'extra_2' => 'Assistenza tecnica in cantiere e Progettazione vasca',
         'extra_3' => 'Oneri derivanti da trasferte personale applicatore tecnico',
     ];

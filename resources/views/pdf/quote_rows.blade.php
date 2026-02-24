@@ -277,14 +277,14 @@
         color: #475569;
         font-weight: 400;
         text-align: left;
-        min-height:255px;
-        height:255px;
+        min-height:245px;
+        height:245px;
       }
       .header-right {
         width: 50%;
         text-align: left;
         font-size: 11px;
-        max-height:250px;
+        max-height:245px;
       }
       .header-info {
         width: 100%;
@@ -548,7 +548,6 @@
         $extrasOrder = [
           'Assistenza tecnica in cantiere e Progettazione vasca',
           'Oneri derivanti da trasferte personale applicatore e tecnico',
-          'Garanzia 10 anni',
         ];
         $extrasByDesc = $extras->keyBy(function ($extra) {
           return trim((string) $extra->description);
@@ -560,11 +559,17 @@
           }
         }
         $extrasRemaining = $extras->reject(function ($extra) use ($extrasOrder) {
+          if ($extra->fixed_key === 'warranty_10y') {
+            return true;
+          }
           return in_array(trim((string) $extra->description), $extrasOrder, true);
         });
         $extrasTail = collect();
-        if ($extrasByDesc->has($extrasOrder[2])) {
-          $extrasTail->push($extrasByDesc->get($extrasOrder[2]));
+        $warrantyExtra = $extras->first(function ($extra) {
+          return $extra->fixed_key === 'warranty_10y';
+        });
+        if ($warrantyExtra) {
+          $extrasTail->push($warrantyExtra);
         }
       @endphp
       <table class="items">
@@ -633,16 +638,34 @@
             <tr class="extra-spacer">
               <td colspan="9"></td>
             </tr>
-            <tr class="avoid-break extra-row">
-              <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
-              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
-              <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
-              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
-              <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>
-              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
-              <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $extra->line_total, 2, ',', '.') }}</div></td>
-              <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $extra->notes }}</div></td>
-            </tr>
+            @if ($extra->fixed_key === 'warranty_10y')
+              <tr class="avoid-break extra-row">
+                <td colspan="7" style="width:70%; text-align:left;">
+                  <div class="cell-pad">Costo una-tantum per Garanzia Decennale Postuma di Rimpiazzo e Posa in Opera (a 30 gg dal saldo dell'ultima fattura)</div>
+                </td>
+                <td class="text-right" style="width:12%;">
+                  <div class="cell-pad">
+                    @if ((float) $extra->unit_price > 0)
+                      € {{ number_format((float) $extra->unit_price, 2, ',', '.') }}
+                    @else
+                      Non compresa
+                    @endif
+                  </div>
+                </td>
+                <td class="note-cell" style="width:20%;"><div class="cell-pad"></div></td>
+              </tr>
+            @else
+              <tr class="avoid-break extra-row">
+                <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
+                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
+                <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
+                <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+                <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>
+                <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+                <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $extra->line_total, 2, ',', '.') }}</div></td>
+                <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $extra->notes }}</div></td>
+              </tr>
+            @endif
           @endforeach
           <tr class="extra-spacer">
             <td colspan="9"></td>
