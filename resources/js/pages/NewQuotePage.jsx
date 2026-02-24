@@ -199,7 +199,7 @@ export default function NewQuotePage() {
               onChange={(event) => handleChange('quote_type', event.target.value)}
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             >
-              <option value="FP">Fornitura e Posa (FP)</option>
+              <option value="FP">Fornitura e Posa in opera (FP)</option>
               <option value="AS">Assistenza (AS)</option>
               <option value="VM">Vendita Materiale (VM)</option>
             </select>
