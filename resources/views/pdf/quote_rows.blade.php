@@ -131,7 +131,7 @@
         hyphens: auto;
       }
       .product-category-row {
-        background: rgba(149, 129, 123, 0.2);
+        background: rgba(149, 129, 123, 0.15);
         font-weight: 600;
       }
       .product-category-row td,
@@ -146,6 +146,40 @@
         font-weight:700;
         font-size: 11px;
         line-height: 13px;
+      }
+      .extra-row {
+        background: rgba(149, 129, 123, 0.15);
+        font-size: 11px;
+        line-height: 13px;
+        font-weight: 500;
+      }
+      .extra-row .cell-pad {
+        font-size: 11px;
+        line-height: 13px;
+        font-weight: 500;
+      }
+      .total-row {
+        background: #95817b;
+        font-size: 11px;
+        line-height: 13px;
+        font-weight: 700;
+      }
+      .total-row td,
+      .total-row .cell-pad {
+        color: #ffffff;
+        font-size: 11px;
+        line-height: 13px;
+        font-weight: 700;
+      }
+      .extra-spacer td {
+        height: 5px;
+        padding: 0;
+        border: none;
+        background: #ffffff;
+      }
+      .table-spacer td {
+        height: 100px;
+        padding: 0;
       }
       .category-header-row th {
         padding-top: 6px;
@@ -253,9 +287,6 @@
         width: 100%;
         border-collapse: collapse;
       }
-      .header-info tr {
-        border-bottom: 1px solid #95817b;
-      }
       .header-info td {
         padding: 6px 0;
         vertical-align: top;
@@ -270,13 +301,18 @@
         text-align: left;
         font-weight:700;
       }
+      .header-info .info-underline {
+        margin-top: 5px;
+        border-bottom: 1px solid #95817b;
+      }
       .header-info .info-value {
         width: 60%;
         font-size: 10px;
         line-height:12px;
         color: #000000;
-        text-align: right;
+        text-align: left;
         white-space: pre-wrap;
+        padding-left: 10px;
       }
       .pdf-footer {
         position: running(pdf-footer);
@@ -373,23 +409,23 @@
             <td class="header-right">
               <table class="header-info">
                 <tr>
-                  <td class="info-label">Prot. numero</td>
+                  <td class="info-label">Prot. numero<div class="info-underline"></div></td>
                   <td class="info-value">{{ $quote->prot_internal ?? $quote->prot_display }}</td>
                 </tr>
                 <tr>
-                  <td class="info-label">Data</td>
+                  <td class="info-label">Data<div class="info-underline"></div></td>
                   <td class="info-value">{{ $quote->date }}</td>
                 </tr>
                 <tr>
-                  <td class="info-label">Intervento</td>
+                  <td class="info-label">Intervento<div class="info-underline"></div></td>
                   <td class="info-value">{{ $quote->title_text }}</td>
                 </tr>
                 <tr>
-                  <td class="info-label">Cliente</td>
+                  <td class="info-label">Cliente<div class="info-underline"></div></td>
                   <td class="info-value">{{ $quote->customer_title_snapshot }}@if(!empty($quote->customer_body_snapshot))&#10;{{ $quote->customer_body_snapshot }}@endif</td>
                 </tr>
                 <tr>
-                  <td class="info-label">Cantiere</td>
+                  <td class="info-label">Cantiere<div class="info-underline"></div></td>
                   <td class="info-value">{{ $quote->cantiere }}</td>
                 </tr>
               </table>
@@ -505,6 +541,29 @@
     @endforeach
 
     @if ($extras->count() > 0)
+      @php
+        $extrasOrder = [
+          'Assistenza tecnica in cantiere e Progettazione vasca',
+          'Oneri derivanti da trasferte personale applicatore e tecnico',
+          'Garanzia 10 anni',
+        ];
+        $extrasByDesc = $extras->keyBy(function ($extra) {
+          return trim((string) $extra->description);
+        });
+        $extrasRendered = collect();
+        foreach (array_slice($extrasOrder, 0, 2) as $label) {
+          if ($extrasByDesc->has($label)) {
+            $extrasRendered->push($extrasByDesc->get($label));
+          }
+        }
+        $extrasRemaining = $extras->reject(function ($extra) use ($extrasOrder) {
+          return in_array(trim((string) $extra->description), $extrasOrder, true);
+        });
+        $extrasTail = collect();
+        if ($extrasByDesc->has($extrasOrder[2])) {
+          $extrasTail->push($extrasByDesc->get($extrasOrder[2]));
+        }
+      @endphp
       <table class="items">
         <colgroup>
           <col style="width:8%;" />
@@ -518,14 +577,22 @@
           <col style="width:20%;" />
         </colgroup>
         <tbody>
-          <tr>
-            <td colspan="9">&nbsp;</td>
+          <tr class="table-spacer">
+            <td style="width:8%;"></td>
+            <td style="width:28%;"></td>
+            <td style="width:6%;"></td>
+            <td style="width:10%;"></td>
+            <td style="width:3%;"></td>
+            <td style="width:10%;"></td>
+            <td style="width:3%;"></td>
+            <td style="width:12%;"></td>
+            <td style="width:20%;"></td>
           </tr>
-          <tr>
-            <td colspan="9">&nbsp;</td>
-          </tr>
-          @foreach ($extras as $extra)
-            <tr class="avoid-break">
+          @foreach ($extrasRendered as $extra)
+            <tr class="extra-spacer">
+              <td colspan="9"></td>
+            </tr>
+            <tr class="avoid-break extra-row">
               <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
               <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
               <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
@@ -536,6 +603,50 @@
               <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $extra->notes }}</div></td>
             </tr>
           @endforeach
+          @foreach ($extrasRemaining as $extra)
+            <tr class="extra-spacer">
+              <td colspan="9"></td>
+            </tr>
+            <tr class="avoid-break extra-row">
+              <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
+              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
+              <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
+              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+              <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>
+              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+              <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $extra->line_total, 2, ',', '.') }}</div></td>
+              <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $extra->notes }}</div></td>
+            </tr>
+          @endforeach
+          <tr class="extra-spacer">
+            <td colspan="9"></td>
+          </tr>
+          <tr class="avoid-break total-row">
+            <td colspan="7" style="width:70%; text-align:left;"><div class="cell-pad">Totale</div></td>
+            <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) ($quote->grand_total ?? 0), 2, ',', '.') }}</div></td>
+            <td class="note-cell" style="width:20%; text-align: left;"><div class="cell-pad">+ IVA</div></td>
+          </tr>
+          @foreach ($extrasTail as $extra)
+            <tr class="extra-spacer">
+              <td colspan="9"></td>
+            </tr>
+            <tr class="avoid-break extra-row">
+              <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
+              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
+              <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
+              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+              <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>
+              <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+              <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $extra->line_total, 2, ',', '.') }}</div></td>
+              <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $extra->notes }}</div></td>
+            </tr>
+          @endforeach
+          <tr class="extra-spacer">
+            <td colspan="9"></td>
+          </tr>
+          <tr class="avoid-break extra-row">
+            <td colspan="9" style="text-align:left;"><div class="cell-pad">Pagamenti: da Concordare</div></td>
+          </tr>
         </tbody>
       </table>
     @endif
