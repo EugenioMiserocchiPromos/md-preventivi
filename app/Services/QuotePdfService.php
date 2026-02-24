@@ -39,7 +39,11 @@ class QuotePdfService
             ])->render();
         }
 
-        $html = $this->composeFullHtml($frontHtml, $rowsHtml);
+        $notesHtml = view('pdf.quote_notes', [
+            'quote' => $quote,
+        ])->render();
+
+        $html = $this->composeFullHtml($frontHtml, $rowsHtml, $notesHtml);
 
         return $this->htmlToPdf($html);
     }
@@ -69,7 +73,7 @@ class QuotePdfService
         return $pdf;
     }
 
-    private function composeFullHtml(string $frontHtml, ?string $rowsHtml): string
+    private function composeFullHtml(string $frontHtml, ?string $rowsHtml, ?string $notesHtml): string
     {
         $front = $this->extractHtmlParts($frontHtml);
         $styles = $front['styles'];
@@ -79,6 +83,12 @@ class QuotePdfService
             $rows = $this->extractHtmlParts($rowsHtml);
             $styles .= "\n".$rows['styles'];
             $body .= "\n<div style=\"page-break-after: always;\"></div>\n".$rows['body'];
+        }
+
+        if ($notesHtml) {
+            $notes = $this->extractHtmlParts($notesHtml);
+            $styles .= "\n".$notes['styles'];
+            $body .= "\n<div style=\"page-break-after: always;\"></div>\n".$notes['body'];
         }
 
         return <<<HTML
