@@ -52,7 +52,7 @@
         font-weight: 800;
         src: url("{{ 'file://' . public_path('fonts/OpenSans/OpenSans-ExtraBold.ttf') }}") format('truetype');
       }
-      @page {
+      @page rows {
         margin: 360px 40px 120px 40px;
         @bottom-center {
           content: element(pdf-footer);
@@ -63,7 +63,7 @@
           width: 100%;
         }
       }
-      @page :first {
+      @page rows:first {
         @bottom-center {
           content: none;
         }
@@ -78,6 +78,9 @@
         color: #0f172a;
         margin: 0;
         padding-bottom: 0;
+      }
+      .page.rows {
+        page: rows;
       }
       table {
         width: 100%;
