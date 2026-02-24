@@ -182,7 +182,7 @@
     <section class="page frontespizio">
       @php
         $quoteTypeLabel = match ($quote->quote_type) {
-            'FP' => 'Fornitura e Posa',
+            'FP' => 'Fornitura e Posa in opera',
             'AS' => 'Assistenza',
             'VM' => 'Vendita Materiale',
             default => $quote->quote_type,
