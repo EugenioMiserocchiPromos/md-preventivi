@@ -19,6 +19,7 @@ RUN apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
+    libxml2-dev \
     zlib-dev \
     zip \
     unzip \
@@ -26,7 +27,7 @@ RUN apk add --no-cache \
 
 # PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) pdo_mysql intl zip gd
+    && docker-php-ext-install -j$(nproc) pdo_mysql intl zip gd mbstring xml
 
 # Composer binary
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
