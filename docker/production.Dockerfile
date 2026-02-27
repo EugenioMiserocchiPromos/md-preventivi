@@ -9,12 +9,7 @@ COPY vite.config.js ./
 COPY public ./public
 RUN npm run build
 
-FROM composer:2 AS composer-build
-WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
-
-FROM php:8.3-alpine AS app
+FROM php:8.3-alpine AS base
 
 # System deps for common Laravel needs
 RUN apk add --no-cache \
@@ -32,6 +27,16 @@ RUN apk add --no-cache \
 # PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_mysql intl zip gd
+
+# Composer binary
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+FROM base AS composer-build
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+FROM base AS app
 
 WORKDIR /var/www/html
 
