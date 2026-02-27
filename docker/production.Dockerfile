@@ -9,7 +9,7 @@ COPY vite.config.js ./
 COPY public ./public
 RUN npm run build
 
-FROM php:8.3-alpine AS base
+FROM php:8.4-alpine AS base
 
 # System deps for common Laravel needs
 RUN apk add --no-cache \
