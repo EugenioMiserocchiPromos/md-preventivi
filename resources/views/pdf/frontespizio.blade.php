@@ -91,12 +91,19 @@
         border-collapse: collapse;
       }
       .frontespizio {
-        width: 100%;
+        /* width: 100%;
         height: 100%;
         background-image: url("{{ 'file://' . public_path('pdf/frontespizio-bg.jpg') }}");
         background-size: cover;
         background-position: center;
+        background-repeat: no-repeat; */
+        width: 210mm;
+        height: 297mm;
+        background-image: url("{{ 'file://' . public_path('pdf/frontespizio-bg.jpg') }}");
+        background-size: 210mm 297mm; /* niente cover */
+        background-position: 0 0;
         background-repeat: no-repeat;
+        
         display: table;
       }
       .frontespizio-cell {

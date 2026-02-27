@@ -13,11 +13,11 @@ import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
 
-const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
+const unitOptions = ['pz', 'mq', 'nº', 'ml', 'mc', 'cad.', 'kg.'];
 
 const normalizeUnit = (value) => {
   const normalized = String(value || '').trim().toLowerCase();
-  const map = { cad: 'cad.', kg: 'kg.' };
+  const map = { cad: 'cad.', kg: 'kg.', intervento: 'nº' };
   const unit = map[normalized] || normalized;
   return unitOptions.includes(unit) ? unit : 'ml';
 };
@@ -469,19 +469,27 @@ export default function QuoteExtrasPage() {
                               </label>
                               <label className="text-sm">
                                 <span className="text-slate-600">UM</span>
-                                <select
-                                  value={extra.unit}
-                                  onChange={(event) =>
-                                    updateExtraField(extra.id, 'unit', event.target.value)
-                                  }
-                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                                >
-                                  {unitOptions.map((unit) => (
-                                    <option key={unit} value={unit}>
-                                      {unit}
-                                    </option>
-                                  ))}
-                                </select>
+                                {extra.fixed_key === 'extra_3' ? (
+                                  <input
+                                    value="nº"
+                                    disabled
+                                    className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-600"
+                                  />
+                                ) : (
+                                  <select
+                                    value={extra.unit}
+                                    onChange={(event) =>
+                                      updateExtraField(extra.id, 'unit', event.target.value)
+                                    }
+                                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                                  >
+                                    {unitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
                               </label>
                               <label className="text-sm">
                                 <span className="text-slate-600">Prezzo</span>

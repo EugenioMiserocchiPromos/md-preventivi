@@ -425,7 +425,7 @@
                 </tr>
                 <tr>
                   <td class="info-label">Cliente<div class="info-underline"></div></td>
-                  <td class="info-value">{{ $quote->customer_title_snapshot }}@if(!empty($quote->customer_body_snapshot))&#10;{{ $quote->customer_body_snapshot }}@endif</td>
+                  <td class="info-value"><b>{{ $quote->customer_title_snapshot }}</b>@if(!empty($quote->customer_body_snapshot))&#10;{{ $quote->customer_body_snapshot }}@endif</td>
                 </tr>
                 <tr>
                   <td class="info-label">Cantiere<div class="info-underline"></div></td>
@@ -632,7 +632,9 @@
           <tr class="avoid-break total-row">
             <td colspan="7" style="width:70%; text-align:left;"><div class="cell-pad">Totale</div></td>
             <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) ($quote->grand_total ?? 0), 2, ',', '.') }}</div></td>
-            <td class="note-cell" style="width:20%; text-align: left;"><div class="cell-pad">+ IVA</div></td>
+            <td class="note-cell total-note-cell" style="width:20%; text-align:left;">
+              <div class="cell-pad" style="text-align:left;">+ IVA</div>
+            </td>
           </tr>
           @foreach ($extrasTail as $extra)
             <tr class="extra-spacer">
