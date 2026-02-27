@@ -35,7 +35,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 FROM base AS composer-build
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-scripts
 
 FROM base AS app
 
@@ -47,6 +47,9 @@ COPY . .
 # Copy vendor and built assets
 COPY --from=composer-build /app/vendor ./vendor
 COPY --from=node-build /app/public/build ./public/build
+
+# Run Laravel package discovery after vendor and source are present
+RUN php artisan package:discover --ansi
 
 # Permissions for storage and cache
 RUN mkdir -p storage bootstrap/cache \
