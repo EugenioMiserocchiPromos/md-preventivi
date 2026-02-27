@@ -39,7 +39,7 @@
         background-repeat: no-repeat;
       }
       .notes-content {
-        padding: 150px 40px;
+        padding: 150px 80px;
       }
       .notes-title {
         font-family: 'Jost', sans-serif;
@@ -59,7 +59,7 @@
         position: running(notes-signatures);
         display: block;
         width: 100%;
-        padding: 0 40px 330px;
+        padding: 0 80px 330px 80px;
         box-sizing: border-box;
         margin: 0;
       }

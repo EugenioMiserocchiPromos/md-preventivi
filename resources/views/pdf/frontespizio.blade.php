@@ -99,12 +99,20 @@
         background-repeat: no-repeat; */
         width: 210mm;
         height: 297mm;
-        background-image: url("{{ 'file://' . public_path('pdf/frontespizio-bg.jpg') }}");
-        background-size: 210mm 297mm; /* niente cover */
-        background-position: 0 0;
-        background-repeat: no-repeat;
         
         display: table;
+      }
+      .frontespizio-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 210mm;
+        height: 297mm;
+        z-index: 0;
+      }
+      .frontespizio-content-layer {
+        position: relative;
+        z-index: 1;
       }
       .frontespizio-cell {
         height: 100%;
@@ -113,6 +121,7 @@
       }
       .page.frontespizio {
         height: 100%;
+        position: relative;
       }
       .frontespizio-content {
         padding: 20% 10% 0 10%;
@@ -187,6 +196,7 @@
   </head>
   <body>
     <section class="page frontespizio">
+      <img class="frontespizio-bg" src="{{ 'file://' . public_path('pdf/frontespizio-bg.jpg') }}" alt="" />
       @php
         $quoteTypeLabel = match ($quote->quote_type) {
             'FP' => 'Fornitura e Posa in opera',
@@ -195,7 +205,7 @@
             default => $quote->quote_type,
         };
       @endphp
-      <table class="frontespizio-wrap">
+      <table class="frontespizio-wrap frontespizio-content-layer">
         <tr>
           <td class="frontespizio-cell">
             <div class="frontespizio-center">
