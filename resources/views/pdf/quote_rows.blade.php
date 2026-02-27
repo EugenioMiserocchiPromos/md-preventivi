@@ -199,8 +199,6 @@
         color: #95817b;
       }
       .component-row {
-        color: #475569;
-        font-size: 11px;
       }
       .component-row td {
         border-top: none;
