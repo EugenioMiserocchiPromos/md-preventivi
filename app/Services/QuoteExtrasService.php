@@ -29,6 +29,7 @@ class QuoteExtrasService
                 ->where('fixed_key', $key)
                 ->update([
                     'description' => $description,
+                    'unit' => $key === 'extra_3' ? 'nº' : DB::raw('unit'),
                     'updated_at' => now(),
                 ]);
         }
@@ -49,7 +50,7 @@ class QuoteExtrasService
                 'quote_id' => $quote->id,
                 'description' => $description,
                 'amount' => 0,
-                'unit' => 'ml',
+                'unit' => $key === 'extra_3' ? 'nº' : 'ml',
                 'qty' => 1,
                 'unit_price' => 0,
                 'line_total' => 0,

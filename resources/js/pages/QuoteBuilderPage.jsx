@@ -13,11 +13,11 @@ import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
 
-const unitOptions = ['pz', 'mq', 'intervento', 'ml', 'mc', 'cad.', 'kg.'];
+const unitOptions = ['pz', 'mq', 'nº', 'ml', 'mc', 'cad.', 'kg.'];
 
 const normalizeUnit = (value) => {
   const normalized = String(value || '').trim().toLowerCase();
-  const map = { cad: 'cad.', kg: 'kg.' };
+  const map = { cad: 'cad.', kg: 'kg.', intervento: 'nº' };
   const unit = map[normalized] || normalized;
   return unitOptions.includes(unit) ? unit : 'ml';
 };
@@ -579,9 +579,8 @@ export default function QuoteBuilderPage() {
     });
     const categories = Array.from(map.keys());
     const colorMap = new Map();
-    categories.forEach((category, index) => {
-      const hue = Math.round((index * 360) / Math.max(categories.length, 1));
-      colorMap.set(category, hue);
+    categories.forEach((category) => {
+      colorMap.set(category, '#95817b');
     });
     return Array.from(map.entries()).map(([category, items]) => ({
       category,
@@ -747,7 +746,7 @@ export default function QuoteBuilderPage() {
           <div key={group.category} className="space-y-3">
             <div
               className="flex items-center gap-3 rounded-xl px-3 py-2"
-              style={{ backgroundColor: `hsl(${group.color} 70% 45%)` }}
+              style={{ backgroundColor: group.color }}
             >
               <h3 className="text-lg font-regular text-white">{group.category}</h3>
             </div>
