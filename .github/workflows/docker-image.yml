@@ -33,4 +33,4 @@ jobs:
           file: docker/production.Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/eugeniomiserocchipromos/md-preventivi:latest
