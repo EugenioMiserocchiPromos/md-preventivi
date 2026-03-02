@@ -166,7 +166,13 @@ export default function ProductsPage() {
               state.data.map((item) => (
                 <tr key={item.id} className="border-t border-slate-200/60 text-slate-700">
                   <td className="px-4 py-3 font-medium">{item.code}</td>
-                  <td className="px-4 py-3">{item.name}</td>
+                  <td className="px-4 py-3">
+                    {item.name_html ? (
+                      <span dangerouslySetInnerHTML={{ __html: item.name_html }} />
+                    ) : (
+                      item.name
+                    )}
+                  </td>
                   <td className="px-4 py-3">{item.category_name}</td>
                   <td className="px-4 py-3">{item.unit_default}</td>
                   <td className="px-4 py-3">{formatMoney(item.price_default)}</td>

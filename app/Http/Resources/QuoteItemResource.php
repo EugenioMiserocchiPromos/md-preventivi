@@ -21,6 +21,7 @@ class QuoteItemResource extends JsonResource
             'category_name_snapshot' => $this->category_name_snapshot,
             'product_code_snapshot' => $this->product_code_snapshot,
             'name_snapshot' => $this->name_snapshot,
+            'name_snapshot_html' => $this->name_snapshot_html,
             'unit_override' => $this->unit_override,
             'qty' => $this->qty,
             'unit_price_override' => $this->unit_price_override,

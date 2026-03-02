@@ -22,6 +22,13 @@ const normalizeUnit = (value) => {
   return unitOptions.includes(unit) ? unit : 'ml';
 };
 
+const renderProductName = (item) => {
+  if (item?.name_snapshot_html) {
+    return <span dangerouslySetInnerHTML={{ __html: item.name_snapshot_html }} />;
+  }
+  return <span>{item?.name_snapshot || '—'}</span>;
+};
+
 function QuoteItemCard({
   item,
   isOpen,
@@ -161,7 +168,7 @@ function QuoteItemCard({
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-slate-500">PRODOTTO</p>
             <h3 className="text-lg font-semibold truncate">
-              {item.product_code_snapshot} — {item.name_snapshot}
+              {item.product_code_snapshot} — {renderProductName(item)}
             </h3>
             <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
           </div>
@@ -189,7 +196,7 @@ function QuoteItemCard({
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-500">Prodotto</p>
           <h3 className="text-lg font-semibold">
-            {item.product_code_snapshot} — {item.name_snapshot}
+            {item.product_code_snapshot} — {renderProductName(item)}
           </h3>
           <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
         </div>
@@ -525,6 +532,13 @@ export default function QuoteBuilderPage() {
     }
   };
 
+  const renderProductName = (item) => {
+    if (item?.name_snapshot_html) {
+      return <span dangerouslySetInnerHTML={{ __html: item.name_snapshot_html }} />;
+    }
+    return <span>{item?.name_snapshot || '—'}</span>;
+  };
+
   const removeItem = async (itemId) => {
     try {
       await deleteQuoteItem(itemId);
@@ -712,7 +726,15 @@ export default function QuoteBuilderPage() {
                       }`}
                     >
                       <td className="px-3 py-2 font-medium">{product.code}</td>
-                      <td className="px-3 py-2">{product.name}</td>
+                      <td className="px-3 py-2">
+                        {product.name_html ? (
+                          <span
+                            dangerouslySetInnerHTML={{ __html: product.name_html }}
+                          />
+                        ) : (
+                          product.name
+                        )}
+                      </td>
                       <td className="px-3 py-2">{product.price_default}</td>
                       <td className="px-3 py-2">
                         {isPresent ? (
