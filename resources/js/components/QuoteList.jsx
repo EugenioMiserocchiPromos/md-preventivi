@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatMoney } from '../lib/formatters';
 import { protForUi } from '../lib/prot';
 
-function QuoteRow({ row, onOpen }) {
+function QuoteRow({ row, onOpen, onDelete, deleting }) {
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -115,6 +115,33 @@ function QuoteRow({ row, onOpen }) {
               <path d="M5 21h14" />
             </svg>
           </button>
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(row.id)}
+              title="Elimina"
+              aria-label="Elimina preventivo"
+              disabled={deleting}
+              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-60"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <path d="M3 6h18" />
+                <path d="M8 6V4h8v2" />
+                <path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => onOpen(row.id)}
@@ -143,11 +170,17 @@ function QuoteRow({ row, onOpen }) {
   );
 }
 
-export default function QuoteList({ rows, onOpen }) {
+export default function QuoteList({ rows, onOpen, onDelete, deletingId }) {
   return (
     <div className="space-y-3">
       {rows.map((row) => (
-        <QuoteRow key={row.id} row={row} onOpen={onOpen} />
+        <QuoteRow
+          key={row.id}
+          row={row}
+          onOpen={onOpen}
+          onDelete={onDelete}
+          deleting={deletingId === row.id}
+        />
       ))}
     </div>
   );

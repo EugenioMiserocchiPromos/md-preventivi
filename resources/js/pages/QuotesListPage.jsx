@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchQuotes } from '../api/client';
+import { deleteQuote, fetchQuotes } from '../api/client';
 import QuoteList from '../components/QuoteList';
 
 export default function QuotesListPage({ type, label }) {
@@ -11,6 +11,7 @@ export default function QuotesListPage({ type, label }) {
   const [state, setState] = useState({ data: [], meta: null });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const load = useCallback(
     async (nextPage = 1, search = query) => {
@@ -42,6 +43,24 @@ export default function QuotesListPage({ type, label }) {
   const currentPage = state.meta?.current_page ?? page;
   const lastPage = state.meta?.last_page ?? 1;
 
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm('Vuoi eliminare questo preventivo?');
+    if (!confirmed) return;
+    setDeletingId(id);
+    setError(null);
+    try {
+      await deleteQuote(id);
+      setState((prev) => ({
+        ...prev,
+        data: (prev.data || []).filter((row) => row.id !== id),
+      }));
+    } catch (err) {
+      setError(err?.message || 'Errore durante eliminazione preventivo.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <header className="space-y-1">
@@ -72,7 +91,12 @@ export default function QuotesListPage({ type, label }) {
           {loading ? 'Caricamento...' : 'Nessun preventivo trovato.'}
         </div>
       ) : (
-        <QuoteList rows={rows} onOpen={(id) => navigate(`/builder/${id}`)} />
+        <QuoteList
+          rows={rows}
+          onOpen={(id) => navigate(`/builder/${id}`)}
+          onDelete={handleDelete}
+          deletingId={deletingId}
+        />
       )}
 
       <div className="flex items-center gap-3 text-sm text-slate-500">

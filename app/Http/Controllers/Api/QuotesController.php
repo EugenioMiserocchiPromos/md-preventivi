@@ -174,4 +174,18 @@ class QuotesController extends Controller
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
+
+    public function destroy(Quote $quote)
+    {
+        DB::transaction(function () use ($quote) {
+            $quote->items()->each(function ($item) {
+                $item->components()->delete();
+            });
+            $quote->items()->delete();
+            $quote->extras()->delete();
+            $quote->delete();
+        });
+
+        return response()->noContent();
+    }
 }

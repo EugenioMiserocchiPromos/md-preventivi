@@ -144,6 +144,10 @@ export async function fetchQuotes({ type, q, perPage = 20, page = 1 } = {}) {
   return request(`/api/quotes${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
 }
 
+export async function deleteQuote(quoteId) {
+  return request(`/api/quotes/${quoteId}`, { method: 'DELETE' });
+}
+
 export async function createQuoteItem(quoteId, payload) {
   return request(`/api/quotes/${quoteId}/items`, {
     method: 'POST',
