@@ -18,12 +18,14 @@ export default function AppLayout({ children }) {
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <header className="border-b border-slate-200/70">
-        <div className="mx-auto max-w-5xl px-6 py-5">
+        <div className="mx-auto max-w-5xl px-6 py-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold">MD Preventivi</h1>
+              <img src="/pdf/logo-md.png" alt="MD Italia" className="h-12 w-auto" />
               {user ? (
-                <p className="mt-1 text-xs text-slate-500">Connesso come {user.email}</p>
+                <p className="mt-3 text-xs text-slate-500">
+                  {user.email} - {user.name} {user.surname}
+                </p>
               ) : null}
             </div>
             {user ? (
@@ -31,7 +33,7 @@ export default function AppLayout({ children }) {
                 <button
                   type="button"
                   onClick={() => navigate('/quotes/new')}
-                  className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white"
+                  className="rounded-full bg-[#cd1619] px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
                 >
                   Nuovo preventivo
                 </button>
@@ -39,7 +41,7 @@ export default function AppLayout({ children }) {
                   type="button"
                   onClick={logout}
                   disabled={loading}
-                  className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:opacity-60"
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:opacity-60"
                 >
                   Logout
                 </button>

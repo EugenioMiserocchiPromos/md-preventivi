@@ -780,7 +780,8 @@ export default function QuoteBuilderPage() {
         onSubmit={handlePricingSubmit}
         saving={pricingSaving}
         error={pricingError}
-        showDiscount={false}
+        showDiscount
+        showDiscountForm={false}
       />
     </section>
   );

@@ -9,6 +9,7 @@ export default function TotalsPanel({
   saving,
   error,
   showDiscount = true,
+  showDiscountForm = true,
 }) {
   return (
     <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
@@ -42,7 +43,7 @@ export default function TotalsPanel({
           </div>
         </div>
 
-        {showDiscount ? (
+        {showDiscount && showDiscountForm ? (
           <form onSubmit={onSubmit} className="grid gap-3 md:grid-cols-2">
             <label className="text-sm">
               <span className="text-slate-600">Tipo sconto</span>

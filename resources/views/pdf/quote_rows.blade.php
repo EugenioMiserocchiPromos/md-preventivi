@@ -94,6 +94,11 @@
         width: 100%;
         border-collapse: collapse;
       }
+      .item-table {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        break-inside: avoid-page;
+      }
       .items th {
         font-size: 10px;
         text-transform: none;
@@ -101,7 +106,7 @@
         color: #64748b;
         text-align: center;
         padding: 6px 4px;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #b6bcc6;
       }
       .items thead .col-widths th {
         padding: 0;
@@ -116,7 +121,7 @@
         vertical-align: middle;
         word-wrap: break-word;
         box-sizing: border-box;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #b6bcc6;
       }
       .items tbody td .cell-pad {
         font-size: 9.5px;
@@ -145,10 +150,14 @@
         padding-bottom: 5px;
         padding-left:5px;
         text-align: left !important;
-        border: none;
+        border-top: 1px solid #b6bcc6;
+        border-bottom: 1px solid #b6bcc6;
+        border-left: 1px solid #b6bcc6;
+        border-right: 1px solid #b6bcc6;
         font-weight:700;
         font-size: 11px;
         line-height: 13px;
+        letter-spacing: 0;
       }
       .extra-row {
         background: rgba(149, 129, 123, 0.15);
@@ -205,10 +214,10 @@
         border-bottom: none;
       }
       .row-end td {
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #b6bcc6 !important;
       }
       .row-end td[rowspan] {
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #b6bcc6 !important;
       }
       .item-no-divider td:not([rowspan]) {
         border-bottom: none;
@@ -238,6 +247,18 @@
       }
       .avoid-break {
         page-break-inside: avoid;
+        break-inside: avoid;
+        break-inside: avoid-page;
+      }
+      tbody.avoid-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        break-inside: avoid-page;
+      }
+      tr.avoid-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        break-inside: avoid-page;
       }
       .header-block {
         width: 100%;
@@ -258,7 +279,7 @@
         color: #64748b;
         text-align: center;
         padding: 4px 4px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #b6bcc6;
       }
       .header-legend .cell-pad {
         padding: 0;
@@ -275,14 +296,14 @@
         color: #475569;
         font-weight: 400;
         text-align: left;
-        min-height:245px;
-        height:245px;
+        min-height:242px;
+        height:242px;
       }
       .header-right {
         width: 50%;
         text-align: left;
         font-size: 11px;
-        max-height:245px;
+        max-height:242px;
       }
       .header-info {
         width: 100%;
@@ -347,7 +368,7 @@
         width: 48%;
       }
       .signature-box {
-        border-bottom: 1px solid #95817b;
+        border-bottom: 0.5px solid #95817b;
         height: 44px;
         width: 100%;
         box-sizing: border-box;
@@ -399,7 +420,7 @@
                 47814 - Bellaria Igea Marina (Rn) <br />
                 P.I./C.F. 04172350409 - Cod. SDI: M5UXCR1<br />
                 Tel. 0541 341240<br />
-                e-mail: direzione.tecnica@mditaliasrl.it<br />
+                e-mail: info@mditaliasrl.it<br />
                 <br />
                 <strong style="font-size:11px;line-height:13px;">Distributore Esclusivo per:<br />Romagna - Marche - Ferrara - Bologna</strong>
               </div>
@@ -482,29 +503,29 @@
       </div>
 
     @foreach ($grouped as $category => $items)
-      <table class="items category-table">
-        <colgroup>
-          <col style="width:8%;" />
-          <col style="width:28%;" />
-          <col style="width:6%;" />
-          <col style="width:10%;" />
-          <col style="width:3%;" />
-          <col style="width:10%;" />
-          <col style="width:3%;" />
-          <col style="width:12%;" />
-          <col style="width:20%;" />
-        </colgroup>
-        <thead>
-          <tr class="product-category-row">
-            <th colspan="9">{{ $category }}</th>
-          </tr>
-        </thead>
-        @foreach ($items as $item)
-          @php
-            $visibleComponents = $item->components->where('is_visible', true);
-            $componentCount = $visibleComponents->count();
-            $rowspan = $componentCount + 1;
-          @endphp
+      @foreach ($items as $item)
+        @php
+          $visibleComponents = $item->components->where('is_visible', true);
+          $componentCount = $visibleComponents->count();
+          $rowspan = $componentCount + 1;
+        @endphp
+        <table class="items item-table">
+          <colgroup>
+            <col style="width:8%;" />
+            <col style="width:28%;" />
+            <col style="width:6%;" />
+            <col style="width:10%;" />
+            <col style="width:3%;" />
+            <col style="width:10%;" />
+            <col style="width:3%;" />
+            <col style="width:12%;" />
+            <col style="width:20%;" />
+          </colgroup>
+          <thead>
+            <tr class="product-category-row">
+              <th colspan="9">{{ $category }}</th>
+            </tr>
+          </thead>
           <tbody class="avoid-break">
             <tr class="avoid-break {{ $componentCount > 0 ? 'item-no-divider' : 'row-end' }}">
                 @if ($componentCount > 0)
@@ -527,7 +548,7 @@
             </tr>
             @foreach ($visibleComponents as $componentIndex => $component)
               <tr class="component-row avoid-break {{ $loop->last ? 'row-end' : '' }}">
-                  <td style="width:28%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
+                  <td style="width:28%;"><div class="cell-pad">{{ $component->name_snapshot }}</div></td>
                   <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
                   <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
                   <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
@@ -537,8 +558,8 @@
               </tr>
             @endforeach
           </tbody>
-        @endforeach
-      </table>
+        </table>
+      @endforeach
     @endforeach
 
     @if ($extras->count() > 0)

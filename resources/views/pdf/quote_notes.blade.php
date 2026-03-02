@@ -77,7 +77,7 @@
         width: 4%!important;
       }
       .notes-signature-box {
-        border-bottom: 1px solid #95817b;
+        border-bottom: 0.5px solid #95817b;
         height: 44px;
         width: 100%;
         box-sizing: border-box;

@@ -21,36 +21,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950/95 text-slate-100">
+    <div className="min-h-screen bg-white text-slate-900">
       <div className="mx-auto flex min-h-screen max-w-md items-center px-6">
-        <div className="w-full space-y-6 rounded-3xl bg-slate-900/90 p-8 shadow-lg shadow-slate-950/40">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-slate-400">Accesso</p>
-            <h1 className="text-2xl font-semibold">MD Preventivi</h1>
-            <p className="text-sm text-slate-400">Inserisci le credenziali per continuare.</p>
+        <div className="w-full space-y-6 rounded-3xl border border-slate-300/80 bg-[#f2f2f2]/90 p-10 shadow-xl shadow-slate-900/20 backdrop-blur">
+          <div className="flex justify-center">
+            <img
+              src="/pdf/logo-md.png"
+              alt="MD Italia"
+              className="max-h-16 w-auto"
+            />
           </div>
           <form className="space-y-4" onSubmit={handleSubmit} autoComplete="on">
             <label className="block text-sm">
-              <span className="text-slate-300">Email</span>
+              <span className="text-slate-600">Email</span>
               <input
                 type="email"
                 name="email"
                 autoComplete="on"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-slate-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-400 focus:outline-none"
                 required
               />
             </label>
             <label className="block text-sm">
-              <span className="text-slate-300">Password</span>
+              <span className="text-slate-600">Password</span>
               <input
                 type="password"
                 name="password"
                 autoComplete="on"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-slate-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-slate-400 focus:outline-none"
                 required
               />
             </label>
@@ -58,7 +60,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 disabled:opacity-60"
+              className="w-full rounded-xl bg-[#CD1619] px-3 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
             >
               {loading ? 'Accesso in corso...' : 'Accedi'}
             </button>
