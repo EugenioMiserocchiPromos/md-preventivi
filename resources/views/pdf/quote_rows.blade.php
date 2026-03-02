@@ -99,6 +99,22 @@
         break-inside: avoid;
         break-inside: avoid-page;
       }
+      .category-table > tbody > tr > td {
+        border: none;
+        padding: 0;
+      }
+      .category-item-cell {
+        border: none;
+        padding: 0;
+      }
+      .category-table {
+        border-collapse: collapse;
+        border-spacing: 0;
+      }
+      .category-item-cell .item-table {
+        margin: 0;
+        border-spacing: 0;
+      }
       .items th {
         font-size: 10px;
         text-transform: none;
@@ -164,6 +180,11 @@
         font-size: 11px;
         line-height: 13px;
         font-weight: 500;
+      }
+      .extras-table {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        break-inside: avoid-page;
       }
       .extra-row .cell-pad {
         font-size: 11px;
@@ -503,67 +524,86 @@
       </div>
 
     @foreach ($grouped as $category => $items)
-      @foreach ($items as $item)
-        @php
-          $visibleComponents = $item->components->where('is_visible', true);
-          $componentCount = $visibleComponents->count();
-          $rowspan = $componentCount + 1;
-        @endphp
-        <table class="items item-table">
-          <colgroup>
-            <col style="width:8%;" />
-            <col style="width:28%;" />
-            <col style="width:6%;" />
-            <col style="width:10%;" />
-            <col style="width:3%;" />
-            <col style="width:10%;" />
-            <col style="width:3%;" />
-            <col style="width:12%;" />
-            <col style="width:20%;" />
-          </colgroup>
-          <thead>
-            <tr class="product-category-row">
-              <th colspan="9">{{ $category }}</th>
+      <table class="items category-table">
+        <colgroup>
+          <col style="width:8%;" />
+          <col style="width:28%;" />
+          <col style="width:6%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:12%;" />
+          <col style="width:20%;" />
+        </colgroup>
+        <thead>
+          <tr class="product-category-row">
+            <th colspan="9">{{ $category }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($items as $item)
+            @php
+              $visibleComponents = $item->components->where('is_visible', true);
+              $componentCount = $visibleComponents->count();
+              $rowspan = $componentCount + 1;
+            @endphp
+            <tr class="category-item-row">
+              <td colspan="9" class="category-item-cell">
+                <table class="items item-table">
+                  <colgroup>
+                    <col style="width:8%;" />
+                    <col style="width:28%;" />
+                    <col style="width:6%;" />
+                    <col style="width:10%;" />
+                    <col style="width:3%;" />
+                    <col style="width:10%;" />
+                    <col style="width:3%;" />
+                    <col style="width:12%;" />
+                    <col style="width:20%;" />
+                  </colgroup>
+                  <tbody class="avoid-break">
+                    <tr class="avoid-break {{ $componentCount > 0 ? 'item-no-divider' : 'row-end' }}">
+                        @if ($componentCount > 0)
+                          <td class="code-cell" style="width:8%;" rowspan="{{ $rowspan }}"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+                        @else
+                          <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
+                        @endif
+                        <td style="width:28%;">
+                          <div class="cell-pad">
+                            {!! $item->name_snapshot_html ?: e($item->name_snapshot) !!}
+                          </div>
+                        </td>
+                        <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
+                        <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
+                        <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+                        <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
+                        <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+                        <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
+                        @if ($componentCount > 0)
+                          <td class="note-cell" style="width:20%;" rowspan="{{ $rowspan }}"><div class="cell-pad">{{ $item->note_shared }}</div></td>
+                        @else
+                          <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
+                        @endif
+                    </tr>
+                    @foreach ($visibleComponents as $componentIndex => $component)
+                      <tr class="component-row avoid-break {{ $loop->last ? 'row-end' : '' }}">
+                          <td style="width:28%;"><div class="cell-pad">{{ $component->name_snapshot }}</div></td>
+                          <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
+                          <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
+                          <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
+                          <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
+                          <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
+                          <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
+                      </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </td>
             </tr>
-          </thead>
-          <tbody class="avoid-break">
-            <tr class="avoid-break {{ $componentCount > 0 ? 'item-no-divider' : 'row-end' }}">
-                @if ($componentCount > 0)
-                  <td class="code-cell" style="width:8%;" rowspan="{{ $rowspan }}"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
-                @else
-                  <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
-                @endif
-                <td style="width:28%;">
-                  <div class="cell-pad">
-                    {!! $item->name_snapshot_html ?: e($item->name_snapshot) !!}
-                  </div>
-                </td>
-                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
-                <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
-                <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
-                <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
-                <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
-                <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $item->line_total, 2, ',', '.') }}</div></td>
-                @if ($componentCount > 0)
-                  <td class="note-cell" style="width:20%;" rowspan="{{ $rowspan }}"><div class="cell-pad">{{ $item->note_shared }}</div></td>
-                @else
-                  <td class="note-cell" style="width:20%;"><div class="cell-pad">{{ $item->note_shared }}</div></td>
-                @endif
-            </tr>
-            @foreach ($visibleComponents as $componentIndex => $component)
-              <tr class="component-row avoid-break {{ $loop->last ? 'row-end' : '' }}">
-                  <td style="width:28%;"><div class="cell-pad">{{ $component->name_snapshot }}</div></td>
-                  <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
-                  <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
-                  <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
-                  <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
-                  <td class="symbol-cell" style="width:3%;"><div class="cell-pad">=</div></td>
-                  <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) $component->component_total, 2, ',', '.') }}</div></td>
-              </tr>
-            @endforeach
-          </tbody>
-        </table>
-      @endforeach
+          @endforeach
+        </tbody>
+      </table>
     @endforeach
 
     @if ($extras->count() > 0)
@@ -595,7 +635,7 @@
           $extrasTail->push($warrantyExtra);
         }
       @endphp
-      <table class="items">
+      <table class="items extras-table">
         <colgroup>
           <col style="width:8%;" />
           <col style="width:28%;" />
