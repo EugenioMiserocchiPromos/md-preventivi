@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deleteQuote, fetchQuotes } from '../api/client';
 import QuoteList from '../components/QuoteList';
@@ -13,6 +13,7 @@ export default function QuotesListPage({ type, label }) {
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [confirmRow, setConfirmRow] = useState(null);
+  const isFirstSearch = useRef(true);
 
   const load = useCallback(
     async (nextPage = 1, search = query) => {
@@ -34,6 +35,19 @@ export default function QuotesListPage({ type, label }) {
   useEffect(() => {
     load(1, '');
   }, [load]);
+
+  useEffect(() => {
+    if (isFirstSearch.current) {
+      isFirstSearch.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      load(1, query);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [load, query]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -83,13 +97,6 @@ export default function QuotesListPage({ type, label }) {
           placeholder="Cerca per PROT, titolo, cliente o cantiere..."
           className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
-        >
-          {loading ? 'Ricerca...' : 'Cerca'}
-        </button>
       </form>
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}
       {rows.length === 0 ? (

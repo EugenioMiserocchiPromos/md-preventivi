@@ -409,6 +409,7 @@ export default function QuoteBuilderPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
+  const isFirstSearch = useRef(true);
   const [adding, setAdding] = useState(false);
   const [openItemId, setOpenItemId] = useState(null);
   const itemRefs = useRef({});
@@ -469,23 +470,39 @@ export default function QuoteBuilderPage() {
     });
   }, [openItemId, quote?.items?.length]);
 
-  const handleSearchSubmit = async (event) => {
+  const handleSearchSubmit = (event) => {
     event.preventDefault();
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
+  };
+
+  useEffect(() => {
+    if (isFirstSearch.current) {
+      isFirstSearch.current = false;
       return;
     }
-    setSearchLoading(true);
-    setSearchError(null);
-    try {
-      const response = await fetchProducts({ q: searchQuery, perPage: 10, page: 1 });
-      setSearchResults(response.data || []);
-    } catch (err) {
-      setSearchError(err?.message || 'Errore nella ricerca prodotti.');
-    } finally {
+
+    const term = searchQuery.trim();
+    if (!term) {
+      setSearchResults([]);
+      setSearchError(null);
       setSearchLoading(false);
+      return;
     }
-  };
+
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      setSearchError(null);
+      try {
+        const response = await fetchProducts({ q: term, perPage: 10, page: 1 });
+        setSearchResults(response.data || []);
+      } catch (err) {
+        setSearchError(err?.message || 'Errore nella ricerca prodotti.');
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleAddProduct = async (productId) => {
     if (!quote) return;
@@ -695,13 +712,12 @@ export default function QuoteBuilderPage() {
             placeholder="Cerca prodotto per codice o nome..."
             className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm"
           />
-          <button
-            type="submit"
-            disabled={searchLoading}
-            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {searchLoading ? 'Ricerca...' : 'Cerca'}
-          </button>
+          {searchLoading ? (
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+              Ricerca...
+            </div>
+          ) : null}
         </form>
         {searchError ? <p className="mt-2 text-sm text-amber-700">{searchError}</p> : null}
         {searchResults.length ? (
@@ -756,6 +772,8 @@ export default function QuoteBuilderPage() {
               </tbody>
             </table>
           </div>
+        ) : searchQuery.trim() && !searchLoading ? (
+          <p className="mt-4 text-sm text-slate-500">Nessun prodotto trovato.</p>
         ) : null}
       </section>
 

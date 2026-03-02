@@ -98,6 +98,12 @@
         page-break-inside: avoid;
         break-inside: avoid;
         break-inside: avoid-page;
+        border-collapse: collapse;
+        margin: 0;
+      }
+      .item-table tr:first-child td,
+      .item-table tr:first-child th {
+        border-top: none;
       }
       .category-table > tbody > tr > td {
         border: none;
@@ -166,7 +172,7 @@
         padding-bottom: 5px;
         padding-left:5px;
         text-align: left !important;
-        border-top: 1px solid #b6bcc6;
+        border-top: 0px solid #b6bcc6;
         border-bottom: 1px solid #b6bcc6;
         border-left: 1px solid #b6bcc6;
         border-right: 1px solid #b6bcc6;
@@ -213,6 +219,7 @@
       .table-spacer td {
         height: 100px;
         padding: 0;
+        border-top:0px;
       }
       .category-header-row th {
         padding-top: 6px;
