@@ -118,7 +118,7 @@ function QuoteRow({ row, onOpen, onDelete, deleting }) {
           {onDelete ? (
             <button
               type="button"
-              onClick={() => onDelete(row.id)}
+              onClick={() => onDelete(row)}
               title="Elimina"
               aria-label="Elimina preventivo"
               disabled={deleting}

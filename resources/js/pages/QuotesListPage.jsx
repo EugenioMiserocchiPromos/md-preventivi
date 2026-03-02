@@ -12,6 +12,7 @@ export default function QuotesListPage({ type, label }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [confirmRow, setConfirmRow] = useState(null);
 
   const load = useCallback(
     async (nextPage = 1, search = query) => {
@@ -43,9 +44,13 @@ export default function QuotesListPage({ type, label }) {
   const currentPage = state.meta?.current_page ?? page;
   const lastPage = state.meta?.last_page ?? 1;
 
-  const handleDelete = async (id) => {
-    const confirmed = window.confirm('Vuoi eliminare questo preventivo?');
-    if (!confirmed) return;
+  const handleDelete = (row) => {
+    setConfirmRow(row);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmRow) return;
+    const id = confirmRow.id;
     setDeletingId(id);
     setError(null);
     try {
@@ -58,6 +63,7 @@ export default function QuotesListPage({ type, label }) {
       setError(err?.message || 'Errore durante eliminazione preventivo.');
     } finally {
       setDeletingId(null);
+      setConfirmRow(null);
     }
   };
 
@@ -98,6 +104,38 @@ export default function QuotesListPage({ type, label }) {
           deletingId={deletingId}
         />
       )}
+
+      {confirmRow ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900">Eliminare preventivo?</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Stai per eliminare il preventivo{' '}
+              <span className="font-semibold text-slate-800">
+                {confirmRow.prot_display || confirmRow.id}
+              </span>
+              . Questa azione non può essere annullata.
+            </p>
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmRow(null)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deletingId === confirmRow.id}
+                className="rounded-lg bg-[#cd1619] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {deletingId === confirmRow.id ? 'Eliminazione...' : 'Elimina'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="flex items-center gap-3 text-sm text-slate-500">
         <button
