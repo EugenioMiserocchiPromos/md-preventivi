@@ -25,6 +25,18 @@ RUN apk add --no-cache \
     unzip \
     bash
 
+# WeasyPrint deps (Alpine)
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    py3-virtualenv \
+    cairo \
+    pango \
+    gdk-pixbuf \
+    libffi \
+    libjpeg-turbo \
+    libpng
+
 # PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_mysql intl zip gd mbstring xml
@@ -47,6 +59,14 @@ COPY . .
 # Copy vendor and built assets
 COPY --from=composer-build /app/vendor ./vendor
 COPY --from=node-build /app/public/build ./public/build
+
+# Install WeasyPrint in venv (kept inside image)
+RUN mkdir -p /opt/weasyprint \
+    && python3 -m venv /opt/weasyprint/venv \
+    && /opt/weasyprint/venv/bin/pip install --upgrade pip \
+    && /opt/weasyprint/venv/bin/pip install weasyprint
+
+ENV WEASYPRINT_BIN=/opt/weasyprint/venv/bin/weasyprint
 
 # Run Laravel package discovery after vendor and source are present
 RUN php artisan package:discover --ansi
