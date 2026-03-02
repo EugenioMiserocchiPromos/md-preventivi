@@ -75,6 +75,13 @@ export async function fetchProducts({ q, perPage = 10, page = 1 } = {}) {
   return request(`/api/products${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
 }
 
+export async function updateProduct(productId, payload) {
+  return request(`/api/products/${productId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function fetchProductComponents(productId) {
   return request(`/api/products/${productId}/components`, { method: 'GET' });
 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { fetchProductComponents, fetchProducts } from '../api/client';
+import { fetchProductComponents, fetchProducts, updateProduct } from '../api/client';
 import { formatMoney } from '../lib/formatters';
 
 const initialState = {
@@ -20,6 +20,11 @@ export default function ProductsPage() {
     error: null,
     data: [],
   });
+  const [editProduct, setEditProduct] = useState(null);
+  const [editHtml, setEditHtml] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
+  const [editorKey, setEditorKey] = useState(0);
 
   const load = useCallback(
     async (nextPage = 1, search = query) => {
@@ -74,6 +79,42 @@ export default function ProductsPage() {
     setComponentsState({ loading: false, error: null, data: [] });
   };
 
+  const openEditor = (product) => {
+    setEditProduct(product);
+    setEditError(null);
+    setEditHtml(product.name_html || product.name || '');
+    setEditorKey((prev) => prev + 1);
+  };
+
+  const closeEditor = () => {
+    setEditProduct(null);
+    setEditHtml('');
+    setEditError(null);
+  };
+
+  const handleBold = () => {
+    document.execCommand('bold');
+  };
+
+  const handleSaveEditor = async () => {
+    if (!editProduct) return;
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      const response = await updateProduct(editProduct.id, { name_html: editHtml });
+      const updated = response.data || response;
+      setState((prev) => ({
+        ...prev,
+        data: prev.data.map((item) => (item.id === editProduct.id ? updated : item)),
+      }));
+      closeEditor();
+    } catch (err) {
+      setEditError(err?.message || 'Errore durante il salvataggio.');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <header className="space-y-1">
@@ -111,12 +152,13 @@ export default function ProductsPage() {
               <th className="px-4 py-3 font-medium">UM</th>
               <th className="px-4 py-3 font-medium">Prezzo</th>
               <th className="px-4 py-3 font-medium">Componenti</th>
+              <th className="px-4 py-3 font-medium">Formato</th>
             </tr>
           </thead>
           <tbody>
             {state.data.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-slate-500" colSpan={6}>
+                <td className="px-4 py-6 text-slate-500" colSpan={7}>
                   Nessun prodotto trovato.
                 </td>
               </tr>
@@ -128,13 +170,22 @@ export default function ProductsPage() {
                   <td className="px-4 py-3">{item.category_name}</td>
                   <td className="px-4 py-3">{item.unit_default}</td>
                   <td className="px-4 py-3">{formatMoney(item.price_default)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center">
                     <button
                       type="button"
                       onClick={() => openComponents(item)}
                       className="text-xs font-semibold text-slate-600 underline underline-offset-4"
                     >
                       Vedi
+                    </button>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => openEditor(item)}
+                      className="text-xs font-semibold text-slate-600 underline underline-offset-4"
+                    >
+                      Modifica
                     </button>
                   </td>
                 </tr>
@@ -233,6 +284,74 @@ export default function ProductsPage() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editProduct ? (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4"
+          onClick={closeEditor}
+        >
+          <div
+            className="w-full max-w-2xl rounded-3xl bg-white shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-slate-200 px-6 py-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Formato nome</p>
+                <h2 className="text-lg font-semibold">
+                  {editProduct.code} — {editProduct.name}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeEditor}
+                className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600"
+              >
+                Chiudi
+              </button>
+            </div>
+            <div className="space-y-4 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleBold}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-700"
+                >
+                  B
+                </button>
+                <p className="text-xs text-slate-500">
+                  Seleziona il testo e clicca B per renderlo in grassetto.
+                </p>
+              </div>
+              <div
+                key={editorKey}
+                contentEditable
+                suppressContentEditableWarning
+                className="min-h-[140px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none"
+                onInput={(event) => setEditHtml(event.currentTarget.innerHTML)}
+                dangerouslySetInnerHTML={{ __html: editHtml }}
+              />
+              {editError ? <p className="text-sm text-rose-600">{editError}</p> : null}
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={closeEditor}
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEditor}
+                  disabled={editSaving}
+                  className="rounded-lg bg-[#cd1619] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {editSaving ? 'Salvataggio...' : 'Salva'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

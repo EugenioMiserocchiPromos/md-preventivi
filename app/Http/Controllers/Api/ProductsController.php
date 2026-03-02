@@ -34,4 +34,37 @@ class ProductsController extends Controller
 
         return ProductResource::collection($products);
     }
+
+    public function update(Request $request, int $product)
+    {
+        $validated = $request->validate([
+            'name_html' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $nameHtml = $this->sanitizeNameHtml((string) ($validated['name_html'] ?? ''));
+
+        DB::table('products')
+            ->where('id', $product)
+            ->update([
+                'name_html' => $nameHtml === '' ? null : $nameHtml,
+                'updated_at' => now(),
+            ]);
+
+        $productRow = DB::table('products')->where('id', $product)->first();
+
+        return new ProductResource($productRow);
+    }
+
+    private function sanitizeNameHtml(string $html): string
+    {
+        $html = trim($html);
+        if ($html === '') {
+            return '';
+        }
+
+        $html = strip_tags($html, '<b><strong>');
+        $html = preg_replace('/<(b|strong)\\s+[^>]*>/i', '<$1>', $html);
+        $html = preg_replace('/\\s+/u', ' ', $html);
+        return trim((string) $html);
+    }
 }

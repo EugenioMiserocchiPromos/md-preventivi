@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->post('/products/import', [ProductImportContro
 Route::middleware('auth:sanctum')->post('/products/components/import', [ProductComponentsImportController::class, 'import']);
 Route::middleware('auth:sanctum')->post('/customers/import', [CustomerImportController::class, 'import']);
 Route::middleware('auth:sanctum')->get('/products', [ProductsController::class, 'index']);
+Route::middleware('auth:sanctum')->patch('/products/{product}', [ProductsController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/products/{product}/components', [ProductComponentsController::class, 'index']);
 
 Route::middleware('auth:sanctum')->get('/customers', [CustomersController::class, 'index']);

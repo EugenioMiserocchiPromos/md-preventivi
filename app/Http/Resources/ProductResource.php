@@ -19,6 +19,7 @@ class ProductResource extends JsonResource
             'code' => $this->code,
             'category_name' => $this->category_name,
             'name' => $this->name,
+            'name_html' => $this->name_html,
             'unit_default' => $this->unit_default,
             'price_default' => $this->price_default,
             'is_active' => (bool) $this->is_active,

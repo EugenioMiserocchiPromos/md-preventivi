@@ -153,6 +153,7 @@ class ProductImportService
                 'code' => $code,
                 'category_name' => $normalized['category_name'],
                 'name' => $normalized['name'],
+                'name_html' => $normalized['name'],
                 'unit_default' => $normalized['unit_default'],
                 'price_default' => $normalized['price_default'],
                 'note_default' => $normalized['note_default'] ?? null,
@@ -162,6 +163,11 @@ class ProductImportService
 
             $existing = DB::table('products')->where('code', $code)->first();
             if ($existing) {
+                if (! $existing->name_html) {
+                    $payload['name_html'] = $normalized['name'];
+                } else {
+                    unset($payload['name_html']);
+                }
                 DB::table('products')->where('code', $code)->update($payload);
                 $result['updated']++;
             } else {

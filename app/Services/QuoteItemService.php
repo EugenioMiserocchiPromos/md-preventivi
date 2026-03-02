@@ -33,6 +33,7 @@ class QuoteItemService
                 'category_name_snapshot' => $product->category_name,
                 'product_code_snapshot' => $product->code,
                 'name_snapshot' => $product->name,
+                'name_snapshot_html' => $product->name_html ?? $product->name,
                 'unit_override' => $product->unit_default,
                 'qty' => $qty,
                 'unit_price_override' => $unitPrice,

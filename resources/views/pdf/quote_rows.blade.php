@@ -533,7 +533,11 @@
                 @else
                   <td class="code-cell" style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
                 @endif
-                <td style="width:28%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
+                <td style="width:28%;">
+                  <div class="cell-pad">
+                    {!! $item->name_snapshot_html ?: e($item->name_snapshot) !!}
+                  </div>
+                </td>
                 <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
                 <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
                 <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
