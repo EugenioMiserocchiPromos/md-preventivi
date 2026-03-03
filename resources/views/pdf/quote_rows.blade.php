@@ -94,6 +94,10 @@
         width: 100%;
         border-collapse: collapse;
       }
+      .spacer-table {
+        margin-top: 5px;
+        margin-bottom: 0;
+      }
       .item-table {
         page-break-inside: avoid;
         break-inside: avoid;
@@ -216,10 +220,9 @@
         border: none;
         background: #ffffff;
       }
-      .table-spacer td {
+      .table-spacer-row td {
         height: 100px;
         padding: 0;
-        border-top:0px;
       }
       .category-header-row th {
         padding-top: 6px;
@@ -450,7 +453,7 @@
                 Tel. 0541 341240<br />
                 e-mail: info@mditaliasrl.it<br />
                 <br />
-                <strong style="font-size:11px;line-height:13px;">Distributore Esclusivo per:<br />Romagna - Marche - Ferrara - Bologna</strong>
+                <strong style="font-size:11px;line-height:13px;">Distributore esclusivo per:<br />Romagna - Marche - Ferrara - Bologna</strong>
               </div>
               <div style="margin-top:4px;">
                 <img src="{{ public_path('pdf/logo-penetron.svg') }}" alt="Penetron" style="width:55%; display:block;" />
@@ -642,6 +645,32 @@
           $extrasTail->push($warrantyExtra);
         }
       @endphp
+      <table class="items spacer-table">
+        <colgroup>
+          <col style="width:8%;" />
+          <col style="width:28%;" />
+          <col style="width:6%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:12%;" />
+          <col style="width:20%;" />
+        </colgroup>
+        <tbody>
+          <tr class="table-spacer-row">
+            <td style="width:8%;"></td>
+            <td style="width:28%;"></td>
+            <td style="width:6%;"></td>
+            <td style="width:10%;"></td>
+            <td style="width:3%;"></td>
+            <td style="width:10%;"></td>
+            <td style="width:3%;"></td>
+            <td style="width:12%;"></td>
+            <td style="width:20%;"></td>
+          </tr>
+        </tbody>
+      </table>
       <table class="items extras-table">
         <colgroup>
           <col style="width:8%;" />
@@ -655,17 +684,6 @@
           <col style="width:20%;" />
         </colgroup>
         <tbody>
-          <tr class="table-spacer">
-            <td style="width:8%;"></td>
-            <td style="width:28%;"></td>
-            <td style="width:6%;"></td>
-            <td style="width:10%;"></td>
-            <td style="width:3%;"></td>
-            <td style="width:10%;"></td>
-            <td style="width:3%;"></td>
-            <td style="width:12%;"></td>
-            <td style="width:20%;"></td>
-          </tr>
           @foreach ($extrasRendered as $extra)
             <tr class="extra-spacer">
               <td colspan="9"></td>

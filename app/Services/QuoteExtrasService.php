@@ -11,7 +11,7 @@ class QuoteExtrasService
     private const DESCRIPTIONS = [
         'warranty_10y' => 'Costo una-tantum per Garanzia decennale',
         'extra_2' => 'Assistenza tecnica in cantiere e Progettazione vasca',
-        'extra_3' => 'Oneri derivanti da trasferte personale applicatore tecnico',
+        'extra_3' => 'Oneri derivanti da trasferte personale applicatore e tecnico',
     ];
 
     public function ensureFixedRows(Quote $quote): void

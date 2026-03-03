@@ -10,6 +10,7 @@ import {
   updateQuotePricing,
 } from '../api/client';
 import TotalsPanel from '../components/TotalsPanel';
+import QuoteInfoModal from '../components/QuoteInfoModal';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
 
@@ -50,6 +51,7 @@ export default function QuoteExtrasPage() {
   const [pricingError, setPricingError] = useState(null);
   const [closing, setClosing] = useState(false);
   const [closeError, setCloseError] = useState(null);
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
 
   const totals = quote
     ? {
@@ -359,6 +361,13 @@ export default function QuoteExtrasPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={() => setInfoModalOpen(true)}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Modifica info
+          </button>
+          <button
+            type="button"
             onClick={() => navigate(`/builder/${quoteId}`)}
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
           >
@@ -642,6 +651,15 @@ export default function QuoteExtrasPage() {
       ) : null}
       {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
 
+      <QuoteInfoModal
+        open={infoModalOpen}
+        quote={quote}
+        onClose={() => setInfoModalOpen(false)}
+        onSaved={(data) => {
+          setQuote((prev) => (prev ? { ...prev, ...data } : data));
+          setInfoModalOpen(false);
+        }}
+      />
       <TotalsPanel
         totals={totals}
         pricingForm={pricingForm}

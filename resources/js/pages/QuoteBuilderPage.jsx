@@ -9,6 +9,7 @@ import {
   updateQuoteItemComponent,
   updateQuotePricing,
 } from '../api/client';
+import QuoteInfoModal from '../components/QuoteInfoModal';
 import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
@@ -428,6 +429,7 @@ export default function QuoteBuilderPage() {
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
 
   const loadQuote = useCallback(async () => {
     setLoading(true);
@@ -691,6 +693,13 @@ export default function QuoteBuilderPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={() => setInfoModalOpen(true)}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Modifica info
+          </button>
+          <button
+            type="button"
             onClick={() => navigate(`/builder/${quoteId}/extras`)}
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
           >
@@ -720,8 +729,8 @@ export default function QuoteBuilderPage() {
           ) : null}
         </form>
         {searchError ? <p className="mt-2 text-sm text-amber-700">{searchError}</p> : null}
-        {searchResults.length ? (
-          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+      {searchResults.length ? (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
@@ -776,6 +785,15 @@ export default function QuoteBuilderPage() {
           <p className="mt-4 text-sm text-slate-500">Nessun prodotto trovato.</p>
         ) : null}
       </section>
+      <QuoteInfoModal
+        open={infoModalOpen}
+        quote={quote}
+        onClose={() => setInfoModalOpen(false)}
+        onSaved={(data) => {
+          setQuote((prev) => (prev ? { ...prev, ...data } : data));
+          setInfoModalOpen(false);
+        }}
+      />
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Righe preventivo</h2>

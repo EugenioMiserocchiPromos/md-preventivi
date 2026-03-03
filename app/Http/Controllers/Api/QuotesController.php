@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotes\StoreQuoteRequest;
+use App\Http\Requests\Quotes\UpdateQuoteInfoRequest;
 use App\Http\Resources\QuoteListResource;
 use App\Http\Resources\QuoteResource;
 use App\Models\Customer;
@@ -110,6 +111,22 @@ class QuotesController extends Controller
         ]);
 
         return new QuoteResource($quote);
+    }
+
+    public function update(Quote $quote, UpdateQuoteInfoRequest $request)
+    {
+        $data = $request->validated();
+
+        $customer = Customer::findOrFail($data['customer_id']);
+        $quote->customer_id = $customer->id;
+        $quote->customer_title_snapshot = $customer->title;
+        $quote->customer_body_snapshot = $customer->body;
+        $quote->customer_email_snapshot = $customer->email;
+        $quote->cantiere = $data['cantiere'];
+        $quote->title_text = $data['title_text'];
+        $quote->save();
+
+        return new QuoteResource($quote->fresh());
     }
 
     public function revision(Quote $quote, ProtFormatter $formatter, Request $request)

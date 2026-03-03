@@ -140,6 +140,13 @@ export async function fetchQuote(quoteId) {
   return request(`/api/quotes/${quoteId}`, { method: 'GET' });
 }
 
+export async function updateQuoteInfo(quoteId, payload) {
+  return request(`/api/quotes/${quoteId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function fetchQuotes({ type, q, perPage = 20, page = 1 } = {}) {
   const params = new URLSearchParams();
   if (type) params.set('type', type);
