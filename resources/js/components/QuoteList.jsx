@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatMoney } from '../lib/formatters';
 import { protForUi } from '../lib/prot';
 
-function QuoteRow({ row, onOpen, onDelete, deleting }) {
+function QuoteRow({ row, onOpen, onDelete, onDuplicate, deleting, duplicating }) {
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -92,6 +92,30 @@ function QuoteRow({ row, onOpen, onDelete, deleting }) {
           </p>
         </div>
         <div className="flex justify-end gap-2">
+          {onDuplicate ? (
+            <button
+              type="button"
+              onClick={() => onDuplicate(row)}
+              title="Duplica"
+              aria-label="Duplica preventivo"
+              disabled={duplicating}
+              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-60"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={handleDownload}
@@ -170,7 +194,7 @@ function QuoteRow({ row, onOpen, onDelete, deleting }) {
   );
 }
 
-export default function QuoteList({ rows, onOpen, onDelete, deletingId }) {
+export default function QuoteList({ rows, onOpen, onDelete, onDuplicate, deletingId, duplicatingId }) {
   return (
     <div className="space-y-3">
       {rows.map((row) => (
@@ -179,7 +203,9 @@ export default function QuoteList({ rows, onOpen, onDelete, deletingId }) {
           row={row}
           onOpen={onOpen}
           onDelete={onDelete}
+          onDuplicate={onDuplicate}
           deleting={deletingId === row.id}
+          duplicating={duplicatingId === row.id}
         />
       ))}
     </div>

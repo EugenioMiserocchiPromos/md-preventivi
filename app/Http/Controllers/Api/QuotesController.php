@@ -9,9 +9,13 @@ use App\Http\Resources\QuoteListResource;
 use App\Http\Resources\QuoteResource;
 use App\Models\Customer;
 use App\Models\Quote;
+use App\Models\QuoteExtra;
+use App\Models\QuoteItem;
+use App\Models\QuoteItemComponent;
 use App\Services\QuotePdfService;
 use App\Services\ProtFormatter;
 use App\Services\ProtGeneratorService;
+use App\Services\QuoteTotalsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -190,6 +194,112 @@ class QuotesController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
+    }
+
+    public function duplicate(
+        Quote $quote,
+        ProtGeneratorService $protGenerator,
+        QuoteTotalsService $totalsService,
+        Request $request
+    ) {
+        $quote->load([
+            'items' => function ($query) {
+                $query->orderBy('sort_index')->orderBy('id');
+            },
+            'items.components' => function ($query) {
+                $query->orderBy('sort_index')->orderBy('id');
+            },
+            'extras' => function ($query) {
+                $query->orderBy('sort_index')->orderBy('id');
+            },
+        ]);
+
+        $user = $request->user();
+
+        $newQuote = DB::transaction(function () use ($quote, $protGenerator, $user) {
+            $prot = $protGenerator->allocateForUser($user, $quote->quote_type);
+
+            $newQuote = Quote::create([
+                'quote_type' => $quote->quote_type,
+                'customer_id' => $quote->customer_id,
+                'customer_title_snapshot' => $quote->customer_title_snapshot,
+                'customer_body_snapshot' => $quote->customer_body_snapshot,
+                'customer_email_snapshot' => $quote->customer_email_snapshot,
+                'prot_display' => $prot['prot_display'],
+                'prot_internal' => $prot['prot_internal'],
+                'prot_year' => $prot['prot_year'],
+                'prot_number' => $prot['prot_number'],
+                'revision_number' => $prot['revision_number'],
+                'date' => $quote->date,
+                'cantiere' => $quote->cantiere,
+                'title_template_id' => $quote->title_template_id,
+                'title_text' => $quote->title_text,
+                'discount_type' => $quote->discount_type,
+                'discount_value' => $quote->discount_value,
+                'vat_rate' => $quote->vat_rate,
+                'subtotal' => 0,
+                'discount_amount' => 0,
+                'taxable_total' => 0,
+                'vat_amount' => 0,
+                'grand_total' => 0,
+                'created_by_user_id' => $user->id,
+            ]);
+
+            $itemMap = [];
+            foreach ($quote->items as $item) {
+                /** @var QuoteItem $item */
+                $newItem = $newQuote->items()->create([
+                    'product_id' => $item->product_id,
+                    'category_name_snapshot' => $item->category_name_snapshot,
+                    'product_code_snapshot' => $item->product_code_snapshot,
+                    'name_snapshot' => $item->name_snapshot,
+                    'name_snapshot_html' => $item->name_snapshot_html,
+                    'unit_override' => $item->unit_override,
+                    'qty' => $item->qty,
+                    'unit_price_override' => $item->unit_price_override,
+                    'line_total' => $item->line_total,
+                    'note_shared' => $item->note_shared,
+                    'sort_index' => $item->sort_index,
+                ]);
+                $itemMap[$item->id] = $newItem;
+
+                foreach ($item->components as $component) {
+                    /** @var QuoteItemComponent $component */
+                    $newItem->components()->create([
+                        'name_snapshot' => $component->name_snapshot,
+                        'unit_override' => $component->unit_override,
+                        'qty' => $component->qty,
+                        'unit_price_override' => $component->unit_price_override,
+                        'component_total' => $component->component_total,
+                        'is_visible' => $component->is_visible,
+                        'sort_index' => $component->sort_index,
+                    ]);
+                }
+            }
+
+            foreach ($quote->extras as $extra) {
+                /** @var QuoteExtra $extra */
+                $newQuote->extras()->create([
+                    'description' => $extra->description,
+                    'amount' => $extra->amount,
+                    'unit' => $extra->unit,
+                    'qty' => $extra->qty,
+                    'unit_price' => $extra->unit_price,
+                    'line_total' => $extra->line_total,
+                    'notes' => $extra->notes,
+                    'is_included' => $extra->is_included,
+                    'is_fixed' => $extra->is_fixed,
+                    'fixed_key' => $extra->fixed_key,
+                    'sort_index' => $extra->sort_index,
+                ]);
+            }
+
+            return $newQuote;
+        });
+
+        $totalsService->recalculateAndPersist($newQuote->fresh());
+
+        return new QuoteResource($newQuote->fresh());
     }
 
     public function destroy(Quote $quote)

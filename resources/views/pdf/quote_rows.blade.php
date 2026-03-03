@@ -191,6 +191,15 @@
         line-height: 13px;
         font-weight: 500;
       }
+      .extra-note-row {
+        background: #ffffff;
+      }
+      .extra-note-row td,
+      .extra-note-row .cell-pad {
+        font-size: 9px;
+        line-height: 11px;
+        font-weight: 500;
+      }
       .extras-table {
         page-break-inside: avoid;
         break-inside: avoid;
@@ -762,6 +771,16 @@
           </tr>
           <tr class="avoid-break extra-row">
             <td colspan="9" style="text-align:left;"><div class="cell-pad">Pagamenti: da Concordare</div></td>
+          </tr>
+          <tr class="extra-spacer">
+            <td colspan="9"></td>
+          </tr>
+          <tr class="avoid-break extra-row extra-note-row">
+            <td colspan="9" style="text-align:left;">
+              <div class="cell-pad">
+                NOTE: Eventuali conteggi sopra indicati sono da ritenersi puramente indicativi e dovranno essere verificati e conteggiati a consuntivo. La fatturazione avverrà con cadenza mensile e non a stati d’avanzamento. Alle quotazioni sopra esposte, deve essere applicata l’imposta sul valore aggiunto (IVA) e, nel caso di sola vendita, dovranno essere applicati gli oneri derivanti dal trasporto, inoltre, le quantità dei prodotti verranno arrotondati per eccesso alla confezione. Le eventuali trasferte del ns personale tecnico verranno documentate dai rapportini di sopralluogo che dovranno essere controfirmati da un responsabile tecnico e/o di cantiere. Garanzia: pagamento contestuale al rilascio della fattura pro-forma per garanzia, con l’attivazione di quest’ultima al saldo di tutte le fatture emesse per il cantiere in oggetto
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>

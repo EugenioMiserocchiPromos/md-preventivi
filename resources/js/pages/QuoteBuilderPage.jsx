@@ -164,8 +164,13 @@ function QuoteItemCard({
     const collapsedTotal = collapsedItemTotal + collapsedComponentsTotal;
 
     return (
-      <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
+      <div className="w-full rounded-3xl border border-slate-200/70 bg-white text-left shadow-sm transition hover:shadow-md">
+        <div className="flex items-center justify-between gap-4">
+          <button
+            type="button"
+            onClick={() => onOpen(item.id)}
+            className="flex min-w-0 flex-1 items-center justify-between gap-4 p-5 text-left cursor-pointer"
+          >
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-slate-500">PRODOTTO</p>
             <h3 className="text-lg font-semibold truncate">
@@ -178,14 +183,32 @@ function QuoteItemCard({
               <span className="text-xs uppercase tracking-wide text-slate-500">TOTALE RIGA</span>
               <p className="text-sm font-semibold text-slate-800">{formatMoney(collapsedTotal)}</p>
             </div>
-            <button
-              type="button"
-              onClick={() => onOpen(item.id)}
-              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
-            >
-              Modifica
-            </button>
           </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => onDeleteItem(item.id)}
+            title="Elimina"
+            aria-label="Elimina riga"
+            className="m-5 rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="M3 6h18" />
+              <path d="M8 6V4h8v2" />
+              <path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+            </svg>
+          </button>
         </div>
       </div>
     );

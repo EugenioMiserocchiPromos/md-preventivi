@@ -162,6 +162,10 @@ export async function deleteQuote(quoteId) {
   return request(`/api/quotes/${quoteId}`, { method: 'DELETE' });
 }
 
+export async function duplicateQuote(quoteId) {
+  return request(`/api/quotes/${quoteId}/duplicate`, { method: 'POST' });
+}
+
 export async function createQuoteItem(quoteId, payload) {
   return request(`/api/quotes/${quoteId}/items`, {
     method: 'POST',

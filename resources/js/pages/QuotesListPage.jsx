@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { deleteQuote, fetchQuotes } from '../api/client';
+import { deleteQuote, duplicateQuote, fetchQuotes } from '../api/client';
 import QuoteList from '../components/QuoteList';
 
 export default function QuotesListPage({ type, label }) {
@@ -12,6 +12,7 @@ export default function QuotesListPage({ type, label }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [duplicatingId, setDuplicatingId] = useState(null);
   const [confirmRow, setConfirmRow] = useState(null);
   const isFirstSearch = useRef(true);
 
@@ -81,6 +82,25 @@ export default function QuotesListPage({ type, label }) {
     }
   };
 
+  const handleDuplicate = async (row) => {
+    if (!row?.id) return;
+    setDuplicatingId(row.id);
+    setError(null);
+    try {
+      const response = await duplicateQuote(row.id);
+      const data = response.data ?? response;
+      if (data?.id) {
+        navigate(`/builder/${data.id}`);
+      } else if (response?.data?.id) {
+        navigate(`/builder/${response.data.id}`);
+      }
+    } catch (err) {
+      setError(err?.message || 'Errore durante duplicazione preventivo.');
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <header className="space-y-1">
@@ -108,7 +128,9 @@ export default function QuotesListPage({ type, label }) {
           rows={rows}
           onOpen={(id) => navigate(`/builder/${id}`)}
           onDelete={handleDelete}
+          onDuplicate={handleDuplicate}
           deletingId={deletingId}
+          duplicatingId={duplicatingId}
         />
       )}
 

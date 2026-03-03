@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->get('/quotes/{quote}', [QuotesController::cla
 Route::middleware('auth:sanctum')->patch('/quotes/{quote}', [QuotesController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/quotes/{quote}', [QuotesController::class, 'destroy']);
 Route::middleware('auth:sanctum')->get('/quotes/{quote}/pdf/full', [QuotesController::class, 'pdfFull']);
+Route::middleware('auth:sanctum')->post('/quotes/{quote}/duplicate', [QuotesController::class, 'duplicate']);
 Route::middleware('auth:sanctum')->post('/quotes', [QuotesController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/quotes', [QuotesController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/revision', [QuotesController::class, 'revision']);
