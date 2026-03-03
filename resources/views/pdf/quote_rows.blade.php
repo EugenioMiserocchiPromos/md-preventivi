@@ -191,6 +191,9 @@
         line-height: 13px;
         font-weight: 500;
       }
+      .note-table {
+        margin-top: 5px;
+      }
       .extra-note-row {
         background: #ffffff;
       }
@@ -772,9 +775,21 @@
           <tr class="avoid-break extra-row">
             <td colspan="9" style="text-align:left;"><div class="cell-pad">Pagamenti: da Concordare</div></td>
           </tr>
-          <tr class="extra-spacer">
-            <td colspan="9"></td>
-          </tr>
+        </tbody>
+      </table>
+      <table class="items note-table">
+        <colgroup>
+          <col style="width:8%;" />
+          <col style="width:28%;" />
+          <col style="width:6%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:10%;" />
+          <col style="width:3%;" />
+          <col style="width:12%;" />
+          <col style="width:20%;" />
+        </colgroup>
+        <tbody>
           <tr class="avoid-break extra-row extra-note-row">
             <td colspan="9" style="text-align:left;">
               <div class="cell-pad">
