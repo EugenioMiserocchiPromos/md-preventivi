@@ -18,10 +18,6 @@
       }
       @page notes {
         margin: 0;
-        @bottom-center {
-          content: element(notes-signatures);
-          width: 100%;
-        }
       }
       html,
       body {
@@ -33,13 +29,13 @@
       .notes-page {
         page: notes;
         min-height: 100%;
-        background-image: url("{{ 'file://' . public_path('pdf/frontespizio-bg.jpg') }}");
+        background-image: url("{{ 'file://' . public_path('pdf/bg-note-firme.jpg') }}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
       }
       .notes-content {
-        padding: 150px 80px;
+        padding: 150px 80px 150px 40px;
       }
       .notes-title {
         font-family: 'Jost', sans-serif;
@@ -54,43 +50,6 @@
         font-size: 11px;
         line-height: 13px;
         white-space: pre-wrap;
-      }
-      .notes-signatures {
-        position: running(notes-signatures);
-        display: block;
-        width: 100%;
-        padding: 0 80px 330px 80px;
-        box-sizing: border-box;
-        margin: 0;
-      }
-      .notes-signatures-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-      }
-      .notes-signatures-table td {
-        width: 48%;
-        padding: 0;
-        vertical-align: top;
-      }
-      td.notes-signatures-spacer {
-        width: 4%!important;
-      }
-      .notes-signature-box {
-        border-bottom: 0.5px solid #95817b;
-        height: 44px;
-        width: 100%;
-        box-sizing: border-box;
-      }
-      .notes-signature-label {
-        font-family: 'Jost', sans-serif;
-        font-weight: 500;
-        text-align:center;
-        font-size: 10px;
-        line-height:12px;
-        color: #000000;
-        margin-bottom: 6px;
-        margin-bottom: 6px;
       }
     </style>
   </head>
@@ -115,21 +74,6 @@
           Boreste nuscipsam ute simo quam qui aut vollabo. Uritatemos et modist ea nia vit, evernat usciae nus re plabor autem. Ebit resecti untentor rectotaquae corero qui nonsequam eaqui nam nam esciaec atendit aquiatur accum repe sitae provitame volupta con con ea eatibus ide labo. Lacipiendae labo. Nequis earum volorporum quibus minihit, cum qui voluptae quos dolut hariore rchilit ecatis dolorum rem velecto blaborit et omnis senduntur? Agnist, ommostios sit quatatist volorerro conem nonsequo voloria tatibus magnis sunt acia doloris di dolupta tiatum re, sum estem facero corerio repudam nate volupta qui blaut facepudipide volupid uciisqu idenim el minctat emporepero te derferi buscitaque nonse quo corem rem quae il mossincit doluptionet aut aut omnienihil iliberitas rerrum imusam,
           volo inverep electotature non eossi blamus, quam quam aut et ommolores maionseque laccus milist, custio exceptatiae poritia dipsusd andandaero odi omnihilla endam num iusdandebit ventis coris ant dollorempos de is eumque vid que officimi, volo quatum quibusae sinvel ipsantoris seditat est adit alitate verciaepudae lauditatiur rerio ipsam sitae volor rent.
         </div>
-                <div class="notes-signatures">
-          <table class="notes-signatures-table">
-            <tr>
-              <td>
-                <div class="notes-signature-label">MD Italia Srl</div>
-                <div class="notes-signature-box"></div>
-              </td>
-              <td class="notes-signatures-spacer"></td>
-              <td>
-                <div class="notes-signature-label">Firma dell’acquirente per accettazione</div>
-                <div class="notes-signature-box"></div>
-              </td>
-            </tr>
-          </table>
-        </div>
       </div>
     </section>
 
@@ -149,21 +93,6 @@
           sa num qui dem ut elit odictint aut veliquae qui si cuptas essum que prem facepro blatumet erum enitatus, temped qui consequo bere, omnit, voleceperum exerrum audaecti core volum hillandae nimin re el ipsa doluptae re volupti orehent oditatu rioribus, con core, sum fugitassum quos doluptatem saes delibea quasper iatio. Cuptat quae voluptaecat.
           Boreste nuscipsam ute simo quam qui aut vollabo. Uritatemos et modist ea nia vit, evernat usciae nus re plabor autem. Ebit resecti untentor rectotaquae corero qui nonsequam eaqui nam nam esciaec atendit aquiatur accum repe sitae provitame volupta con con ea eatibus ide labo. Lacipiendae labo. Nequis earum volorporum quibus minihit, cum qui voluptae quos dolut hariore rchilit ecatis dolorum rem velecto blaborit et omnis senduntur? Agnist, ommostios sit quatatist volorerro conem nonsequo voloria tatibus magnis sunt acia doloris di dolupta tiatum re, sum estem facero corerio repudam nate volupta qui blaut facepudipide volupid uciisqu idenim el minctat emporepero te derferi buscitaque nonse quo corem rem quae il mossincit doluptionet aut aut omnienihil iliberitas rerrum imusam,
           volo inverep electotature non eossi blamus, quam quam aut et ommolores maionseque laccus milist, custio exceptatiae poritia dipsusd andandaero odi omnihilla endam num iusdandebit ventis coris ant dollorempos de is eumque vid que officimi, volo quatum quibusae sinvel ipsantoris seditat est adit alitate verciaepudae lauditatiur rerio ipsam sitae volor rent.
-        </div>
-        <div class="notes-signatures">
-          <table class="notes-signatures-table">
-            <tr>
-              <td>
-                <div class="notes-signature-label">MD Italia Srl</div>
-                <div class="notes-signature-box"></div>
-              </td>
-              <td class="notes-signatures-spacer"></td>
-              <td>
-                <div class="notes-signature-label">Firma dell’acquirente per accettazione</div>
-                <div class="notes-signature-box"></div>
-              </td>
-            </tr>
-          </table>
         </div>
       </div>
     </section>
