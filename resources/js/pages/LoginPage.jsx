@@ -56,7 +56,11 @@ export default function LoginPage() {
                 required
               />
             </label>
-            {error ? <p className="text-sm text-amber-300">{error}</p> : null}
+            {error ? (
+              <p className="text-sm" style={{ color: '#45556c' }}>
+                {error}
+              </p>
+            ) : null}
             <button
               type="submit"
               disabled={loading}
