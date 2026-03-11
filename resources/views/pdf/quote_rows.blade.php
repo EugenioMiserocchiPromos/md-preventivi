@@ -95,7 +95,7 @@
         border-collapse: collapse;
       }
       .spacer-table {
-        margin-top: 5px;
+        margin-top: -1px;
         margin-bottom: 0;
       }
       .item-table {
@@ -730,6 +730,26 @@
           <tr class="extra-spacer">
             <td colspan="9"></td>
           </tr>
+          @php
+            $discountDisplay = null;
+            if ($quote->discount_type === 'percent' && $quote->discount_value !== null) {
+                $discountDisplay = number_format((float) $quote->discount_value, 2, ',', '.') . '%';
+            } elseif ($quote->discount_type === 'amount' && $quote->discount_value !== null) {
+                $discountDisplay = '€ ' . number_format((float) $quote->discount_value, 2, ',', '.');
+            }
+          @endphp
+          <tr class="avoid-break extra-row">
+            <td colspan="7" style="width:70%; text-align:left;"><div class="cell-pad">Sconto</div></td>
+            <td class="text-right" style="width:12%;">
+              <div class="cell-pad">
+                {{ $discountDisplay ?? '€ 0,00' }}
+              </div>
+            </td>
+            <td class="note-cell" style="width:20%;"><div class="cell-pad"></div></td>
+          </tr>
+          <tr class="extra-spacer">
+            <td colspan="9"></td>
+          </tr>
           <tr class="avoid-break total-row">
             <td colspan="7" style="width:70%; text-align:left;"><div class="cell-pad">Totale</div></td>
             <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) ($quote->grand_total ?? 0), 2, ',', '.') }}</div></td>
@@ -781,7 +801,9 @@
           </tr>
           <tr class="avoid-break extra-row note-finali-extra">
             <td colspan="9" style="text-align:left;">
-              <div class="cell-pad div-note-finali">NOTE: Eventuali conteggi sopra indicati sono da ritenersi puramente indicativi e dovranno essere verificati e conteggiati a consuntivo. La fatturazione avverrà con cadenza mensile e non a stati d’avanzamento. Alle quotazioni sopra esposte, deve essere applicata l’imposta sul valore aggiunto (IVA) e, nel caso di sola vendita, dovranno essere applicati gli oneri derivanti dal trasporto, inoltre, le quantità dei prodotti verranno arrotondati per eccesso alla confezione. Le eventuali trasferte del ns personale tecnico verranno documentate dai rapportini di sopralluogo che dovranno essere controfirmati da un responsabile tecnico e/o di cantiere. Garanzia: pagamento contestuale al rilascio della fattura pro-forma per garanzia, con l’attivazione di quest’ultima al saldo di tutte le fatture emesse per il cantiere in oggetto</div>
+              <div class="cell-pad div-note-finali">NOTE: Eventuali conteggi sopra indicati sono da ritenersi puramente indicativi e dovranno essere verificati e conteggiati a consuntivo. La fatturazione avverrà con cadenza mensile e non a stati d'avanzamento. Alle quotazioni sopra esposte, deve essere applicata l'imposta sul valore aggiunto (IVA) e, nel caso di sola vendita, dovranno essere applicati gli oneri derivanti dal trasporto, inoltre, le quantità dei prodotti verranno arrotondati per eccesso alla confezione. Le eventuali trasferte del ns personale tecnico verranno documentate dai rapportini di sopralluogo che dovranno essere controfirmati da un responsabile tecnico e/o di cantiere.  Garanzia: pagamento contestuale al rilascio della fattura pro-forma per garanzia, con l’attivazione di quest’ultima al saldo di tutte le fatture emesse per il cantiere in oggetto.  
+Per quanto non espressamente disciplinato dal presente contratto, si applicano le disposizioni del Codice Civile e della normativa vigente in materia di vendita di prodotti, prestazione di servizi e posa in opera.
+</div>
             </td>
           </tr>
         </tbody>
