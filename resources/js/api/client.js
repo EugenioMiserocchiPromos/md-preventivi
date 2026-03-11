@@ -75,6 +75,15 @@ export async function fetchProducts({ q, perPage = 10, page = 1 } = {}) {
   return request(`/api/products${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
 }
 
+export async function fetchProductCategories({ q, perPage = 10 } = {}) {
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (perPage) params.set('per_page', String(perPage));
+
+  const suffix = params.toString();
+  return request(`/api/product-categories${suffix ? `?${suffix}` : ''}`, { method: 'GET' });
+}
+
 export async function updateProduct(productId, payload) {
   return request(`/api/products/${productId}`, {
     method: 'PATCH',
@@ -173,6 +182,13 @@ export async function createQuoteItem(quoteId, payload) {
   });
 }
 
+export async function createQuoteCategoryItems(quoteId, payload) {
+  return request(`/api/quotes/${quoteId}/items/category`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function updateQuoteItem(itemId, payload) {
   return request(`/api/quote-items/${itemId}`, {
     method: 'PATCH',
@@ -182,6 +198,10 @@ export async function updateQuoteItem(itemId, payload) {
 
 export async function deleteQuoteItem(itemId) {
   return request(`/api/quote-items/${itemId}`, { method: 'DELETE' });
+}
+
+export async function duplicateQuoteItem(itemId) {
+  return request(`/api/quote-items/${itemId}/duplicate`, { method: 'POST' });
 }
 
 export async function updateQuoteItemComponent(componentId, payload) {

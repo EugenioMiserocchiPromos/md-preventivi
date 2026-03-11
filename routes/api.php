@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->post('/products/import', [ProductImportContro
 Route::middleware('auth:sanctum')->post('/products/components/import', [ProductComponentsImportController::class, 'import']);
 Route::middleware('auth:sanctum')->post('/customers/import', [CustomerImportController::class, 'import']);
 Route::middleware('auth:sanctum')->get('/products', [ProductsController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/product-categories', [ProductsController::class, 'categories']);
 Route::middleware('auth:sanctum')->patch('/products/{product}', [ProductsController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/products/{product}/components', [ProductComponentsController::class, 'index']);
 
@@ -49,6 +50,7 @@ Route::middleware('auth:sanctum')->post('/quotes', [QuotesController::class, 'st
 Route::middleware('auth:sanctum')->get('/quotes', [QuotesController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/revision', [QuotesController::class, 'revision']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/items', [QuoteItemsController::class, 'store']);
+Route::middleware('auth:sanctum')->post('/quotes/{quote}/items/category', [QuoteItemsController::class, 'storeCategory']);
 Route::middleware('auth:sanctum')->patch('/quotes/{quote}/pricing', [QuotePricingController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/quotes/{quote}/extras', [QuoteExtrasController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/extras', [QuoteExtrasController::class, 'store']);
@@ -56,4 +58,5 @@ Route::middleware('auth:sanctum')->patch('/quote-extras/{extra}', [QuoteExtrasCo
 Route::middleware('auth:sanctum')->delete('/quote-extras/{extra}', [QuoteExtrasController::class, 'destroy']);
 Route::middleware('auth:sanctum')->patch('/quote-items/{item}', [QuoteItemsController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/quote-items/{item}', [QuoteItemsController::class, 'destroy']);
+Route::middleware('auth:sanctum')->post('/quote-items/{item}/duplicate', [QuoteItemsController::class, 'duplicate']);
 Route::middleware('auth:sanctum')->patch('/quote-item-components/{component}', [QuoteItemComponentsController::class, 'update']);

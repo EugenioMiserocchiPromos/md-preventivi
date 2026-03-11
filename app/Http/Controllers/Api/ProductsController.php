@@ -35,6 +35,56 @@ class ProductsController extends Controller
         return ProductResource::collection($products);
     }
 
+    public function categories(Request $request)
+    {
+        $search = trim((string) $request->query('q', ''));
+        $perPage = (int) $request->query('per_page', 15);
+        $perPage = max(1, min($perPage, 50));
+
+        $categoriesQuery = DB::table('products')
+            ->where('is_active', true)
+            ->whereNotNull('category_name')
+            ->where('category_name', '!=', '');
+
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $categoriesQuery->where('category_name', 'like', $like);
+        }
+
+        $categories = $categoriesQuery
+            ->select('category_name')
+            ->distinct()
+            ->orderBy('category_name')
+            ->limit($perPage)
+            ->get();
+
+        if ($categories->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $categoryNames = $categories->pluck('category_name')->all();
+
+        $products = DB::table('products')
+            ->where('is_active', true)
+            ->whereIn('category_name', $categoryNames)
+            ->orderBy('category_name')
+            ->orderBy('code')
+            ->get(['id', 'category_name']);
+
+        $grouped = $products->groupBy('category_name');
+
+        $payload = $categories->map(function ($category) use ($grouped) {
+            $items = $grouped->get($category->category_name, collect());
+            return [
+                'name' => $category->category_name,
+                'product_count' => $items->count(),
+                'product_ids' => $items->pluck('id')->all(),
+            ];
+        })->values();
+
+        return response()->json($payload);
+    }
+
     public function update(Request $request, int $product)
     {
         $validated = $request->validate([

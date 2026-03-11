@@ -430,14 +430,34 @@
   </head>
   <body>
     @php
-      $sortedItems = $quote->items
-        ->sortBy(function ($item) {
-          return sprintf('%s-%05d-%010d', $item->category_name_snapshot, $item->sort_index, $item->id);
-        })
-        ->values();
-      $grouped = $sortedItems->groupBy(function ($item) {
+      $items = $quote->items ?? collect();
+      $groupedRaw = $items->groupBy(function ($item) {
         return $item->category_name_snapshot ?: 'Senza categoria';
       });
+
+      $grouped = $groupedRaw->map(function ($groupItems, $category) {
+        $sorted = $groupItems->sortBy(function ($item) {
+          $code = (string) ($item->product_code_snapshot ?? '');
+          $numeric = preg_replace('/\\D+/', '', $code);
+          $numericValue = $numeric !== '' ? (int) $numeric : PHP_INT_MAX;
+          return sprintf('%010d-%s', $numericValue, $code);
+        })->values();
+
+        $minCode = $sorted->first()?->product_code_snapshot ?? '';
+        $minNumeric = preg_replace('/\\D+/', '', (string) $minCode);
+        $minNumericValue = $minNumeric !== '' ? (int) $minNumeric : PHP_INT_MAX;
+
+        return [
+          'category' => $category,
+          'items' => $sorted,
+          'min_code' => $minCode,
+          'min_numeric' => $minNumericValue,
+        ];
+      })->values();
+
+      $grouped = $grouped->sortBy(function ($group) {
+        return sprintf('%010d-%s-%s', $group['min_numeric'], (string) $group['min_code'], (string) $group['category']);
+      })->values();
       $extras = $quote->extras ?? collect();
     @endphp
 
@@ -546,7 +566,11 @@
         </table>
       </div>
 
-    @foreach ($grouped as $category => $items)
+    @foreach ($grouped as $group)
+      @php
+        $category = $group['category'];
+        $items = $group['items'];
+      @endphp
       <table class="items category-table">
         <colgroup>
           <col style="width:8%;" />

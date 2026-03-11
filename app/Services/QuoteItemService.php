@@ -68,4 +68,60 @@ class QuoteItemService
             return $item->load(['components']);
         });
     }
+
+    public function duplicate(QuoteItem $item): QuoteItem
+    {
+        return DB::transaction(function () use ($item) {
+            $item->loadMissing('components');
+            $quoteId = (int) $item->quote_id;
+            $originalSortIndex = (int) ($item->sort_index ?? 0);
+
+            DB::table('quote_items')
+                ->where('quote_id', $quoteId)
+                ->where('sort_index', '>', $originalSortIndex)
+                ->increment('sort_index', 1);
+
+            $lineTotal = round(((float) $item->qty) * ((float) $item->unit_price_override), 2);
+
+            $newItem = QuoteItem::create([
+                'quote_id' => $quoteId,
+                'product_id' => $item->product_id,
+                'category_name_snapshot' => $item->category_name_snapshot,
+                'product_code_snapshot' => $item->product_code_snapshot,
+                'name_snapshot' => $item->name_snapshot,
+                'name_snapshot_html' => $item->name_snapshot_html,
+                'unit_override' => $item->unit_override,
+                'qty' => $item->qty,
+                'unit_price_override' => $item->unit_price_override,
+                'line_total' => $lineTotal,
+                'note_shared' => $item->note_shared,
+                'sort_index' => $originalSortIndex + 1,
+            ]);
+
+            if ($item->components->isNotEmpty()) {
+                $now = now();
+                $payload = $item->components->map(function ($component) use ($newItem, $now) {
+                    $qty = $component->qty === null ? 0.0 : (float) $component->qty;
+                    $price = $component->unit_price_override === null ? 0.0 : (float) $component->unit_price_override;
+
+                    return [
+                        'quote_item_id' => $newItem->id,
+                        'name_snapshot' => $component->name_snapshot,
+                        'unit_override' => $component->unit_override,
+                        'qty' => $qty,
+                        'unit_price_override' => $price,
+                        'component_total' => round($qty * $price, 2),
+                        'is_visible' => (bool) $component->is_visible,
+                        'sort_index' => $component->sort_index,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                })->all();
+
+                DB::table('quote_item_components')->insert($payload);
+            }
+
+            return $newItem->load(['components']);
+        });
+    }
 }

@@ -11,6 +11,8 @@ use App\Models\QuoteItem;
 use App\Services\QuoteItemService;
 use App\Services\QuoteTotalsService;
 use App\Support\Units;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class QuoteItemsController extends Controller
 {
@@ -66,6 +68,71 @@ class QuoteItemsController extends Controller
         $updatedQuote = $totalsService->recalculateAndPersist($quote);
 
         return response()->json([
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
+    }
+
+    public function duplicate(
+        QuoteItem $item,
+        QuoteItemService $service,
+        QuoteTotalsService $totalsService
+    ) {
+        $newItem = $service->duplicate($item);
+
+        $updatedQuote = $totalsService->recalculateAndPersist($item->quote()->first());
+
+        return response()->json([
+            'item' => new QuoteItemResource($newItem),
+            'totals' => $totalsService->totalsPayload($updatedQuote),
+        ]);
+    }
+
+    public function storeCategory(
+        Quote $quote,
+        Request $request,
+        QuoteItemService $service,
+        QuoteTotalsService $totalsService
+    ) {
+        $validated = $request->validate([
+            'category_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $categoryName = trim((string) $validated['category_name']);
+        if ($categoryName === '') {
+            return response()->json(['message' => 'Categoria non valida.'], 422);
+        }
+
+        $products = DB::table('products')
+            ->where('is_active', true)
+            ->where('category_name', $categoryName)
+            ->orderBy('code')
+            ->get(['id']);
+
+        if ($products->isEmpty()) {
+            return response()->json(['message' => 'Categoria non trovata.'], 404);
+        }
+
+        $existingIds = $quote->items()
+            ->pluck('product_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        $existingSet = array_fill_keys($existingIds, true);
+
+        $added = 0;
+        foreach ($products as $product) {
+            $productId = (int) $product->id;
+            if (isset($existingSet[$productId])) {
+                continue;
+            }
+            $service->create($quote, $productId, 1);
+            $added++;
+        }
+
+        $updatedQuote = $totalsService->recalculateAndPersist($quote->fresh());
+
+        return response()->json([
+            'added' => $added,
             'totals' => $totalsService->totalsPayload($updatedQuote),
         ]);
     }

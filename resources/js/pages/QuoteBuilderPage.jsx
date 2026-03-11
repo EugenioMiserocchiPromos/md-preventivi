@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  createQuoteItem,
+  createQuoteCategoryItems,
   deleteQuoteItem,
-  fetchProducts,
+  duplicateQuoteItem,
+  fetchProductCategories,
   fetchQuote,
   updateQuoteItem,
   updateQuoteItemComponent,
@@ -36,6 +37,8 @@ function QuoteItemCard({
   onOpen,
   onUpdateItem,
   onDeleteItem,
+  onDuplicateItem,
+  duplicating,
   onUpdateComponent,
   onSaveAll,
   onRegisterSave,
@@ -185,30 +188,54 @@ function QuoteItemCard({
             </div>
           </div>
           </button>
-          <button
-            type="button"
-            onClick={() => onDeleteItem(item.id)}
-            title="Elimina"
-            aria-label="Elimina riga"
-            className="m-5 rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
+          <div className="m-5 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onDuplicateItem(item.id)}
+              title="Duplica"
+              aria-label="Duplica riga"
+              disabled={duplicating}
+              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
             >
-              <path d="M3 6h18" />
-              <path d="M8 6V4h8v2" />
-              <path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6" />
-              <path d="M10 11v6" />
-              <path d="M14 11v6" />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDeleteItem(item.id)}
+              title="Elimina"
+              aria-label="Elimina riga"
+              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <path d="M3 6h18" />
+                <path d="M8 6V4h8v2" />
+                <path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -224,13 +251,23 @@ function QuoteItemCard({
           </h3>
           <p className="text-xs text-slate-500">Categoria: {item.category_name_snapshot}</p>
         </div>
-          <button
-            type="button"
-            onClick={() => onDeleteItem(item.id)}
-            className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600"
-          >
-            Elimina riga
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onDuplicateItem(item.id)}
+              disabled={duplicating}
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-60"
+            >
+              Duplica
+            </button>
+            <button
+              type="button"
+              onClick={() => onDeleteItem(item.id)}
+              className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600"
+            >
+              Elimina riga
+            </button>
+          </div>
         </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-4">
@@ -436,6 +473,7 @@ export default function QuoteBuilderPage() {
   const isFirstSearch = useRef(true);
   const [adding, setAdding] = useState(false);
   const [openItemId, setOpenItemId] = useState(null);
+  const [duplicatingId, setDuplicatingId] = useState(null);
   const itemRefs = useRef({});
   const saveHandlersRef = useRef({});
   const existingProductIds = useMemo(() => {
@@ -517,10 +555,10 @@ export default function QuoteBuilderPage() {
       setSearchLoading(true);
       setSearchError(null);
       try {
-        const response = await fetchProducts({ q: term, perPage: 10, page: 1 });
-        setSearchResults(response.data || []);
+        const response = await fetchProductCategories({ q: term, perPage: 10 });
+        setSearchResults(response.data || response || []);
       } catch (err) {
-        setSearchError(err?.message || 'Errore nella ricerca prodotti.');
+        setSearchError(err?.message || 'Errore nella ricerca categorie.');
       } finally {
         setSearchLoading(false);
       }
@@ -529,7 +567,7 @@ export default function QuoteBuilderPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleAddProduct = async (productId) => {
+  const handleAddCategory = async (categoryName) => {
     if (!quote) return;
     setAdding(true);
     try {
@@ -540,17 +578,13 @@ export default function QuoteBuilderPage() {
         }
       }
 
-      const response = await createQuoteItem(quote.id, { product_id: productId, qty: 1 });
-      const createdItem =
-        response.item?.data ?? response.item ?? response.data?.item ?? response.data ?? null;
+      const response = await createQuoteCategoryItems(quote.id, { category_name: categoryName });
       await loadQuote();
-      if (createdItem?.id) {
-        setOpenItemId(createdItem.id);
-      } else {
+      if (!response?.added) {
         setOpenItemId(null);
       }
     } catch (err) {
-      setError(err?.message || 'Errore durante aggiunta prodotto.');
+      setError(err?.message || 'Errore durante aggiunta categoria.');
     } finally {
       setAdding(false);
     }
@@ -590,6 +624,30 @@ export default function QuoteBuilderPage() {
       }
     } catch (err) {
       setError(err?.message || 'Errore durante eliminazione riga.');
+    }
+  };
+
+  const duplicateItem = async (itemId) => {
+    if (duplicatingId) return;
+    try {
+      setDuplicatingId(itemId);
+      if (openItemId !== null) {
+        const saveHandler = saveHandlersRef.current[openItemId];
+        if (saveHandler) {
+          await saveHandler('save');
+        }
+      }
+      const response = await duplicateQuoteItem(itemId);
+      const createdItem =
+        response.item?.data ?? response.item ?? response.data?.item ?? response.data ?? null;
+      await loadQuote();
+      if (createdItem?.id) {
+        setOpenItemId(createdItem.id);
+      }
+    } catch (err) {
+      setError(err?.message || 'Errore durante duplicazione riga.');
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -640,7 +698,13 @@ export default function QuoteBuilderPage() {
     });
     return Array.from(map.entries()).map(([category, items]) => ({
       category,
-      items,
+      items: [...items].sort((a, b) =>
+        String(a.product_code_snapshot || '').localeCompare(
+          String(b.product_code_snapshot || ''),
+          'it',
+          { numeric: true }
+        )
+      ),
       color: colorMap.get(category),
     }));
   }, [sortedItems]);
@@ -735,19 +799,25 @@ export default function QuoteBuilderPage() {
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}
 
       <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold">Aggiungi prodotto</h2>
+        <h2 className="text-lg font-semibold">Aggiungi categoria</h2>
         <form onSubmit={handleSearchSubmit} className="mt-3 flex flex-wrap gap-3">
           <input
             type="text"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Cerca prodotto per codice o nome..."
+            placeholder="Cerca categoria per nome..."
             className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm"
           />
           {searchLoading ? (
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
               Ricerca...
+            </div>
+          ) : null}
+          {adding ? (
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+              Aggiunta categoria...
             </div>
           ) : null}
         </form>
@@ -757,44 +827,37 @@ export default function QuoteBuilderPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Codice</th>
-                  <th className="px-3 py-2 font-medium">Nome</th>
-                  <th className="px-3 py-2 font-medium">Prezzo</th>
+                  <th className="px-3 py-2 font-medium">Categoria</th>
+                  <th className="px-3 py-2 font-medium">Prodotti</th>
                   <th className="px-3 py-2 font-medium">Azioni</th>
                 </tr>
               </thead>
               <tbody>
-                {searchResults.map((product) => {
-                  const isPresent = existingProductIds.has(product.id);
+                {searchResults.map((category) => {
+                  const productIds = category.product_ids || [];
+                  const missingIds = productIds.filter((id) => !existingProductIds.has(id));
+                  const isComplete = productIds.length > 0 && missingIds.length === 0;
+                  const isPartial = productIds.length > 0 && missingIds.length < productIds.length;
                   return (
                     <tr
-                      key={product.id}
+                      key={category.name}
                       className={`border-t border-slate-200/60 ${
-                        isPresent ? 'bg-slate-50 text-slate-400' : ''
+                        isComplete ? 'bg-slate-50 text-slate-400' : ''
                       }`}
                     >
-                      <td className="px-3 py-2 font-medium">{product.code}</td>
+                      <td className="px-3 py-2 font-medium">{category.name}</td>
+                      <td className="px-3 py-2">{category.product_count}</td>
                       <td className="px-3 py-2">
-                        {product.name_html ? (
-                          <span
-                            dangerouslySetInnerHTML={{ __html: product.name_html }}
-                          />
-                        ) : (
-                          product.name
-                        )}
-                      </td>
-                      <td className="px-3 py-2">{product.price_default}</td>
-                      <td className="px-3 py-2">
-                        {isPresent ? (
+                        {isComplete ? (
                           <span className="text-xs font-semibold text-slate-400">Già presente</span>
                         ) : (
                           <button
                             type="button"
-                            onClick={() => handleAddProduct(product.id)}
+                            onClick={() => handleAddCategory(category.name)}
                             disabled={adding}
                             className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 disabled:opacity-60"
                           >
-                            Aggiungi
+                            {isPartial ? 'Riaggiungi' : 'Aggiungi'}
                           </button>
                         )}
                       </td>
@@ -805,7 +868,7 @@ export default function QuoteBuilderPage() {
             </table>
           </div>
         ) : searchQuery.trim() && !searchLoading ? (
-          <p className="mt-4 text-sm text-slate-500">Nessun prodotto trovato.</p>
+          <p className="mt-4 text-sm text-slate-500">Nessuna categoria trovata.</p>
         ) : null}
       </section>
       <QuoteInfoModal
@@ -844,6 +907,8 @@ export default function QuoteBuilderPage() {
                   onOpen={(id) => setOpenItemId(id)}
                   onUpdateItem={updateItem}
                   onDeleteItem={removeItem}
+                  onDuplicateItem={duplicateItem}
+                  duplicating={duplicatingId === item.id}
                   onUpdateComponent={updateComponent}
                   onSaveAll={saveAll}
                   onRegisterSave={registerSaveHandler}
