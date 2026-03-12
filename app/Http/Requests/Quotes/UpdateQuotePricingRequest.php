@@ -17,6 +17,14 @@ class UpdateQuotePricingRequest extends FormRequest
         return [
             'discount_type' => ['nullable', Rule::in(['percent', 'amount'])],
             'discount_value' => ['nullable', 'numeric', 'min:0'],
+            'payment_method' => ['nullable', Rule::in([
+                'da Concordare',
+                'Vista fattura',
+                '30/60/90 gg D.F.',
+                'Bonifico bancario',
+                'Ri.Ba.',
+            ])],
+            'payment_iban' => ['nullable', 'string', 'max:64'],
         ];
     }
 

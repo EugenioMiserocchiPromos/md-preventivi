@@ -10,7 +10,11 @@ export default function TotalsPanel({
   error,
   showDiscount = true,
   showDiscountForm = true,
+  showPaymentForm = false,
 }) {
+  const discountDisabled = pricingForm?.discount_type === 'none';
+  const showIban = pricingForm?.payment_method === 'Ri.Ba.';
+
   return (
     <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
       <div className="mx-auto max-w-5xl space-y-4">
@@ -69,7 +73,8 @@ export default function TotalsPanel({
                   onChange={(event) =>
                     onPricingChange((prev) => ({ ...prev, discount_value: event.target.value }))
                   }
-                  className="w-full rounded-l-xl border border-slate-200 px-3 py-2"
+                  disabled={discountDisabled}
+                  className="w-full rounded-l-xl border border-slate-200 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
                 />
                 <button
                   type="submit"
@@ -80,6 +85,45 @@ export default function TotalsPanel({
                 </button>
               </div>
             </div>
+            {showPaymentForm ? (
+              <>
+                <label className="text-sm">
+                  <span className="text-slate-600">Pagamenti</span>
+                  <select
+                    value={pricingForm.payment_method || 'da Concordare'}
+                    onChange={(event) =>
+                      onPricingChange((prev) => ({
+                        ...prev,
+                        payment_method: event.target.value,
+                      }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                  >
+                    <option value="da Concordare">da Concordare</option>
+                    <option value="Vista fattura">Vista fattura</option>
+                    <option value="30/60/90 gg D.F.">30/60/90 gg D.F.</option>
+                    <option value="Bonifico bancario">Bonifico bancario</option>
+                    <option value="Ri.Ba.">Ri.Ba.</option>
+                  </select>
+                </label>
+                {showIban ? (
+                  <label className="text-sm">
+                    <span className="text-slate-600">IBAN</span>
+                    <input
+                      value={pricingForm.payment_iban || ''}
+                      onChange={(event) =>
+                        onPricingChange((prev) => ({
+                          ...prev,
+                          payment_iban: event.target.value,
+                        }))
+                      }
+                      placeholder="Inserisci IBAN"
+                      className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                    />
+                  </label>
+                ) : null}
+              </>
+            ) : null}
           </form>
         ) : null}
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}

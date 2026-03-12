@@ -32,6 +32,8 @@ class QuoteResource extends JsonResource
             'title_text' => $this->title_text,
             'discount_type' => $this->discount_type,
             'discount_value' => $this->discount_value,
+            'payment_method' => $this->payment_method,
+            'payment_iban' => $this->payment_iban,
             'vat_rate' => $this->vat_rate,
             'subtotal' => $this->subtotal,
             'discount_amount' => $this->discount_amount,

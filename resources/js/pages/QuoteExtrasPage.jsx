@@ -49,6 +49,8 @@ export default function QuoteExtrasPage() {
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
+    payment_method: 'da Concordare',
+    payment_iban: '',
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
@@ -81,9 +83,13 @@ export default function QuoteExtrasPage() {
       setPricingForm({
         discount_type: quoteData.discount_type ?? 'none',
         discount_value:
-          quoteData.discount_value !== null && quoteData.discount_value !== undefined
-            ? String(quoteData.discount_value)
-            : '',
+          quoteData.discount_type === null || quoteData.discount_type === 'none'
+            ? '0'
+            : quoteData.discount_value !== null && quoteData.discount_value !== undefined
+              ? String(quoteData.discount_value)
+              : '',
+        payment_method: quoteData.payment_method || 'da Concordare',
+        payment_iban: quoteData.payment_iban || '',
       });
       setExtras(
         extrasList.map((extra) => {
@@ -361,6 +367,9 @@ export default function QuoteExtrasPage() {
       discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
       discount_value:
         pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
+      payment_method: pricingForm.payment_method || 'da Concordare',
+      payment_iban:
+        pricingForm.payment_method === 'Ri.Ba.' ? pricingForm.payment_iban || '' : '',
     };
 
     try {
@@ -377,15 +386,33 @@ export default function QuoteExtrasPage() {
       setPricingForm({
         discount_type: data.discount_type ?? 'none',
         discount_value:
-          data.discount_value !== null && data.discount_value !== undefined
-            ? String(data.discount_value)
-            : '',
+          data.discount_type === null || data.discount_type === 'none'
+            ? '0'
+            : data.discount_value !== null && data.discount_value !== undefined
+              ? String(data.discount_value)
+              : '',
+        payment_method: data.payment_method || 'da Concordare',
+        payment_iban: data.payment_iban || '',
       });
     } catch (err) {
       setPricingError(err?.message || 'Errore durante aggiornamento totali.');
     } finally {
       setPricingSaving(false);
     }
+  };
+
+
+  const handlePricingChange = (updater) => {
+    setPricingForm((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next.discount_type === 'none') {
+        next.discount_value = '0';
+      }
+      if (next.payment_method !== 'Ri.Ba.') {
+        next.payment_iban = '';
+      }
+      return { ...next };
+    });
   };
 
   const getListPath = (type) => {
@@ -492,178 +519,215 @@ export default function QuoteExtrasPage() {
 
       {!loading && !error ? (
         <div className="space-y-4">
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
+            <p className="text-sm font-semibold text-slate-700">Pagamenti</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <label className="text-sm">
+                <span className="text-slate-600">Metodo</span>
+                <select
+                  value={pricingForm.payment_method || 'da Concordare'}
+                  onChange={(event) =>
+                    handlePricingChange((prev) => ({
+                      ...prev,
+                      payment_method: event.target.value,
+                    }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                >
+                  <option value="da Concordare">da Concordare</option>
+                  <option value="Vista fattura">Vista fattura</option>
+                  <option value="30/60/90 gg D.F.">30/60/90 gg D.F.</option>
+                  <option value="Bonifico bancario">Bonifico bancario</option>
+                  <option value="Ri.Ba.">Ri.Ba.</option>
+                </select>
+              </label>
+              {pricingForm.payment_method === 'Ri.Ba.' ? (
+                <label className="text-sm">
+                  <span className="text-slate-600">IBAN</span>
+                  <input
+                    value={pricingForm.payment_iban || ''}
+                    onChange={(event) =>
+                      handlePricingChange((prev) => ({
+                        ...prev,
+                        payment_iban: event.target.value,
+                      }))
+                    }
+                    placeholder="Inserisci IBAN"
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                  />
+                </label>
+              ) : null}
+          </div>
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={handlePricingSubmit}
+                disabled={pricingSaving}
+                className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                {pricingSaving ? 'Salvataggio...' : 'Salva pagamenti'}
+              </button>
+              {pricingError ? <p className="mt-2 text-xs text-rose-600">{pricingError}</p> : null}
+            </div>
+          </div>
           {extras.length === 0 ? (
             <p className="text-sm text-slate-500">Nessuna riga extra presente.</p>
           ) : null}
-          <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white">
-            <table className="min-w-full text-left text-sm">
-              <tbody>
-                {extras.map((extra) => {
-                  const isWarranty = extra.fixed_key === 'warranty_10y';
-                  const warrantyExcluded = isWarranty && !extra.is_included;
-                  const qtyValue = Number(extra.qty || 0);
-                  const priceValue = Number(extra.unit_price || 0);
-                  const lineTotal = qtyValue * priceValue;
-                  return (
-                    <React.Fragment key={extra.id}>
-                      <tr
-                        className={`border-t border-slate-200/60 ${
-                          warrantyExcluded ? 'bg-slate-100/70' : ''
-                        }`}
-                      >
-                        <td className="px-3 py-3" colSpan={6}>
-                          <p className="text-xs uppercase tracking-wide text-slate-500">
-                            Descrizione
+          <div className="space-y-4">
+            {extras.map((extra) => {
+              const isWarranty = extra.fixed_key === 'warranty_10y';
+              const warrantyExcluded = isWarranty && !extra.is_included;
+              const qtyValue = Number(extra.qty || 0);
+              const priceValue = Number(extra.unit_price || 0);
+              const lineTotal = qtyValue * priceValue;
+              return (
+                <div
+                  key={extra.id}
+                  className={`rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm ${
+                    warrantyExcluded ? 'bg-slate-50/70' : ''
+                  }`}
+                >
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Descrizione</p>
+                  {extra.is_fixed ? (
+                    <p className="mt-1 font-medium text-slate-700">{extra.description}</p>
+                  ) : (
+                    <input
+                      value={extra.description}
+                      onChange={(event) =>
+                        updateExtraField(extra.id, 'description', event.target.value)
+                      }
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                    />
+                  )}
+
+                  <div className="mt-4">
+                    {isWarranty ? (
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={warrantyExcluded}
+                            onChange={() => toggleWarrantyIncluded(extra)}
+                            className="h-4 w-4 rounded border-slate-300"
+                          />
+                          <span className="text-slate-700">Non compresa</span>
+                        </label>
+                        <label className="text-sm">
+                          <span className="text-slate-600">Prezzo</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={extra.unit_price}
+                            onChange={(event) =>
+                              updateExtraField(extra.id, 'unit_price', event.target.value)
+                            }
+                            disabled={warrantyExcluded}
+                            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
+                          />
+                        </label>
+                        <div className="text-sm">
+                          <span className="text-slate-600">Totale riga</span>
+                          <p className="mt-2 text-base font-semibold text-slate-800">
+                            {formatMoney(lineTotal)}
                           </p>
-                          {extra.is_fixed ? (
-                            <p className="mt-1 font-medium text-slate-700">{extra.description}</p>
-                          ) : (
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid gap-3 md:grid-cols-4">
+                        <label className="text-sm">
+                          <span className="text-slate-600">Qtà</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={extra.qty}
+                            onChange={(event) =>
+                              updateExtraField(extra.id, 'qty', event.target.value)
+                            }
+                            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                          />
+                        </label>
+                        <label className="text-sm">
+                          <span className="text-slate-600">UM</span>
+                          {extra.fixed_key === 'extra_3' ? (
                             <input
-                              value={extra.description}
-                              onChange={(event) =>
-                                updateExtraField(extra.id, 'description', event.target.value)
-                              }
-                              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                              value="nº"
+                              disabled
+                              className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-600"
                             />
+                          ) : (
+                            <select
+                              value={extra.unit}
+                              onChange={(event) =>
+                                updateExtraField(extra.id, 'unit', event.target.value)
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                            >
+                              {unitOptions.map((unit) => (
+                                <option key={unit} value={unit}>
+                                  {unit}
+                                </option>
+                              ))}
+                            </select>
                           )}
-                        </td>
-                      </tr>
-                      <tr
-                        className={`border-t border-slate-200/60 ${
-                          warrantyExcluded ? 'bg-slate-100/70' : ''
-                        }`}
+                        </label>
+                        <label className="text-sm">
+                          <span className="text-slate-600">Prezzo</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={extra.unit_price}
+                            onChange={(event) =>
+                              updateExtraField(extra.id, 'unit_price', event.target.value)
+                            }
+                            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                          />
+                        </label>
+                        <div className="text-sm">
+                          <span className="text-slate-600">Totale riga</span>
+                          <p className="mt-2 text-base font-semibold text-slate-800">
+                            {formatMoney(lineTotal)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {!isWarranty ? (
+                    <div className="mt-4">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>
+                      <input
+                        value={extra.notes || ''}
+                        onChange={(event) =>
+                          updateExtraField(extra.id, 'notes', event.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                      />
+                    </div>
+                  ) : null}
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {!extra.is_fixed ? (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteExtra(extra)}
+                        disabled={deletingId === extra.id}
+                        className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 disabled:opacity-60"
                       >
-                        <td className="px-3 py-3" colSpan={6}>
-                          {isWarranty ? (
-                            <div className="mt-1 grid gap-3 md:grid-cols-3">
-                              <label className="flex items-center gap-2 text-sm">
-                                <input
-                                  type="checkbox"
-                                  checked={warrantyExcluded}
-                                  onChange={() => toggleWarrantyIncluded(extra)}
-                                  className="h-4 w-4 rounded border-slate-300"
-                                />
-                                <span className="text-slate-700">Non compresa</span>
-                              </label>
-                              <label className="text-sm">
-                                <span className="text-slate-600">Prezzo</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={extra.unit_price}
-                                  onChange={(event) =>
-                                    updateExtraField(extra.id, 'unit_price', event.target.value)
-                                  }
-                                  disabled={warrantyExcluded}
-                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
-                                />
-                              </label>
-                              <div className="text-sm">
-                                <span className="text-slate-600">Totale riga</span>
-                                <p className="mt-2 text-base font-semibold text-slate-800">
-                                  {formatMoney(lineTotal)}
-                                </p>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="mt-1 grid gap-3 md:grid-cols-4">
-                              <label className="text-sm">
-                                <span className="text-slate-600">Qtà</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={extra.qty}
-                                  onChange={(event) =>
-                                    updateExtraField(extra.id, 'qty', event.target.value)
-                                  }
-                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                                />
-                              </label>
-                              <label className="text-sm">
-                                <span className="text-slate-600">UM</span>
-                                {extra.fixed_key === 'extra_3' ? (
-                                  <input
-                                    value="nº"
-                                    disabled
-                                    className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-600"
-                                  />
-                                ) : (
-                                  <select
-                                    value={extra.unit}
-                                    onChange={(event) =>
-                                      updateExtraField(extra.id, 'unit', event.target.value)
-                                    }
-                                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                                  >
-                                    {unitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
-                                )}
-                              </label>
-                              <label className="text-sm">
-                                <span className="text-slate-600">Prezzo</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={extra.unit_price}
-                                  onChange={(event) =>
-                                    updateExtraField(extra.id, 'unit_price', event.target.value)
-                                  }
-                                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                                />
-                              </label>
-                              <div className="text-sm">
-                                <span className="text-slate-600">Totale riga</span>
-                                <p className="mt-2 text-base font-semibold text-slate-800">
-                                  {formatMoney(lineTotal)}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
-                            {!extra.is_fixed ? (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteExtra(extra)}
-                                disabled={deletingId === extra.id}
-                                className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 disabled:opacity-60"
-                              >
-                                Elimina
-                              </button>
-                            ) : null}
-                          </div>
-                          {rowErrors[extra.id] ? (
-                            <p className="mt-2 text-xs text-rose-600">{rowErrors[extra.id]}</p>
-                          ) : null}
-                          {isWarranty && Number(extra.unit_price) === 0 ? (
-                            <p className="mt-2 text-xs text-slate-500">
-                              Nota: prezzo 0 → Garanzia non compresa.
-                            </p>
-                          ) : null}
-                        </td>
-                      </tr>
-                      {!isWarranty ? (
-                        <tr className="border-t border-slate-200/60">
-                          <td className="px-3 py-3" colSpan={6}>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Note</p>
-                            <input
-                              value={extra.notes || ''}
-                              onChange={(event) =>
-                                updateExtraField(extra.id, 'notes', event.target.value)
-                              }
-                              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
-                            />
-                          </td>
-                        </tr>
-                      ) : null}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+                        Elimina
+                      </button>
+                    ) : null}
+                  </div>
+                  {rowErrors[extra.id] ? (
+                    <p className="mt-2 text-xs text-rose-600">{rowErrors[extra.id]}</p>
+                  ) : null}
+                  {isWarranty && Number(extra.unit_price) === 0 ? (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Nota: prezzo 0 → Garanzia non compresa.
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
 
           <form
@@ -766,7 +830,7 @@ export default function QuoteExtrasPage() {
       <TotalsPanel
         totals={totals}
         pricingForm={pricingForm}
-        onPricingChange={setPricingForm}
+        onPricingChange={handlePricingChange}
         onSubmit={handlePricingSubmit}
         saving={pricingSaving}
         error={pricingError}

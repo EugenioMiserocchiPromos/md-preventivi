@@ -755,19 +755,22 @@
             } elseif ($quote->discount_type === 'amount' && $quote->discount_value !== null) {
                 $discountDisplay = '€ ' . number_format((float) $quote->discount_value, 2, ',', '.');
             }
+            $hasDiscount = $discountDisplay !== null && (float) $quote->discount_value > 0;
           @endphp
-          <tr class="avoid-break extra-row">
-            <td colspan="7" style="width:70%; text-align:left;"><div class="cell-pad">Sconto</div></td>
-            <td class="text-right" style="width:12%;">
-              <div class="cell-pad">
-                {{ $discountDisplay ?? '€ 0,00' }}
-              </div>
-            </td>
-            <td class="note-cell" style="width:20%;"><div class="cell-pad"></div></td>
-          </tr>
-          <tr class="extra-spacer">
-            <td colspan="9"></td>
-          </tr>
+          @if ($hasDiscount)
+            <tr class="avoid-break extra-row">
+              <td colspan="7" style="width:70%; text-align:left;"><div class="cell-pad">Sconto</div></td>
+              <td class="text-right" style="width:12%;">
+                <div class="cell-pad">
+                  {{ $discountDisplay }}
+                </div>
+              </td>
+              <td class="note-cell" style="width:20%;"><div class="cell-pad"></div></td>
+            </tr>
+            <tr class="extra-spacer">
+              <td colspan="9"></td>
+            </tr>
+          @endif
           <tr class="avoid-break total-row">
             <td colspan="7" style="width:70%; text-align:left;"><div class="cell-pad">Totale</div></td>
             <td class="text-right" style="width:12%;"><div class="cell-pad">€ {{ number_format((float) ($quote->grand_total ?? 0), 2, ',', '.') }}</div></td>
@@ -811,9 +814,23 @@
           <tr class="extra-spacer">
             <td colspan="9"></td>
           </tr>
-          <tr class="avoid-break extra-row">
-            <td colspan="9" style="text-align:left;"><div class="cell-pad">Pagamenti: da Concordare</div></td>
+                    <tr class="avoid-break extra-row">
+            <td colspan="9" style="text-align:left;">
+              <div class="cell-pad">
+                Pagamenti: {{ $quote->payment_method ?: 'da Concordare' }}
+              </div>
+            </td>
           </tr>
+          @if (!empty($quote->payment_iban))
+            <tr class="extra-spacer">
+              <td colspan="9"></td>
+            </tr>
+            <tr class="avoid-break extra-row">
+              <td colspan="9" style="text-align:left;">
+                <div class="cell-pad">IBAN: {{ $quote->payment_iban }}</div>
+              </td>
+            </tr>
+          @endif
           <tr class="extra-spacer">
             <td colspan="9"></td>
           </tr>

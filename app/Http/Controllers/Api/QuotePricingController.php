@@ -19,6 +19,12 @@ class QuotePricingController extends Controller
 
         $quote->discount_type = $data['discount_type'] ?? null;
         $quote->discount_value = $data['discount_value'] ?? null;
+        if (array_key_exists('payment_method', $data)) {
+            $quote->payment_method = $data['payment_method'];
+        }
+        if (array_key_exists('payment_iban', $data)) {
+            $quote->payment_iban = $data['payment_iban'];
+        }
         $quote->vat_rate = 0;
 
         $quote->save();
