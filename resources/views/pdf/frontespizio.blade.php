@@ -209,7 +209,7 @@
       @php
         $quoteTypeLabel = match ($quote->quote_type) {
             'FP' => 'Fornitura e Posa in opera',
-            'AS' => 'Assistenza',
+            'AS' => 'Vendita+Formazione della Posa+Assistenza Tecnica',
             'VM' => 'Vendita Materiale',
             default => $quote->quote_type,
         };
