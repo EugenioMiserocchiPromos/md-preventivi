@@ -57,6 +57,15 @@
       }
       @page :first {
         margin: 0;
+        @bottom-right {
+          font-family: 'Open Sans', sans-serif;
+          content: "Pag. " counter(page);
+          font-size: 10px;
+          font-weight:500;
+          color: transparent;
+          padding-right: 12px;
+          margin-top:-30px!important;
+        }
       }
       html,
       body {

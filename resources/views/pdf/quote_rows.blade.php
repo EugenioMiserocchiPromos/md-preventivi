@@ -58,6 +58,17 @@
           content: element(pdf-footer);
           width: 100%;
         }
+        @bottom-right {
+          font-family: 'Open Sans', sans-serif!important;
+          content: "Pag. " counter(page);
+          font-size: 8px;
+          font-weight:500;
+          color: #000000;
+          margin-right:0px;
+          margin-bottom:-90px;
+          text-align:right;
+          min-width: 100px;
+        }
         @top-center {
           content: element(pdf-header);
           width: 100%;

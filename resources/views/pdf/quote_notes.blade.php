@@ -18,6 +18,15 @@
       }
       @page notes {
         margin: 0;
+        @bottom-right {
+          font-family: 'Open Sans', sans-serif;
+          content: "Pag. " counter(page);
+          font-size: 8px;
+          font-weight:500;
+          color: #ffffff;
+          padding-right: 40px;
+          margin-top:-30px!important;
+        }
       }
       html,
       body {
