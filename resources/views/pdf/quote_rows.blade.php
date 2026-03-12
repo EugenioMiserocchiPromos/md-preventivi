@@ -233,6 +233,12 @@
         border: none;
         background: #ffffff;
       }
+      .extra-spacer-finale td {
+        height: 5px;
+        padding: 0;
+        border: none;
+        background: #ffffff;
+      }
       .table-spacer-row td {
         height: 100px;
         padding: 0;
@@ -682,32 +688,9 @@
           $extrasTail->push($warrantyExtra);
         }
       @endphp
-      <table class="items spacer-table">
-        <colgroup>
-          <col style="width:8%;" />
-          <col style="width:28%;" />
-          <col style="width:6%;" />
-          <col style="width:10%;" />
-          <col style="width:3%;" />
-          <col style="width:10%;" />
-          <col style="width:3%;" />
-          <col style="width:12%;" />
-          <col style="width:20%;" />
-        </colgroup>
-        <tbody>
-          <tr class="table-spacer-row">
-            <td style="width:8%;"></td>
-            <td style="width:28%;"></td>
-            <td style="width:6%;"></td>
-            <td style="width:10%;"></td>
-            <td style="width:3%;"></td>
-            <td style="width:10%;"></td>
-            <td style="width:3%;"></td>
-            <td style="width:12%;"></td>
-            <td style="width:20%;"></td>
-          </tr>
-        </tbody>
-      </table>
+      <tr class="extra-spacer-finale">
+          <td colspan="9"></td>
+      </tr>
       <table class="items extras-table">
         <colgroup>
           <col style="width:8%;" />

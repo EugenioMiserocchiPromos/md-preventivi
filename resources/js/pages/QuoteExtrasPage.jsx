@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   createQuoteExtra,
@@ -43,6 +43,9 @@ export default function QuoteExtrasPage() {
   const [newExtra, setNewExtra] = useState(defaultNewExtra);
   const [createError, setCreateError] = useState(null);
   const [dirtyIds, setDirtyIds] = useState(new Set());
+  const autosaveTimers = useRef({});
+  const autosaveInflight = useRef(new Set());
+  const extrasRef = useRef([]);
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
@@ -105,6 +108,105 @@ export default function QuoteExtrasPage() {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    return () => {
+      Object.values(autosaveTimers.current).forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
+
+  useEffect(() => {
+    extrasRef.current = extras;
+  }, [extras]);
+
+  const autoSaveExtra = useCallback(async (id) => {
+    if (autosaveInflight.current.has(id)) return;
+    const extra = extrasRef.current.find((item) => item.id === id);
+    if (!extra) return;
+
+    const isWarranty = extra.fixed_key === 'warranty_10y';
+    let payloadExtra = { ...extra };
+    const snapshot = {
+      description: extra.description,
+      unit: extra.unit,
+      qty: Number(extra.qty),
+      unit_price: Number(extra.unit_price),
+      notes: extra.notes || '',
+      is_included: Boolean(extra.is_included),
+    };
+    if (isWarranty) {
+      const normalizedIncluded = Number(extra.unit_price) > 0;
+      if (extra.is_included !== normalizedIncluded) {
+        payloadExtra.is_included = normalizedIncluded;
+        setExtras((prev) =>
+          prev.map((item) =>
+            item.id === extra.id ? { ...item, is_included: normalizedIncluded } : item
+          )
+        );
+      }
+      if (isWarranty && payloadExtra.is_included && Number(payloadExtra.unit_price) <= 0) {
+        setRowErrors((prev) => ({
+          ...prev,
+          [id]: 'Inserisci un prezzo valido per la garanzia.',
+        }));
+        return;
+      }
+    }
+
+    autosaveInflight.current.add(id);
+    try {
+      const payload = {
+        unit: normalizeUnit(payloadExtra.unit),
+        qty: Number(payloadExtra.qty),
+        unit_price: Number(payloadExtra.unit_price),
+        notes: payloadExtra.notes || '',
+        is_included: Boolean(payloadExtra.is_included),
+      };
+      if (!payloadExtra.is_fixed) {
+        payload.description = payloadExtra.description;
+      }
+      const response = await updateQuoteExtra(payloadExtra.id, payload);
+      const data = response.data ?? response;
+      if (data.extra) {
+        setExtras((prev) =>
+          prev.map((item) => {
+            if (item.id !== extra.id) return item;
+            const currentSnapshot = {
+              description: item.description,
+              unit: item.unit,
+              qty: Number(item.qty),
+              unit_price: Number(item.unit_price),
+              notes: item.notes || '',
+              is_included: Boolean(item.is_included),
+            };
+            const matches =
+              JSON.stringify(currentSnapshot) === JSON.stringify(snapshot);
+            return matches ? data.extra : item;
+          })
+        );
+      }
+      if (data.totals) {
+        setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+      }
+      setRowErrors((prev) => ({ ...prev, [id]: null }));
+    } catch (err) {
+      setRowErrors((prev) => ({
+        ...prev,
+        [id]: err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.',
+      }));
+    } finally {
+      autosaveInflight.current.delete(id);
+    }
+  }, []);
+
+  const scheduleAutoSave = (id) => {
+    if (autosaveTimers.current[id]) {
+      clearTimeout(autosaveTimers.current[id]);
+    }
+    autosaveTimers.current[id] = setTimeout(() => {
+      autoSaveExtra(id);
+    }, 500);
+  };
+
   const updateExtraField = (id, field, value) => {
     setExtras((prev) =>
       prev.map((extra) => {
@@ -131,6 +233,7 @@ export default function QuoteExtrasPage() {
       next.add(id);
       return next;
     });
+    scheduleAutoSave(id);
   };
 
   const toggleWarrantyIncluded = (extra) => {
