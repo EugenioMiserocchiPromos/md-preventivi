@@ -31,6 +31,13 @@ const defaultNewExtra = {
   notes: '',
 };
 
+const getWarrantyValidationError = (extra) => {
+  if (extra?.fixed_key !== 'warranty_10y') return null;
+  return Boolean(extra.is_included) && Number(extra.unit_price) <= 0
+    ? 'Per includere la garanzia decennale devi inserire un prezzo maggiore di 0 oppure attivare "Non compresa".'
+    : null;
+};
+
 export default function QuoteExtrasPage() {
   const { quoteId } = useParams();
   const navigate = useNavigate();
@@ -130,7 +137,7 @@ export default function QuoteExtrasPage() {
     if (!extra) return;
 
     const isWarranty = extra.fixed_key === 'warranty_10y';
-    let payloadExtra = { ...extra };
+    const payloadExtra = { ...extra };
     const snapshot = {
       description: extra.description,
       unit: extra.unit,
@@ -140,19 +147,11 @@ export default function QuoteExtrasPage() {
       is_included: Boolean(extra.is_included),
     };
     if (isWarranty) {
-      const normalizedIncluded = Number(extra.unit_price) > 0;
-      if (extra.is_included !== normalizedIncluded) {
-        payloadExtra.is_included = normalizedIncluded;
-        setExtras((prev) =>
-          prev.map((item) =>
-            item.id === extra.id ? { ...item, is_included: normalizedIncluded } : item
-          )
-        );
-      }
-      if (isWarranty && payloadExtra.is_included && Number(payloadExtra.unit_price) <= 0) {
+      const validationError = getWarrantyValidationError(payloadExtra);
+      if (validationError) {
         setRowErrors((prev) => ({
           ...prev,
-          [id]: 'Inserisci un prezzo valido per la garanzia.',
+          [id]: validationError,
         }));
         return;
       }
@@ -204,33 +203,33 @@ export default function QuoteExtrasPage() {
     }
   }, []);
 
-  const scheduleAutoSave = (id) => {
+  const clearAutoSave = (id) => {
     if (autosaveTimers.current[id]) {
       clearTimeout(autosaveTimers.current[id]);
     }
+  };
+
+  const scheduleAutoSave = (id) => {
+    clearAutoSave(id);
     autosaveTimers.current[id] = setTimeout(() => {
       autoSaveExtra(id);
     }, 500);
   };
 
-  const updateExtraField = (id, field, value) => {
+  const updateExtraField = (id, field, value, options = {}) => {
+    const { schedule = true } = options;
+    let nextWarrantyError = null;
     setExtras((prev) =>
       prev.map((extra) => {
         if (extra.id !== id) return extra;
         const next = { ...extra, [field]: value };
-        if (extra.fixed_key === 'warranty_10y' && field === 'unit_price') {
-          const numeric = Number(value);
-          next.is_included = numeric > 0;
-          if (numeric <= 0) {
-            next.qty = 1;
-          }
-        }
         if (extra.fixed_key === 'warranty_10y' && field === 'is_included') {
           if (!value) {
             next.unit_price = 0;
             next.qty = 1;
           }
         }
+        nextWarrantyError = getWarrantyValidationError(next);
         return next;
       })
     );
@@ -239,12 +238,17 @@ export default function QuoteExtrasPage() {
       next.add(id);
       return next;
     });
-    scheduleAutoSave(id);
+    setRowErrors((prev) => ({ ...prev, [id]: nextWarrantyError }));
+    if (schedule) {
+      scheduleAutoSave(id);
+    } else {
+      clearAutoSave(id);
+    }
   };
 
   const toggleWarrantyIncluded = (extra) => {
     const nextIncluded = !extra.is_included;
-    updateExtraField(extra.id, 'is_included', nextIncluded);
+    updateExtraField(extra.id, 'is_included', nextIncluded, { schedule: !nextIncluded });
     if (!nextIncluded) {
       updateExtraField(extra.id, 'unit_price', 0);
       updateExtraField(extra.id, 'qty', 1);
@@ -307,14 +311,11 @@ export default function QuoteExtrasPage() {
       if (!extra) continue;
       const isWarranty = extra.fixed_key === 'warranty_10y';
       if (isWarranty) {
-        const normalizedIncluded = Number(extra.unit_price) > 0;
-        if (extra.is_included !== normalizedIncluded) {
-          updateExtraField(extra.id, 'is_included', normalizedIncluded);
+        const validationError = getWarrantyValidationError(extra);
+        if (validationError) {
+          nextErrors[id] = validationError;
+          continue;
         }
-      }
-      if (isWarranty && extra.is_included && Number(extra.unit_price) <= 0) {
-        nextErrors[id] = 'Inserisci un prezzo valido per la garanzia.';
-        continue;
       }
       if (isWarranty && !extra.is_included && Number(extra.unit_price) !== 0) {
         updateExtraField(extra.id, 'unit_price', 0);
@@ -431,6 +432,16 @@ export default function QuoteExtrasPage() {
 
     try {
       for (const extra of extras) {
+        const isWarranty = extra.fixed_key === 'warranty_10y';
+        if (isWarranty) {
+          const validationError = getWarrantyValidationError(extra);
+          if (validationError) {
+            setRowErrors((prev) => ({ ...prev, [extra.id]: validationError }));
+            throw new Error(
+              'Non puoi salvare e chiudere: la garanzia decennale e\' inclusa ma il prezzo e\' ancora 0.'
+            );
+          }
+        }
         const payload = {
           unit: normalizeUnit(extra.unit),
           qty: Number(extra.qty),
@@ -577,13 +588,18 @@ export default function QuoteExtrasPage() {
             {extras.map((extra) => {
               const isWarranty = extra.fixed_key === 'warranty_10y';
               const warrantyExcluded = isWarranty && !extra.is_included;
+              const warrantyValidationError = getWarrantyValidationError(extra);
               const qtyValue = Number(extra.qty || 0);
               const priceValue = Number(extra.unit_price || 0);
               const lineTotal = qtyValue * priceValue;
               return (
                 <div
                   key={extra.id}
-                  className={`rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm ${
+                  className={`rounded-3xl border bg-white p-5 shadow-sm ${
+                    warrantyValidationError
+                      ? 'border-rose-300 bg-rose-50/70 ring-1 ring-rose-200'
+                      : 'border-slate-200/70'
+                  } ${
                     warrantyExcluded ? 'bg-slate-50/70' : ''
                   }`}
                 >
@@ -622,7 +638,11 @@ export default function QuoteExtrasPage() {
                               updateExtraField(extra.id, 'unit_price', event.target.value)
                             }
                             disabled={warrantyExcluded}
-                            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
+                            className={`mt-1 w-full rounded-xl border px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400 ${
+                              warrantyValidationError
+                                ? 'border-rose-400 bg-rose-50 text-rose-900'
+                                : 'border-slate-200'
+                            }`}
                           />
                         </label>
                         <div className="text-sm">
@@ -717,7 +737,12 @@ export default function QuoteExtrasPage() {
                       </button>
                     ) : null}
                   </div>
-                  {rowErrors[extra.id] ? (
+                  {warrantyValidationError ? (
+                    <div className="mt-3 rounded-xl border border-rose-200 bg-rose-100 px-3 py-2">
+                      <p className="text-sm font-medium text-rose-800">{warrantyValidationError}</p>
+                    </div>
+                  ) : null}
+                  {rowErrors[extra.id] && !warrantyValidationError ? (
                     <p className="mt-2 text-xs text-rose-600">{rowErrors[extra.id]}</p>
                   ) : null}
                   {isWarranty && Number(extra.unit_price) === 0 ? (
@@ -816,7 +841,11 @@ export default function QuoteExtrasPage() {
           </form>
         </div>
       ) : null}
-      {closeError ? <p className="text-sm text-rose-600">{closeError}</p> : null}
+      {closeError ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
+          <p className="text-sm font-medium text-rose-700">{closeError}</p>
+        </div>
+      ) : null}
 
       <QuoteInfoModal
         open={infoModalOpen}
