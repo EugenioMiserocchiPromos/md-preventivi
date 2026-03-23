@@ -83,7 +83,7 @@
         margin: 0 0 50px 0;
         line-height: 24px;
         color: #95817b;
-        font-weight: 600;
+        font-weight: 300!important;
       }
       .frontespizio-subtitle {
         line-height: 24px;

@@ -263,7 +263,7 @@
         padding-top: 6px;
         padding-bottom: 6px;
         font-family: 'Jost', 'Open Sans', sans-serif;
-        font-weight: 700;
+        font-weight: 300;
         font-size: 21px;
         line-height:23px;
         color: #95817b;
