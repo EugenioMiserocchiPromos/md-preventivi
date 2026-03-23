@@ -48,7 +48,22 @@ class ProductsController extends Controller
 
         if ($search !== '') {
             $like = '%'.$search.'%';
-            $categoriesQuery->where('category_name', 'like', $like);
+            $categoriesQuery->where(function ($query) use ($like) {
+                $query
+                    ->where('category_name', 'like', $like)
+                    ->orWhereExists(function ($subQuery) use ($like) {
+                        $subQuery
+                            ->select(DB::raw(1))
+                            ->from('products as p2')
+                            ->whereColumn('p2.category_name', 'products.category_name')
+                            ->where('p2.is_active', true)
+                            ->where(function ($productQuery) use ($like) {
+                                $productQuery
+                                    ->where('p2.code', 'like', $like)
+                                    ->orWhere('p2.name', 'like', $like);
+                            });
+                    });
+            });
         }
 
         $categories = $categoriesQuery
