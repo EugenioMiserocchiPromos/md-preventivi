@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { deleteQuote, duplicateQuote, fetchQuotes } from '../api/client';
 import QuoteList from '../components/QuoteList';
 
+const QUOTE_TYPE_OPTIONS = [
+  { value: 'FP', label: 'FP' },
+  { value: 'AS', label: 'AS' },
+  { value: 'VM', label: 'VM' },
+];
+
 export default function QuotesListPage({ type, label }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -14,6 +20,8 @@ export default function QuotesListPage({ type, label }) {
   const [deletingId, setDeletingId] = useState(null);
   const [duplicatingId, setDuplicatingId] = useState(null);
   const [confirmRow, setConfirmRow] = useState(null);
+  const [duplicateRow, setDuplicateRow] = useState(null);
+  const [duplicateType, setDuplicateType] = useState(type);
   const isFirstSearch = useRef(true);
 
   const load = useCallback(
@@ -84,10 +92,17 @@ export default function QuotesListPage({ type, label }) {
 
   const handleDuplicate = async (row) => {
     if (!row?.id) return;
+    setDuplicateRow(row);
+    setDuplicateType(row.quote_type || type);
+  };
+
+  const handleConfirmDuplicate = async () => {
+    if (!duplicateRow?.id) return;
+    const row = duplicateRow;
     setDuplicatingId(row.id);
     setError(null);
     try {
-      const response = await duplicateQuote(row.id);
+      const response = await duplicateQuote(row.id, { quote_type: duplicateType });
       const data = response.data ?? response;
       if (data?.id) {
         navigate(`/builder/${data.id}`);
@@ -98,7 +113,23 @@ export default function QuotesListPage({ type, label }) {
       setError(err?.message || 'Errore durante duplicazione preventivo.');
     } finally {
       setDuplicatingId(null);
+      setDuplicateRow(null);
     }
+  };
+
+  const handleCancelDuplicate = () => {
+    if (duplicatingId) return;
+    setDuplicateRow(null);
+    setDuplicateType(type);
+  };
+
+  const handleDuplicateTypeChange = (event) => {
+    setDuplicateType(event.target.value);
+  };
+
+  const handleDuplicateModalSubmit = async (event) => {
+    event.preventDefault();
+    await handleConfirmDuplicate();
   };
 
   return (
@@ -163,6 +194,54 @@ export default function QuotesListPage({ type, label }) {
               </button>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {duplicateRow ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+          <form
+            onSubmit={handleDuplicateModalSubmit}
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <h3 className="text-lg font-semibold text-slate-900">Duplica preventivo</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Seleziona la categoria del nuovo preventivo da generare a partire da{' '}
+              <span className="font-semibold text-slate-800">
+                {duplicateRow.prot_display || duplicateRow.id}
+              </span>
+              .
+            </p>
+            <label className="mt-5 block text-sm">
+              <span className="text-slate-600">Categoria nuovo preventivo</span>
+              <select
+                value={duplicateType}
+                onChange={handleDuplicateTypeChange}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              >
+                {QUOTE_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleCancelDuplicate}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
+              >
+                Annulla
+              </button>
+              <button
+                type="submit"
+                disabled={duplicatingId === duplicateRow.id}
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {duplicatingId === duplicateRow.id ? 'Duplicazione...' : 'Duplica'}
+              </button>
+            </div>
+          </form>
         </div>
       ) : null}
 

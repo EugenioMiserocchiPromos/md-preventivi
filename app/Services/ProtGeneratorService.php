@@ -20,11 +20,11 @@ class ProtGeneratorService
                 ->lockForUpdate()
                 ->first();
 
-            if (! $counter) {
-                $maxExisting = (int) (DB::table('quotes')
-                    ->where('prot_year', $year)
-                    ->max('prot_number') ?? 0);
+            $maxExisting = (int) (DB::table('quotes')
+                ->where('prot_year', $year)
+                ->max('prot_number') ?? 0);
 
+            if (! $counter) {
                 DB::table('quote_counters')->insert([
                     'year' => $year,
                     'current_number' => $maxExisting,
@@ -33,17 +33,11 @@ class ProtGeneratorService
                 ]);
 
                 $counter = (object) ['current_number' => $maxExisting];
-            } else {
-                $maxExisting = (int) (DB::table('quotes')
-                    ->where('prot_year', $year)
-                    ->max('prot_number') ?? 0);
-
-                if ((int) $counter->current_number < $maxExisting) {
-                    $counter->current_number = $maxExisting;
-                }
             }
 
-            $nextNumber = (int) $counter->current_number + 1;
+            // The next PROT must follow the last valid quote still present,
+            // even if higher numbers were deleted previously.
+            $nextNumber = $maxExisting + 1;
 
             DB::table('quote_counters')
                 ->where('year', $year)

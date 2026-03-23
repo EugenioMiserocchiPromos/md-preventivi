@@ -202,6 +202,10 @@ class QuotesController extends Controller
         QuoteTotalsService $totalsService,
         Request $request
     ) {
+        $validated = $request->validate([
+            'quote_type' => ['nullable', 'in:FP,AS,VM'],
+        ]);
+
         $quote->load([
             'items' => function ($query) {
                 $query->orderBy('sort_index')->orderBy('id');
@@ -215,12 +219,13 @@ class QuotesController extends Controller
         ]);
 
         $user = $request->user();
+        $targetQuoteType = $validated['quote_type'] ?? $quote->quote_type;
 
-        $newQuote = DB::transaction(function () use ($quote, $protGenerator, $user) {
-            $prot = $protGenerator->allocateForUser($user, $quote->quote_type);
+        $newQuote = DB::transaction(function () use ($quote, $protGenerator, $user, $targetQuoteType) {
+            $prot = $protGenerator->allocateForUser($user, $targetQuoteType);
 
             $newQuote = Quote::create([
-                'quote_type' => $quote->quote_type,
+                'quote_type' => $targetQuoteType,
                 'customer_id' => $quote->customer_id,
                 'customer_title_snapshot' => $quote->customer_title_snapshot,
                 'customer_body_snapshot' => $quote->customer_body_snapshot,
