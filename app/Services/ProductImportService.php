@@ -163,12 +163,14 @@ class ProductImportService
 
             $existing = DB::table('products')->where('code', $code)->first();
             if ($existing) {
-                if (! $existing->name_html) {
-                    $payload['name_html'] = $normalized['name'];
-                } else {
-                    unset($payload['name_html']);
+                $updatePayload = $this->buildUpdatePayload($existing, $payload);
+
+                if ($updatePayload === []) {
+                    $result['skipped']++;
+                    continue;
                 }
-                DB::table('products')->where('code', $code)->update($payload);
+
+                DB::table('products')->where('code', $code)->update($updatePayload);
                 $result['updated']++;
             } else {
                 $payload['created_at'] = now();
@@ -296,5 +298,48 @@ class ProductImportService
         }
 
         return $code;
+    }
+
+    private function buildUpdatePayload(object $existing, array $payload): array
+    {
+        $updatePayload = [];
+
+        foreach (['category_name', 'unit_default', 'price_default', 'note_default', 'is_active'] as $field) {
+            if ($this->valuesDiffer($existing->{$field} ?? null, $payload[$field] ?? null)) {
+                $updatePayload[$field] = $payload[$field] ?? null;
+            }
+        }
+
+        $incomingName = $this->normalizeComparableText((string) ($payload['name'] ?? ''));
+        $existingName = $this->normalizeComparableText((string) ($existing->name ?? ''));
+        $existingNameHtml = $this->normalizeComparableText((string) ($existing->name_html ?? ''));
+
+        if ($incomingName !== $existingName || $incomingName !== $existingNameHtml) {
+            $updatePayload['name'] = $payload['name'];
+            $updatePayload['name_html'] = $payload['name'];
+        }
+
+        if ($updatePayload !== []) {
+            $updatePayload['updated_at'] = $payload['updated_at'];
+        }
+
+        return $updatePayload;
+    }
+
+    private function normalizeComparableText(string $value): string
+    {
+        $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $value = preg_replace('/\s+/u', ' ', $value);
+
+        return trim((string) $value);
+    }
+
+    private function valuesDiffer(mixed $current, mixed $incoming): bool
+    {
+        if (is_numeric($current) && is_numeric($incoming)) {
+            return (float) $current !== (float) $incoming;
+        }
+
+        return $current !== $incoming;
     }
 }

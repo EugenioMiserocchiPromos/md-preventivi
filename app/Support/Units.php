@@ -13,6 +13,7 @@ class Units
         'a corpo',
         'cad.',
         'kg.',
+        'ora',
     ];
 
     public static function normalize(?string $value): string

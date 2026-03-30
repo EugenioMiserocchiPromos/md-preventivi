@@ -44,9 +44,12 @@ class QuoteItemService
 
             if ($components->isNotEmpty()) {
                 $now = now();
-                $payload = $components->map(function ($component) use ($item, $now) {
+                $payload = $components->map(function ($component) use ($item, $now, $quote) {
                     $componentQty = $component->qty_default === null ? 0.0 : (float) $component->qty_default;
                     $componentPrice = $component->price_default === null ? 0.0 : (float) $component->price_default;
+                    $isVisible = $quote->quote_type === 'AS'
+                        ? false
+                        : (bool) $component->default_visible;
 
                     return [
                         'quote_item_id' => $item->id,
@@ -55,7 +58,7 @@ class QuoteItemService
                         'qty' => $componentQty,
                         'unit_price_override' => $componentPrice,
                         'component_total' => round($componentQty * $componentPrice, 2),
-                        'is_visible' => (bool) $component->default_visible,
+                        'is_visible' => $isVisible,
                         'sort_index' => $component->sort_index,
                         'created_at' => $now,
                         'updated_at' => $now,
