@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Quote;
+use App\Support\Units;
 use Illuminate\Support\Facades\DB;
 
 class QuoteExtrasService
@@ -29,7 +30,7 @@ class QuoteExtrasService
                 ->where('fixed_key', $key)
                 ->update([
                     'description' => $description,
-                    'unit' => $key === 'extra_3' ? 'nº' : DB::raw('unit'),
+                    'unit' => $key === 'extra_3' ? Units::normalize('nº') : DB::raw('unit'),
                     'updated_at' => now(),
                 ]);
         }
@@ -50,7 +51,7 @@ class QuoteExtrasService
                 'quote_id' => $quote->id,
                 'description' => $description,
                 'amount' => 0,
-                'unit' => $key === 'extra_3' ? 'nº' : 'ml',
+                'unit' => $key === 'extra_3' ? Units::normalize('nº') : 'ml',
                 'qty' => 1,
                 'unit_price' => 0,
                 'line_total' => 0,

@@ -14,6 +14,8 @@ import TotalsPanel from '../components/TotalsPanel';
 import QuoteInfoModal from '../components/QuoteInfoModal';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
+import { defaultPaymentMethod, ibanPaymentMethod, paymentMethodOptions } from '../lib/quotePricing';
+import { getQuoteListPath } from '../lib/quoteTypes';
 import { fallbackUnitOptions, normalizeUnitValue } from '../lib/units';
 
 const defaultNewExtra = {
@@ -49,7 +51,7 @@ export default function QuoteExtrasPage() {
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
-    payment_method: 'da Concordare',
+    payment_method: defaultPaymentMethod,
     payment_iban: '',
   });
   const [pricingSaving, setPricingSaving] = useState(false);
@@ -89,7 +91,7 @@ export default function QuoteExtrasPage() {
             : quoteData.discount_value !== null && quoteData.discount_value !== undefined
               ? String(quoteData.discount_value)
               : '',
-        payment_method: quoteData.payment_method || 'da Concordare',
+        payment_method: quoteData.payment_method || defaultPaymentMethod,
         payment_iban: quoteData.payment_iban || '',
       });
       setExtras(
@@ -378,9 +380,9 @@ export default function QuoteExtrasPage() {
       discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
       discount_value:
         pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
-      payment_method: pricingForm.payment_method || 'da Concordare',
+      payment_method: pricingForm.payment_method || defaultPaymentMethod,
       payment_iban:
-        pricingForm.payment_method === 'Ri.Ba.' ? pricingForm.payment_iban || '' : '',
+        pricingForm.payment_method === ibanPaymentMethod ? pricingForm.payment_iban || '' : '',
     };
 
     try {
@@ -402,7 +404,7 @@ export default function QuoteExtrasPage() {
             : data.discount_value !== null && data.discount_value !== undefined
               ? String(data.discount_value)
               : '',
-        payment_method: data.payment_method || 'da Concordare',
+        payment_method: data.payment_method || defaultPaymentMethod,
         payment_iban: data.payment_iban || '',
       });
     } catch (err) {
@@ -419,19 +421,11 @@ export default function QuoteExtrasPage() {
       if (next.discount_type === 'none') {
         next.discount_value = '0';
       }
-      if (next.payment_method !== 'Ri.Ba.') {
+      if (next.payment_method !== ibanPaymentMethod) {
         next.payment_iban = '';
       }
       return { ...next };
     });
-  };
-
-  const getListPath = (type) => {
-    const key = String(type || '').toLowerCase();
-    if (key === 'fp') return '/preventivi/fp';
-    if (key === 'as') return '/preventivi/as';
-    if (key === 'vm') return '/preventivi/vm';
-    return '/preventivi/fp';
   };
 
   const handleSaveAndClose = async () => {
@@ -487,7 +481,7 @@ export default function QuoteExtrasPage() {
       const revisionData = revisionResponse.data ?? revisionResponse;
       setQuote((prev) => (prev ? { ...prev, ...revisionData } : prev));
 
-      navigate(getListPath(quote.quote_type));
+      navigate(getQuoteListPath(quote.quote_type));
     } catch (err) {
       const message =
         err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
@@ -546,7 +540,7 @@ export default function QuoteExtrasPage() {
               <label className="text-sm">
                 <span className="text-slate-600">Metodo</span>
                 <select
-                  value={pricingForm.payment_method || 'da Concordare'}
+                  value={pricingForm.payment_method || defaultPaymentMethod}
                   onChange={(event) =>
                     handlePricingChange((prev) => ({
                       ...prev,
@@ -555,14 +549,14 @@ export default function QuoteExtrasPage() {
                   }
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                 >
-                  <option value="da Concordare">da Concordare</option>
-                  <option value="Vista fattura">Vista fattura</option>
-                  <option value="30/60/90 gg D.F.">30/60/90 gg D.F.</option>
-                  <option value="Bonifico bancario">Bonifico bancario</option>
-                  <option value="Ri.Ba.">Ri.Ba.</option>
+                  {paymentMethodOptions.map((method) => (
+                    <option key={method} value={method}>
+                      {method}
+                    </option>
+                  ))}
                 </select>
               </label>
-              {pricingForm.payment_method === 'Ri.Ba.' ? (
+              {pricingForm.payment_method === ibanPaymentMethod ? (
                 <label className="text-sm">
                   <span className="text-slate-600">IBAN</span>
                   <input

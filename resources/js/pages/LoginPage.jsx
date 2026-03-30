@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { defaultQuoteListPath } from '../lib/quoteTypes';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -9,14 +10,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
 
   if (user) {
-    navigate('/preventivi/fp', { replace: true });
+    navigate(defaultQuoteListPath, { replace: true });
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const result = await login({ email, password });
     if (result.ok) {
-      navigate('/preventivi/fp', { replace: true });
+      navigate(defaultQuoteListPath, { replace: true });
     }
   };
 

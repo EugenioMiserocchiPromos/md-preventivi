@@ -768,14 +768,6 @@ export default function QuoteBuilderPage() {
     }
   };
 
-  const getListPath = (type) => {
-    const key = String(type || '').toLowerCase();
-    if (key === 'fp') return '/preventivi/fp';
-    if (key === 'as') return '/preventivi/as';
-    if (key === 'vm') return '/preventivi/vm';
-    return '/preventivi/fp';
-  };
-
   return (
     <section className="space-y-6">
       <div className="mb-6 flex items-start justify-between gap-4">

@@ -1,5 +1,11 @@
 import React from 'react';
 import { formatMoney } from '../lib/formatters';
+import {
+  discountTypeOptions,
+  defaultPaymentMethod,
+  ibanPaymentMethod,
+  paymentMethodOptions,
+} from '../lib/quotePricing';
 
 export default function TotalsPanel({
   totals,
@@ -13,7 +19,7 @@ export default function TotalsPanel({
   showPaymentForm = false,
 }) {
   const discountDisabled = pricingForm?.discount_type === 'none';
-  const showIban = pricingForm?.payment_method === 'Ri.Ba.';
+  const showIban = pricingForm?.payment_method === ibanPaymentMethod;
 
   return (
     <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
@@ -58,9 +64,11 @@ export default function TotalsPanel({
                 }
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               >
-                <option value="none">Nessuno</option>
-                <option value="percent">Percentuale</option>
-                <option value="amount">Importo</option>
+                {discountTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </label>
             <div className="text-sm">
@@ -90,7 +98,7 @@ export default function TotalsPanel({
                 <label className="text-sm">
                   <span className="text-slate-600">Pagamenti</span>
                   <select
-                    value={pricingForm.payment_method || 'da Concordare'}
+                    value={pricingForm.payment_method || defaultPaymentMethod}
                     onChange={(event) =>
                       onPricingChange((prev) => ({
                         ...prev,
@@ -99,11 +107,11 @@ export default function TotalsPanel({
                     }
                     className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                   >
-                    <option value="da Concordare">da Concordare</option>
-                    <option value="Vista fattura">Vista fattura</option>
-                    <option value="30/60/90 gg D.F.">30/60/90 gg D.F.</option>
-                    <option value="Bonifico bancario">Bonifico bancario</option>
-                    <option value="Ri.Ba.">Ri.Ba.</option>
+                    {paymentMethodOptions.map((method) => (
+                      <option key={method} value={method}>
+                        {method}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 {showIban ? (

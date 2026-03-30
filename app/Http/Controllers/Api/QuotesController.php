@@ -12,6 +12,7 @@ use App\Models\Quote;
 use App\Models\QuoteExtra;
 use App\Models\QuoteItem;
 use App\Models\QuoteItemComponent;
+use App\Support\QuoteTypes;
 use App\Services\QuotePdfService;
 use App\Services\ProtFormatter;
 use App\Services\ProtGeneratorService;
@@ -25,7 +26,7 @@ class QuotesController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'type' => ['required', 'in:FP,AS,VM'],
+            'type' => ['required', 'in:'.implode(',', QuoteTypes::values())],
             'q' => ['nullable', 'string'],
             'per_page' => ['nullable', 'integer', 'min:1'],
         ]);
@@ -203,7 +204,7 @@ class QuotesController extends Controller
         Request $request
     ) {
         $validated = $request->validate([
-            'quote_type' => ['nullable', 'in:FP,AS,VM'],
+            'quote_type' => ['nullable', 'in:'.implode(',', QuoteTypes::values())],
         ]);
 
         $quote->load([

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Quote;
 use App\Models\QuoteItem;
+use App\Support\QuoteTypes;
 use Illuminate\Support\Facades\DB;
 
 class QuoteItemService
@@ -47,7 +48,7 @@ class QuoteItemService
                 $payload = $components->map(function ($component) use ($item, $now, $quote) {
                     $componentQty = $component->qty_default === null ? 0.0 : (float) $component->qty_default;
                     $componentPrice = $component->price_default === null ? 0.0 : (float) $component->price_default;
-                    $isVisible = $quote->quote_type === 'AS'
+                    $isVisible = $quote->quote_type === QuoteTypes::AS
                         ? false
                         : (bool) $component->default_visible;
 

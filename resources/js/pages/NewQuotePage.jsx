@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createCustomer, createQuote, fetchCustomers } from '../api/client';
+import { defaultQuoteListPath, defaultQuoteType, quoteTypeOptions } from '../lib/quoteTypes';
 
 const DEFAULT_TITLE_TEXT = 'Impermeabilizzazione con Sistema Penetron';
 
@@ -20,7 +21,7 @@ export default function NewQuotePage() {
   const [customerSaving, setCustomerSaving] = useState(false);
 
   const [formValues, setFormValues] = useState({
-    quote_type: 'FP',
+    quote_type: defaultQuoteType,
     customer_id: '',
     date: new Date().toISOString().slice(0, 10),
     cantiere: '',
@@ -199,9 +200,11 @@ export default function NewQuotePage() {
               onChange={(event) => handleChange('quote_type', event.target.value)}
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             >
-              <option value="FP">Fornitura e Posa in opera (FP)</option>
-              <option value="AS">Assistenza (AS)</option>
-              <option value="VM">Vendita Materiale (VM)</option>
+              {quoteTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label} ({option.shortLabel})
+                </option>
+              ))}
             </select>
             {formErrors.quote_type ? (
               <p className="mt-1 text-xs text-amber-700">
@@ -324,7 +327,7 @@ export default function NewQuotePage() {
         <div className="flex justify-end gap-2">
           <button
             type="button"
-            onClick={() => navigate('/preventivi/fp')}
+            onClick={() => navigate(defaultQuoteListPath)}
             className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600"
           >
             Annulla

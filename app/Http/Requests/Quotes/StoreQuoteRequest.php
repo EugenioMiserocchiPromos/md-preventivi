@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Quotes;
 
+use App\Support\QuoteTypes;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,7 @@ class StoreQuoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quote_type' => ['required', Rule::in(['FP', 'AS', 'VM'])],
+            'quote_type' => ['required', Rule::in(QuoteTypes::values())],
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'date' => ['required', 'date'],
             'cantiere' => ['required', 'string', 'max:255'],

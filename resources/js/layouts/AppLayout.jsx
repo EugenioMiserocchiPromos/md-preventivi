@@ -1,11 +1,13 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { quoteTypeOptions } from '../lib/quoteTypes';
 
 const navItems = [
-  { to: '/preventivi/fp', label: 'Fornitura e Posa in opera (FP)' },
-  { to: '/preventivi/as', label: 'Assistenza (AS)' },
-  { to: '/preventivi/vm', label: 'Vendita Materiale (VM)' },
+  ...quoteTypeOptions.map((option) => ({
+    to: option.listPath,
+    label: `${option.label} (${option.shortLabel})`,
+  })),
   { to: '/clienti', label: 'Clienti' },
   { to: '/prodotti', label: 'Prodotti' },
   { to: '/admin/import', label: 'Import CSV' },

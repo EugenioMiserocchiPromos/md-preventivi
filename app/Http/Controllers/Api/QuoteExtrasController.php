@@ -10,7 +10,6 @@ use App\Models\Quote;
 use App\Models\QuoteExtra;
 use App\Services\QuoteExtrasService;
 use App\Services\QuoteTotalsService;
-use App\Support\Units;
 
 class QuoteExtrasController extends Controller
 {
@@ -60,9 +59,6 @@ class QuoteExtrasController extends Controller
         QuoteTotalsService $totalsService
     ) {
         $data = $request->validated();
-        if (array_key_exists('unit', $data)) {
-            $data['unit'] = Units::normalize($data['unit']);
-        }
         if (array_key_exists('is_included', $data)) {
             $data['is_included'] = (bool) $data['is_included'];
         }

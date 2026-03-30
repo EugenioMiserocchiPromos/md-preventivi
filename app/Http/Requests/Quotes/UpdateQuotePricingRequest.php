@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Quotes;
 
+use App\Support\QuotePricingOptions;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,15 +16,9 @@ class UpdateQuotePricingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'discount_type' => ['nullable', Rule::in(['percent', 'amount'])],
+            'discount_type' => ['nullable', Rule::in(QuotePricingOptions::DISCOUNT_TYPES)],
             'discount_value' => ['nullable', 'numeric', 'min:0'],
-            'payment_method' => ['nullable', Rule::in([
-                'da Concordare',
-                'Vista fattura',
-                '30/60/90 gg D.F.',
-                'Bonifico bancario',
-                'Ri.Ba.',
-            ])],
+            'payment_method' => ['nullable', Rule::in(QuotePricingOptions::PAYMENT_METHODS)],
             'payment_iban' => ['nullable', 'string', 'max:64'],
         ];
     }

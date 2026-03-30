@@ -2,12 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { deleteQuote, duplicateQuote, fetchQuotes } from '../api/client';
 import QuoteList from '../components/QuoteList';
-
-const QUOTE_TYPE_OPTIONS = [
-  { value: 'FP', label: 'FP' },
-  { value: 'AS', label: 'AS' },
-  { value: 'VM', label: 'VM' },
-];
+import { quoteTypeOptions } from '../lib/quoteTypes';
 
 export default function QuotesListPage({ type, label }) {
   const navigate = useNavigate();
@@ -218,11 +213,11 @@ export default function QuotesListPage({ type, label }) {
                 onChange={handleDuplicateTypeChange}
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               >
-                {QUOTE_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+              {quoteTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.shortLabel}
+                </option>
+              ))}
               </select>
             </label>
             <div className="mt-6 flex items-center justify-end gap-2">

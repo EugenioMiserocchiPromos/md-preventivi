@@ -11,6 +11,7 @@ import QuoteBuilderPage from './pages/QuoteBuilderPage';
 import QuoteExtrasPage from './pages/QuoteExtrasPage';
 import NewQuotePage from './pages/NewQuotePage';
 import LoginPage from './pages/LoginPage';
+import { defaultQuoteListPath, quoteTypeOptions } from './lib/quoteTypes';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -35,7 +36,7 @@ function LoginRoute() {
   }
 
   if (user) {
-    return <Navigate to="/preventivi/fp" replace />;
+    return <Navigate to={defaultQuoteListPath} replace />;
   }
 
   return <LoginPage />;
@@ -50,41 +51,24 @@ function App() {
         element={
           <RequireAuth>
             <AppLayout>
-              <Navigate to="/preventivi/fp" replace />
+              <Navigate to={defaultQuoteListPath} replace />
             </AppLayout>
           </RequireAuth>
         }
       />
-      <Route
-        path="/preventivi/fp"
-        element={
-          <RequireAuth>
-            <AppLayout>
-              <QuotesListPage label="Fornitura e Posa in opera" type="FP" />
-            </AppLayout>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/preventivi/as"
-        element={
-          <RequireAuth>
-            <AppLayout>
-              <QuotesListPage label="Assistenza" type="AS" />
-            </AppLayout>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/preventivi/vm"
-        element={
-          <RequireAuth>
-            <AppLayout>
-              <QuotesListPage label="Vendita Materiale" type="VM" />
-            </AppLayout>
-          </RequireAuth>
-        }
-      />
+      {quoteTypeOptions.map((option) => (
+        <Route
+          key={option.value}
+          path={option.listPath}
+          element={
+            <RequireAuth>
+              <AppLayout>
+                <QuotesListPage label={option.label} type={option.value} />
+              </AppLayout>
+            </RequireAuth>
+          }
+        />
+      ))}
       <Route
         path="/admin/import"
         element={
@@ -145,7 +129,7 @@ function App() {
           </RequireAuth>
         }
       />
-      <Route path="*" element={<Navigate to="/preventivi/fp" replace />} />
+      <Route path="*" element={<Navigate to={defaultQuoteListPath} replace />} />
     </Routes>
   );
 }

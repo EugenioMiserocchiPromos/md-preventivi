@@ -55,7 +55,7 @@ class QuotePdfService
 
         file_put_contents($htmlPath, $html);
 
-        $bin = env('WEASYPRINT_BIN', 'weasyprint');
+        $bin = (string) config('pdf.weasyprint_bin', 'weasyprint');
         $process = new Process([$bin, $htmlPath, $pdfPath]);
         $process->setTimeout(60);
         $process->run();
