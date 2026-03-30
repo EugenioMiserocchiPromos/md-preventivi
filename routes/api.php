@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\ProductImportController;
 use App\Http\Controllers\Api\ProductsController;
 use App\Http\Controllers\Api\CustomersController;
 use App\Http\Controllers\Api\CustomerImportController;
-use App\Http\Controllers\Api\QuoteTitleTemplatesController;
 use App\Http\Controllers\Api\QuotesController;
 use App\Http\Controllers\Api\QuoteItemsController;
 use App\Http\Controllers\Api\QuoteItemComponentsController;
@@ -37,11 +36,6 @@ Route::middleware('auth:sanctum')->post('/customers', [CustomersController::clas
 Route::middleware('auth:sanctum')->patch('/customers/{customer}', [CustomersController::class, 'update']);
 Route::middleware('auth:sanctum')->put('/customers/{customer}', [CustomersController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/customers/{customer}', [CustomersController::class, 'destroy']);
-
-Route::middleware('auth:sanctum')->get('/quote-title-templates', [QuoteTitleTemplatesController::class, 'index']);
-Route::middleware('auth:sanctum')->post('/quote-title-templates', [QuoteTitleTemplatesController::class, 'store']);
-Route::middleware('auth:sanctum')->patch('/quote-title-templates/{template}', [QuoteTitleTemplatesController::class, 'update']);
-Route::middleware('auth:sanctum')->delete('/quote-title-templates/{template}', [QuoteTitleTemplatesController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/quotes/{quote}', [QuotesController::class, 'show']);
 Route::middleware('auth:sanctum')->patch('/quotes/{quote}', [QuotesController::class, 'update']);

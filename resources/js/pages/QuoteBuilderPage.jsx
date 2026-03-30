@@ -619,13 +619,6 @@ export default function QuoteBuilderPage() {
     }
   };
 
-  const renderProductName = (item) => {
-    if (item?.name_snapshot_html) {
-      return <span dangerouslySetInnerHTML={{ __html: item.name_snapshot_html }} />;
-    }
-    return <span>{item?.name_snapshot || '—'}</span>;
-  };
-
   const removeItem = async (itemId) => {
     try {
       await deleteQuoteItem(itemId);

@@ -28,7 +28,6 @@ class QuoteResource extends JsonResource
             'revision_number' => $this->revision_number,
             'date' => $this->date,
             'cantiere' => $this->cantiere,
-            'title_template_id' => $this->title_template_id,
             'title_text' => $this->title_text,
             'discount_type' => $this->discount_type,
             'discount_value' => $this->discount_value,

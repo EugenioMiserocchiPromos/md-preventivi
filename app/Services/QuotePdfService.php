@@ -8,24 +8,6 @@ use Symfony\Component\Process\Process;
 
 class QuotePdfService
 {
-    public function frontespizio(Quote $quote): string
-    {
-        $html = view('pdf.frontespizio', [
-            'quote' => $quote,
-        ])->render();
-
-        return $this->htmlToPdf($html);
-    }
-
-    public function rows(Quote $quote): string
-    {
-        $html = view('pdf.quote_rows', [
-            'quote' => $quote,
-        ])->render();
-
-        return $this->htmlToPdf($html);
-    }
-
     public function full(Quote $quote): string
     {
         $frontHtml = view('pdf.frontespizio', [

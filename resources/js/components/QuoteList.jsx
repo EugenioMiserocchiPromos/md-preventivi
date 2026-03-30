@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatMoney } from '../lib/formatters';
+import { formatDateForUi } from '../lib/dates';
 import { protForUi } from '../lib/prot';
 
 function QuoteRow({ row, onOpen, onDelete, onDuplicate, deleting, duplicating }) {
@@ -81,7 +82,7 @@ function QuoteRow({ row, onOpen, onDelete, onDuplicate, deleting, duplicating })
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-500 md:text-right">Data</p>
           <p className="text-left md:text-right tabular-nums whitespace-nowrap">
-            {row.date || '—'}
+            {formatDateForUi(row.date) || '—'}
           </p>
         </div>
 

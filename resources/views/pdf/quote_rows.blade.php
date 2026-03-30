@@ -517,7 +517,7 @@
                 </tr>
                 <tr>
                   <td class="info-label">Data<div class="info-underline"></div></td>
-                  <td class="info-value">{{ $quote->date }}</td>
+                  <td class="info-value">{{ \Illuminate\Support\Carbon::parse($quote->date)->format('d/m/Y') }}</td>
                 </tr>
                 <tr>
                   <td class="info-label">Intervento<div class="info-underline"></div></td>

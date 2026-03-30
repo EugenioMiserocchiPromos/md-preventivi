@@ -85,7 +85,6 @@ class QuotesController extends Controller
                 'revision_number' => $prot['revision_number'],
                 'date' => $data['date'],
                 'cantiere' => $data['cantiere'],
-                'title_template_id' => null,
                 'title_text' => $data['title_text'],
                 'discount_type' => null,
                 'discount_value' => null,
@@ -224,6 +223,7 @@ class QuotesController extends Controller
 
         $newQuote = DB::transaction(function () use ($quote, $protGenerator, $user, $targetQuoteType) {
             $prot = $protGenerator->allocateForUser($user, $targetQuoteType);
+            $forceHiddenComponents = $targetQuoteType === 'AS';
 
             $newQuote = Quote::create([
                 'quote_type' => $targetQuoteType,
@@ -238,7 +238,6 @@ class QuotesController extends Controller
                 'revision_number' => $prot['revision_number'],
                 'date' => $quote->date,
                 'cantiere' => $quote->cantiere,
-                'title_template_id' => $quote->title_template_id,
                 'title_text' => $quote->title_text,
                 'discount_type' => $quote->discount_type,
                 'discount_value' => $quote->discount_value,
@@ -277,7 +276,7 @@ class QuotesController extends Controller
                         'qty' => $component->qty,
                         'unit_price_override' => $component->unit_price_override,
                         'component_total' => $component->component_total,
-                        'is_visible' => $component->is_visible,
+                        'is_visible' => $forceHiddenComponents ? false : $component->is_visible,
                         'sort_index' => $component->sort_index,
                     ]);
                 }

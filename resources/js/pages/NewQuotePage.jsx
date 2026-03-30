@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createCustomer, createQuote, fetchCustomers } from '../api/client';
+import { formatDateForUi, parseItalianDateInput } from '../lib/dates';
 import { defaultQuoteListPath, defaultQuoteType, quoteTypeOptions } from '../lib/quoteTypes';
 
 const DEFAULT_TITLE_TEXT = 'Impermeabilizzazione con Sistema Penetron';
@@ -23,7 +24,7 @@ export default function NewQuotePage() {
   const [formValues, setFormValues] = useState({
     quote_type: defaultQuoteType,
     customer_id: '',
-    date: new Date().toISOString().slice(0, 10),
+    date: formatDateForUi(new Date().toISOString().slice(0, 10)),
     cantiere: '',
     title_text: DEFAULT_TITLE_TEXT,
   });
@@ -158,10 +159,17 @@ export default function NewQuotePage() {
         return;
       }
 
+      const parsedDate = parseItalianDateInput(formValues.date);
+      if (!parsedDate) {
+        setFormErrors({ date: 'Inserisci una data valida nel formato GG/MM/AAAA.' });
+        setSaving(false);
+        return;
+      }
+
       const payload = {
         quote_type: formValues.quote_type,
         customer_id: Number(formValues.customer_id),
-        date: formValues.date,
+        date: parsedDate,
         cantiere: formValues.cantiere,
         title_text: formValues.title_text?.trim() || DEFAULT_TITLE_TEXT,
       };
@@ -274,9 +282,10 @@ export default function NewQuotePage() {
           <label className="text-sm">
             <span className="text-slate-600">Data</span>
             <input
-              type="date"
+              type="text"
               value={formValues.date}
               onChange={(event) => handleChange('date', event.target.value)}
+              placeholder="GG/MM/AAAA"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               required
             />
