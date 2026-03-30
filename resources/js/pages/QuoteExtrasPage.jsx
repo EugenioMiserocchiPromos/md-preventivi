@@ -5,6 +5,7 @@ import {
   deleteQuoteExtra,
   fetchQuote,
   fetchQuoteExtras,
+  fetchUnits,
   saveQuoteRevision,
   updateQuoteExtra,
   updateQuotePricing,
@@ -13,15 +14,7 @@ import TotalsPanel from '../components/TotalsPanel';
 import QuoteInfoModal from '../components/QuoteInfoModal';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
-
-const unitOptions = ['pz', 'mq', 'nº', 'ml', 'mc', 'cad.', 'kg.'];
-
-const normalizeUnit = (value) => {
-  const normalized = String(value || '').trim().toLowerCase();
-  const map = { cad: 'cad.', kg: 'kg.', intervento: 'nº' };
-  const unit = map[normalized] || normalized;
-  return unitOptions.includes(unit) ? unit : 'ml';
-};
+import { fallbackUnitOptions, normalizeUnitValue } from '../lib/units';
 
 const defaultNewExtra = {
   description: '',
@@ -64,6 +57,7 @@ export default function QuoteExtrasPage() {
   const [closing, setClosing] = useState(false);
   const [closeError, setCloseError] = useState(null);
   const [infoModalOpen, setInfoModalOpen] = useState(false);
+  const [unitOptions, setUnitOptions] = useState(fallbackUnitOptions);
 
   const totals = quote
     ? {
@@ -103,7 +97,7 @@ export default function QuoteExtrasPage() {
           const isWarranty = extra.fixed_key === 'warranty_10y';
           return {
             ...extra,
-            unit: normalizeUnit(extra.unit),
+            unit: normalizeUnitValue(extra.unit, unitOptions),
             is_included: isWarranty
               ? Boolean(extra.is_included)
               : Boolean(extra.is_included ?? true),
@@ -115,11 +109,27 @@ export default function QuoteExtrasPage() {
     } finally {
       setLoading(false);
     }
-  }, [quoteId]);
+  }, [quoteId, unitOptions]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchUnits()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setUnitOptions(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -160,7 +170,7 @@ export default function QuoteExtrasPage() {
     autosaveInflight.current.add(id);
     try {
       const payload = {
-        unit: normalizeUnit(payloadExtra.unit),
+        unit: normalizeUnitValue(payloadExtra.unit, unitOptions),
         qty: Number(payloadExtra.qty),
         unit_price: Number(payloadExtra.unit_price),
         notes: payloadExtra.notes || '',
@@ -282,7 +292,7 @@ export default function QuoteExtrasPage() {
     try {
       const payload = {
         description: newExtra.description,
-        unit: normalizeUnit(newExtra.unit),
+        unit: normalizeUnitValue(newExtra.unit, unitOptions),
         qty: Number(newExtra.qty),
         unit_price: Number(newExtra.unit_price),
         notes: newExtra.notes || '',
@@ -322,7 +332,7 @@ export default function QuoteExtrasPage() {
       }
       try {
         const payload = {
-          unit: normalizeUnit(extra.unit),
+          unit: normalizeUnitValue(extra.unit, unitOptions),
           qty: Number(extra.qty),
           unit_price: Number(extra.unit_price),
           notes: extra.notes || '',
@@ -443,7 +453,7 @@ export default function QuoteExtrasPage() {
           }
         }
         const payload = {
-          unit: normalizeUnit(extra.unit),
+          unit: normalizeUnitValue(extra.unit, unitOptions),
           qty: Number(extra.qty),
           unit_price: Number(extra.unit_price),
           notes: extra.notes || '',
@@ -683,8 +693,8 @@ export default function QuoteExtrasPage() {
                               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                             >
                               {unitOptions.map((unit) => (
-                                <option key={unit} value={unit}>
-                                  {unit}
+                                <option key={unit.value} value={unit.value}>
+                                  {unit.label}
                                 </option>
                               ))}
                             </select>
@@ -797,8 +807,8 @@ export default function QuoteExtrasPage() {
                     className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                   >
                     {unitOptions.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
+                      <option key={unit.value} value={unit.value}>
+                        {unit.label}
                       </option>
                     ))}
                   </select>

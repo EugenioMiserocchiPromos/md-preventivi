@@ -343,7 +343,7 @@
               <tr class="avoid-break">
                 <td style="width:8%;"><div class="cell-pad">{{ $item->product_code_snapshot }}</div></td>
                 <td style="width:28%;"><div class="cell-pad">{{ $item->name_snapshot }}</div></td>
-                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
+                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $item->unit_override) }}</div></td>
                 <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
                 <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
                 <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
@@ -355,7 +355,7 @@
                 <tr class="component-row avoid-break">
                   <td style="width:8%;"><div class="cell-pad"></div></td>
                   <td style="width:28%;"><div class="cell-pad">— {{ $component->name_snapshot }}</div></td>
-                  <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
+                  <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $component->unit_override) }}</div></td>
                   <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
                   <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
                   <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>

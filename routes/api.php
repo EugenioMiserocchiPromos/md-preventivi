@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\QuoteItemsController;
 use App\Http\Controllers\Api\QuoteItemComponentsController;
 use App\Http\Controllers\Api\QuotePricingController;
 use App\Http\Controllers\Api\QuoteExtrasController;
+use App\Http\Controllers\Api\UnitsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -25,6 +26,7 @@ Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
 Route::middleware('auth:sanctum')->post('/products/import', [ProductImportController::class, 'import']);
 Route::middleware('auth:sanctum')->post('/products/components/import', [ProductComponentsImportController::class, 'import']);
 Route::middleware('auth:sanctum')->post('/customers/import', [CustomerImportController::class, 'import']);
+Route::middleware('auth:sanctum')->get('/units', [UnitsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/products', [ProductsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/product-categories', [ProductsController::class, 'categories']);
 Route::middleware('auth:sanctum')->patch('/products/{product}', [ProductsController::class, 'update']);

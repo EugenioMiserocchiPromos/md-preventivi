@@ -638,7 +638,7 @@
                             {!! $item->name_snapshot_html ?: e($item->name_snapshot) !!}
                           </div>
                         </td>
-                        <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $item->unit_override }}</div></td>
+                        <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $item->unit_override) }}</div></td>
                         <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $item->qty, 2, ',', '.') }}</div></td>
                         <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
                         <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $item->unit_price_override, 2, ',', '.') }}</div></td>
@@ -653,7 +653,7 @@
                     @foreach ($visibleComponents as $componentIndex => $component)
                       <tr class="component-row avoid-break {{ $loop->last ? 'row-end' : '' }}">
                           <td style="width:28%;"><div class="cell-pad">{{ $component->name_snapshot }}</div></td>
-                          <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $component->unit_override }}</div></td>
+                          <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $component->unit_override) }}</div></td>
                           <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $component->qty, 2, ',', '.') }}</div></td>
                           <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
                           <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $component->unit_price_override, 2, ',', '.') }}</div></td>
@@ -721,7 +721,7 @@
             </tr>
             <tr class="avoid-break extra-row">
               <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
-              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
+              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $extra->unit) }}</div></td>
               <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
               <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
               <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>
@@ -736,7 +736,7 @@
             </tr>
             <tr class="avoid-break extra-row">
               <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
-              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
+              <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $extra->unit) }}</div></td>
               <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
               <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
               <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>
@@ -801,7 +801,7 @@
             @else
               <tr class="avoid-break extra-row">
                 <td colspan="2" style="width:36%;"><div class="cell-pad">{{ $extra->description }}</div></td>
-                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ $extra->unit }}</div></td>
+                <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $extra->unit) }}</div></td>
                 <td class="text-right" style="width:10%;"><div class="cell-pad">{{ number_format((float) $extra->qty, 2, ',', '.') }}</div></td>
                 <td class="symbol-cell" style="width:3%;"><div class="cell-pad">x</div></td>
                 <td class="text-right" style="width:10%;"><div class="cell-pad">€ {{ number_format((float) $extra->unit_price, 2, ',', '.') }}</div></td>

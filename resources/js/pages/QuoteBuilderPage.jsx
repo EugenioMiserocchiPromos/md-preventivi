@@ -6,6 +6,7 @@ import {
   duplicateQuoteItem,
   fetchProductCategories,
   fetchQuote,
+  fetchUnits,
   updateQuoteItem,
   updateQuoteItemComponent,
   updateQuotePricing,
@@ -14,15 +15,7 @@ import QuoteInfoModal from '../components/QuoteInfoModal';
 import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
-
-const unitOptions = ['pz', 'mq', 'nº', 'ml', 'mc', 'cad.', 'kg.'];
-
-const normalizeUnit = (value) => {
-  const normalized = String(value || '').trim().toLowerCase();
-  const map = { cad: 'cad.', kg: 'kg.', intervento: 'nº' };
-  const unit = map[normalized] || normalized;
-  return unitOptions.includes(unit) ? unit : 'ml';
-};
+import { fallbackUnitOptions, normalizeUnitValue } from '../lib/units';
 
 const renderProductName = (item) => {
   if (item?.name_snapshot_html) {
@@ -42,10 +35,11 @@ function QuoteItemCard({
   onUpdateComponent,
   onSaveAll,
   onRegisterSave,
+  unitOptions,
 }) {
   const [itemDraft, setItemDraft] = useState({
     qty: item.qty,
-    unit_override: normalizeUnit(item.unit_override),
+    unit_override: normalizeUnitValue(item.unit_override, unitOptions),
     unit_price_override: item.unit_price_override,
     note_shared: item.note_shared || '',
   });
@@ -55,7 +49,7 @@ function QuoteItemCard({
         component.id,
         {
           qty: component.qty,
-          unit_override: normalizeUnit(component.unit_override),
+          unit_override: normalizeUnitValue(component.unit_override, unitOptions),
           unit_price_override: component.unit_price_override,
           is_visible: component.is_visible,
         },
@@ -68,7 +62,7 @@ function QuoteItemCard({
   useEffect(() => {
     setItemDraft({
       qty: item.qty,
-      unit_override: normalizeUnit(item.unit_override),
+      unit_override: normalizeUnitValue(item.unit_override, unitOptions),
       unit_price_override: item.unit_price_override,
       note_shared: item.note_shared || '',
     });
@@ -78,14 +72,14 @@ function QuoteItemCard({
           component.id,
           {
             qty: component.qty,
-            unit_override: normalizeUnit(component.unit_override),
+            unit_override: normalizeUnitValue(component.unit_override, unitOptions),
             unit_price_override: component.unit_price_override,
             is_visible: component.is_visible,
           },
         ])
       )
     );
-  }, [item]);
+  }, [item, unitOptions]);
 
   const saveItem = async () => {
     setSaving(true);
@@ -293,8 +287,8 @@ function QuoteItemCard({
             className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           >
             {unitOptions.map((unit) => (
-              <option key={unit} value={unit}>
-                {unit}
+              <option key={unit.value} value={unit.value}>
+                {unit.label}
               </option>
             ))}
           </select>
@@ -391,8 +385,8 @@ function QuoteItemCard({
                           className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-xs"
                         >
                           {unitOptions.map((unit) => (
-                            <option key={unit} value={unit}>
-                              {unit}
+                            <option key={unit.value} value={unit.value}>
+                              {unit.label}
                             </option>
                           ))}
                         </select>
@@ -491,6 +485,7 @@ export default function QuoteBuilderPage() {
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
   const [infoModalOpen, setInfoModalOpen] = useState(false);
+  const [unitOptions, setUnitOptions] = useState(fallbackUnitOptions);
 
   const loadQuote = useCallback(async () => {
     setLoading(true);
@@ -516,6 +511,22 @@ export default function QuoteBuilderPage() {
   useEffect(() => {
     loadQuote();
   }, [loadQuote]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchUnits()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setUnitOptions(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!quote?.items?.length) return;
@@ -912,6 +923,7 @@ export default function QuoteBuilderPage() {
                   onUpdateComponent={updateComponent}
                   onSaveAll={saveAll}
                   onRegisterSave={registerSaveHandler}
+                  unitOptions={unitOptions}
                 />
               </div>
             ))}
