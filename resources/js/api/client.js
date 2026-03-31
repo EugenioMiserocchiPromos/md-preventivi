@@ -88,6 +88,10 @@ export async function fetchUnits() {
   return request('/api/units', { method: 'GET' });
 }
 
+export async function fetchQuotePricingOptions() {
+  return request('/api/quote-pricing-options', { method: 'GET' });
+}
+
 export async function updateProduct(productId, payload) {
   return request(`/api/products/${productId}`, {
     method: 'PATCH',

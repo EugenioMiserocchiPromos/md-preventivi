@@ -2,9 +2,10 @@ import React from 'react';
 import { formatMoney } from '../lib/formatters';
 import {
   discountTypeOptions,
-  defaultPaymentMethod,
-  ibanPaymentMethod,
-  paymentMethodOptions,
+  fallbackDefaultPaymentMethod,
+  fallbackNoIbanPaymentMethod,
+  fallbackPaymentMethodOptions,
+  shouldShowPaymentIban,
 } from '../lib/quotePricing';
 
 export default function TotalsPanel({
@@ -14,12 +15,15 @@ export default function TotalsPanel({
   onSubmit,
   saving,
   error,
+  paymentMethodOptions = fallbackPaymentMethodOptions,
+  defaultPaymentMethod = fallbackDefaultPaymentMethod,
+  noIbanPaymentMethod = fallbackNoIbanPaymentMethod,
   showDiscount = true,
   showDiscountForm = true,
   showPaymentForm = false,
 }) {
   const discountDisabled = pricingForm?.discount_type === 'none';
-  const showIban = pricingForm?.payment_method === ibanPaymentMethod;
+  const showIban = shouldShowPaymentIban(pricingForm?.payment_method, noIbanPaymentMethod);
 
   return (
     <div className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">

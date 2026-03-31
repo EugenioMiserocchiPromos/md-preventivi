@@ -4,6 +4,7 @@ import {
   createQuoteExtra,
   deleteQuoteExtra,
   fetchQuote,
+  fetchQuotePricingOptions,
   fetchQuoteExtras,
   fetchUnits,
   saveQuoteRevision,
@@ -14,7 +15,12 @@ import TotalsPanel from '../components/TotalsPanel';
 import QuoteInfoModal from '../components/QuoteInfoModal';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
-import { defaultPaymentMethod, ibanPaymentMethod, paymentMethodOptions } from '../lib/quotePricing';
+import {
+  fallbackDefaultPaymentMethod,
+  fallbackNoIbanPaymentMethod,
+  fallbackPaymentMethodOptions,
+  shouldShowPaymentIban,
+} from '../lib/quotePricing';
 import { getQuoteListPath } from '../lib/quoteTypes';
 import { fallbackUnitOptions, normalizeUnitValue } from '../lib/units';
 
@@ -51,7 +57,7 @@ export default function QuoteExtrasPage() {
   const [pricingForm, setPricingForm] = useState({
     discount_type: 'none',
     discount_value: '',
-    payment_method: defaultPaymentMethod,
+    payment_method: fallbackDefaultPaymentMethod,
     payment_iban: '',
   });
   const [pricingSaving, setPricingSaving] = useState(false);
@@ -60,6 +66,9 @@ export default function QuoteExtrasPage() {
   const [closeError, setCloseError] = useState(null);
   const [infoModalOpen, setInfoModalOpen] = useState(false);
   const [unitOptions, setUnitOptions] = useState(fallbackUnitOptions);
+  const [paymentMethodOptions, setPaymentMethodOptions] = useState(fallbackPaymentMethodOptions);
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(fallbackDefaultPaymentMethod);
+  const [noIbanPaymentMethod, setNoIbanPaymentMethod] = useState(fallbackNoIbanPaymentMethod);
 
   const totals = quote
     ? {
@@ -120,13 +129,31 @@ export default function QuoteExtrasPage() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchUnits()
-      .then((data) => {
-        if (!cancelled && Array.isArray(data) && data.length > 0) {
-          setUnitOptions(data);
-        }
-      })
-      .catch(() => {});
+    Promise.allSettled([fetchUnits(), fetchQuotePricingOptions()]).then((results) => {
+      if (cancelled) return;
+
+      const unitsResult = results[0];
+      if (unitsResult.status === 'fulfilled' && Array.isArray(unitsResult.value) && unitsResult.value.length > 0) {
+        setUnitOptions(unitsResult.value);
+      }
+
+      const pricingResult = results[1];
+      if (pricingResult.status === 'fulfilled' && pricingResult.value) {
+        const methods = Array.isArray(pricingResult.value.payment_methods)
+          ? pricingResult.value.payment_methods
+          : fallbackPaymentMethodOptions;
+        const defaultMethod = pricingResult.value.default_payment_method || methods[0] || fallbackDefaultPaymentMethod;
+        const noIbanMethod = pricingResult.value.no_iban_payment_method || defaultMethod;
+
+        setPaymentMethodOptions(methods);
+        setDefaultPaymentMethod(defaultMethod);
+        setNoIbanPaymentMethod(noIbanMethod);
+        setPricingForm((prev) => ({
+          ...prev,
+          payment_method: prev.payment_method || defaultMethod,
+        }));
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -382,7 +409,9 @@ export default function QuoteExtrasPage() {
         pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
       payment_method: pricingForm.payment_method || defaultPaymentMethod,
       payment_iban:
-        pricingForm.payment_method === ibanPaymentMethod ? pricingForm.payment_iban || '' : '',
+        shouldShowPaymentIban(pricingForm.payment_method, noIbanPaymentMethod)
+          ? pricingForm.payment_iban || ''
+          : '',
     };
 
     try {
@@ -421,7 +450,7 @@ export default function QuoteExtrasPage() {
       if (next.discount_type === 'none') {
         next.discount_value = '0';
       }
-      if (next.payment_method !== ibanPaymentMethod) {
+      if (!shouldShowPaymentIban(next.payment_method, noIbanPaymentMethod)) {
         next.payment_iban = '';
       }
       return { ...next };
@@ -556,7 +585,7 @@ export default function QuoteExtrasPage() {
                   ))}
                 </select>
               </label>
-              {pricingForm.payment_method === ibanPaymentMethod ? (
+              {shouldShowPaymentIban(pricingForm.payment_method, noIbanPaymentMethod) ? (
                 <label className="text-sm">
                   <span className="text-slate-600">IBAN</span>
                   <input
@@ -867,6 +896,9 @@ export default function QuoteExtrasPage() {
         onSubmit={handlePricingSubmit}
         saving={pricingSaving}
         error={pricingError}
+        paymentMethodOptions={paymentMethodOptions}
+        defaultPaymentMethod={defaultPaymentMethod}
+        noIbanPaymentMethod={noIbanPaymentMethod}
       />
     </section>
   );

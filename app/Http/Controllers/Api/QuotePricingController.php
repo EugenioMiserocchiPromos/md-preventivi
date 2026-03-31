@@ -7,6 +7,7 @@ use App\Http\Requests\Quotes\UpdateQuotePricingRequest;
 use App\Http\Resources\QuoteResource;
 use App\Models\Quote;
 use App\Services\QuoteTotalsService;
+use App\Support\QuotePricingOptions;
 
 class QuotePricingController extends Controller
 {
@@ -24,6 +25,9 @@ class QuotePricingController extends Controller
         }
         if (array_key_exists('payment_iban', $data)) {
             $quote->payment_iban = $data['payment_iban'];
+        }
+        if (($quote->payment_method ?? null) === QuotePricingOptions::DEFAULT_PAYMENT_METHOD) {
+            $quote->payment_iban = '';
         }
         $quote->vat_rate = 0;
 

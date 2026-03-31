@@ -4,13 +4,10 @@ export const discountTypeOptions = [
   { value: 'amount', label: 'Importo' },
 ];
 
-export const paymentMethodOptions = [
-  'da Concordare',
-  'Vista fattura',
-  '30/60/90 gg D.F.',
-  'Bonifico bancario',
-  'Ri.Ba.',
-];
+export const fallbackPaymentMethodOptions = ['da Concordare'];
+export const fallbackDefaultPaymentMethod = fallbackPaymentMethodOptions[0];
+export const fallbackNoIbanPaymentMethod = fallbackDefaultPaymentMethod;
 
-export const defaultPaymentMethod = paymentMethodOptions[0];
-export const ibanPaymentMethod = 'Ri.Ba.';
+export function shouldShowPaymentIban(paymentMethod, noIbanPaymentMethod = fallbackNoIbanPaymentMethod) {
+  return Boolean(paymentMethod) && paymentMethod !== noIbanPaymentMethod;
+}

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\QuotesController;
 use App\Http\Controllers\Api\QuoteItemsController;
 use App\Http\Controllers\Api\QuoteItemComponentsController;
 use App\Http\Controllers\Api\QuotePricingController;
+use App\Http\Controllers\Api\QuotePricingOptionsController;
 use App\Http\Controllers\Api\QuoteExtrasController;
 use App\Http\Controllers\Api\UnitsController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ Route::middleware('auth:sanctum')->post('/products/import', [ProductImportContro
 Route::middleware('auth:sanctum')->post('/products/components/import', [ProductComponentsImportController::class, 'import']);
 Route::middleware('auth:sanctum')->post('/customers/import', [CustomerImportController::class, 'import']);
 Route::middleware('auth:sanctum')->get('/units', [UnitsController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/quote-pricing-options', [QuotePricingOptionsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/products', [ProductsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/product-categories', [ProductsController::class, 'categories']);
 Route::middleware('auth:sanctum')->patch('/products/{product}', [ProductsController::class, 'update']);
