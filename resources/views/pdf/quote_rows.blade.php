@@ -133,7 +133,9 @@
         border-spacing: 0;
       }
       .category-item-cell .item-table {
-        margin: 0;
+        width: calc(100% + 1px);
+        margin-left: -0.5px;
+        margin-right: -0.5px;
         border-spacing: 0;
       }
       .items th {
@@ -196,6 +198,10 @@
         line-height: 13px;
         letter-spacing: 0;
       }
+      .product-category-row th {
+        padding-left: 4px;
+        padding-right: 4px;
+      }
       .extra-row {
         background: rgba(149, 129, 123, 0.15);
         font-size: 11px;
@@ -219,6 +225,9 @@
         page-break-inside: avoid;
         break-inside: avoid;
         break-inside: avoid-page;
+        width: calc(100% - 1px);
+        margin-left: 0.5px;
+        margin-right: 0.5px;
       }
       .extra-row .cell-pad {
         font-size: 11px;
@@ -258,14 +267,19 @@
         padding-top: 6px;
         padding-bottom: 6px;
       }
+      .category-header-row {
+        width: calc(100% - 4px);
+        margin-left: 2px;
+        margin-right: 2px;
+      }
       .category-header {
         text-align: center;
         padding-top: 6px;
         padding-bottom: 6px;
         font-family: 'Jost', 'Open Sans', sans-serif;
         font-weight: 300;
-        font-size: 21px;
-        line-height:23px;
+        font-size: 18px;
+        line-height:20px;
         color: #95817b;
       }
       .component-row {
@@ -328,7 +342,7 @@
       .pdf-header {
         position: running(pdf-header);
         width: 100%;
-        margin-top:50px;
+        margin-top:53px;
       }
       .header-legend th {
         font-family: 'Jost', 'Open Sans', sans-serif;
@@ -336,7 +350,7 @@
         line-height: 12px;
         text-transform: uppercase;
         font-weight: 600;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.08;
         color: #64748b;
         text-align: center;
         padding: 4px 4px;
