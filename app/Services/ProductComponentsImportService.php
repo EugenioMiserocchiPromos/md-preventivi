@@ -10,6 +10,9 @@ use Illuminate\Support\Str;
 
 class ProductComponentsImportService
 {
+    private const MAX_ROWS = 10000;
+    private const MAX_COLUMNS = 16;
+
     private const REQUIRED_FIELDS = ['product_code', 'component_name', 'unit_default'];
 
     private const HEADER_ALIASES = [
@@ -78,6 +81,12 @@ class ProductComponentsImportService
             return $this->errorResult('Header CSV mancante.');
         }
 
+        if (count($headerRow) > self::MAX_COLUMNS) {
+            fclose($handle);
+
+            return $this->errorResult('Il file supera il numero massimo di colonne consentite.');
+        }
+
         $headerMap = $this->mapHeaders($headerRow);
         $missing = array_diff(self::REQUIRED_FIELDS, array_values($headerMap));
         if ($missing) {
@@ -93,11 +102,23 @@ class ProductComponentsImportService
         ];
 
         $rows = [];
+        $importedRows = 0;
         $rowIndex = 1;
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowIndex++;
             if ($this->rowIsEmpty($row)) {
                 continue;
+            }
+            if (count($row) > self::MAX_COLUMNS) {
+                fclose($handle);
+
+                return $this->errorResult("La riga {$rowIndex} contiene troppe colonne.");
+            }
+            $importedRows++;
+            if ($importedRows > self::MAX_ROWS) {
+                fclose($handle);
+
+                return $this->errorResult('Il file supera il numero massimo di righe importabili.');
             }
 
             $mapped = $this->mapRow($row, $headerMap);

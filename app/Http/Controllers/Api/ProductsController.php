@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
+use App\Support\ProductNameHtmlSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -100,13 +101,17 @@ class ProductsController extends Controller
         return response()->json($payload);
     }
 
-    public function update(Request $request, int $product)
+    public function update(
+        Request $request,
+        int $product,
+        ProductNameHtmlSanitizer $sanitizer
+    )
     {
         $validated = $request->validate([
             'name_html' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $nameHtml = $this->sanitizeNameHtml((string) ($validated['name_html'] ?? ''));
+        $nameHtml = $sanitizer->sanitize((string) ($validated['name_html'] ?? ''));
 
         DB::table('products')
             ->where('id', $product)
@@ -118,18 +123,5 @@ class ProductsController extends Controller
         $productRow = DB::table('products')->where('id', $product)->first();
 
         return new ProductResource($productRow);
-    }
-
-    private function sanitizeNameHtml(string $html): string
-    {
-        $html = trim($html);
-        if ($html === '') {
-            return '';
-        }
-
-        $html = strip_tags($html, '<b><strong>');
-        $html = preg_replace('/<(b|strong)\\s+[^>]*>/i', '<$1>', $html);
-        $html = preg_replace('/\\s+/u', ' ', $html);
-        return trim((string) $html);
     }
 }

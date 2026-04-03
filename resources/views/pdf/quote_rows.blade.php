@@ -649,7 +649,7 @@
                         @endif
                         <td style="width:28%;">
                           <div class="cell-pad">
-                            {!! $item->name_snapshot_html ?: e($item->name_snapshot) !!}
+                            {!! app(\App\Support\ProductNameHtmlSanitizer::class)->sanitize((string) ($item->name_snapshot_html ?: $item->name_snapshot)) !!}
                           </div>
                         </td>
                         <td class="um-cell" style="width:6%;"><div class="cell-pad">{{ \App\Support\Units::label((string) $item->unit_override) }}</div></td>

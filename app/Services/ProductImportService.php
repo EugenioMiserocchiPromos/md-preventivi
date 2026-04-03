@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\ProductNameHtmlSanitizer;
 use App\Support\Units;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,9 @@ use Illuminate\Support\Str;
 
 class ProductImportService
 {
+    private const MAX_ROWS = 5000;
+    private const MAX_COLUMNS = 16;
+
     private const REQUIRED_FIELDS = ['category_name', 'name', 'unit_default', 'price_default'];
 
     private const HEADER_ALIASES = [
@@ -48,6 +52,11 @@ class ProductImportService
         'nota' => 'note_default',
         'note_default' => 'note_default',
     ];
+
+    public function __construct(
+        private readonly ProductNameHtmlSanitizer $htmlSanitizer
+    ) {
+    }
 
     public function import(UploadedFile $file): array
     {
@@ -90,6 +99,20 @@ class ProductImportService
             ];
         }
 
+        if (count($headerRow) > self::MAX_COLUMNS) {
+            fclose($handle);
+
+            return [
+                'created' => 0,
+                'updated' => 0,
+                'skipped' => 0,
+                'errors' => [[
+                    'row' => 0,
+                    'message' => 'Il file supera il numero massimo di colonne consentite.',
+                ]],
+            ];
+        }
+
         $headerMap = $this->mapHeaders($headerRow);
         $missing = array_diff(self::REQUIRED_FIELDS, array_values($headerMap));
         if ($missing) {
@@ -118,12 +141,41 @@ class ProductImportService
             'skipped' => 0,
             'errors' => [],
         ];
+        $rowsToPersist = [];
+        $importedRows = 0;
 
         $rowIndex = 1;
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowIndex++;
             if ($this->rowIsEmpty($row)) {
                 continue;
+            }
+            if (count($row) > self::MAX_COLUMNS) {
+                fclose($handle);
+
+                return [
+                    'created' => 0,
+                    'updated' => 0,
+                    'skipped' => 0,
+                    'errors' => [[
+                        'row' => $rowIndex,
+                        'message' => 'Il file contiene una riga con troppe colonne.',
+                    ]],
+                ];
+            }
+            $importedRows++;
+            if ($importedRows > self::MAX_ROWS) {
+                fclose($handle);
+
+                return [
+                    'created' => 0,
+                    'updated' => 0,
+                    'skipped' => 0,
+                    'errors' => [[
+                        'row' => $rowIndex,
+                        'message' => 'Il file supera il numero massimo di righe importabili.',
+                    ]],
+                ];
             }
 
             $data = $this->mapRow($row, $headerMap);
@@ -149,11 +201,11 @@ class ProductImportService
                 $seenCodes[$code] = true;
             }
 
-            $payload = [
+            $rowsToPersist[] = [
                 'code' => $code,
                 'category_name' => $normalized['category_name'],
                 'name' => $normalized['name'],
-                'name_html' => $normalized['name'],
+                'name_html' => $this->htmlSanitizer->sanitize($normalized['name']),
                 'unit_default' => $normalized['unit_default'],
                 'price_default' => $normalized['price_default'],
                 'note_default' => $normalized['note_default'] ?? null,
@@ -161,7 +213,12 @@ class ProductImportService
                 'updated_at' => now(),
             ];
 
-            $existing = DB::table('products')->where('code', $code)->first();
+        }
+
+        fclose($handle);
+
+        foreach ($rowsToPersist as $payload) {
+            $existing = DB::table('products')->where('code', $payload['code'])->first();
             if ($existing) {
                 $updatePayload = $this->buildUpdatePayload($existing, $payload);
 
@@ -170,7 +227,7 @@ class ProductImportService
                     continue;
                 }
 
-                DB::table('products')->where('code', $code)->update($updatePayload);
+                DB::table('products')->where('code', $payload['code'])->update($updatePayload);
                 $result['updated']++;
             } else {
                 $payload['created_at'] = now();
@@ -178,8 +235,6 @@ class ProductImportService
                 $result['created']++;
             }
         }
-
-        fclose($handle);
 
         return $result;
     }
@@ -316,7 +371,7 @@ class ProductImportService
 
         if ($incomingName !== $existingName || $incomingName !== $existingNameHtml) {
             $updatePayload['name'] = $payload['name'];
-            $updatePayload['name_html'] = $payload['name'];
+            $updatePayload['name_html'] = $payload['name_html'];
         }
 
         if ($updatePayload !== []) {

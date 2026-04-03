@@ -18,7 +18,6 @@ class QuoteListResource extends JsonResource
             'id' => $this->id,
             'quote_type' => $this->quote_type,
             'prot_display' => $this->prot_display,
-            'prot_internal' => $this->prot_internal,
             'revision_number' => $this->revision_number,
             'date' => $this->date,
             'title_text' => $this->title_text,

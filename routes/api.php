@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\UnitsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 });
 
