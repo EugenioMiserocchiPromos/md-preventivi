@@ -96,6 +96,7 @@ class ProductComponentsImportService
         }
 
         $result = [
+            'accepted' => true,
             'created' => 0,
             'skipped' => 0,
             'errors' => [],
@@ -200,6 +201,7 @@ class ProductComponentsImportService
     private function errorResult(string $message): array
     {
         return [
+            'accepted' => false,
             'created' => 0,
             'skipped' => 0,
             'errors' => [['row' => 0, 'message' => $message]],

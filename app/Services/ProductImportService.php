@@ -63,6 +63,7 @@ class ProductImportService
         $handle = fopen($file->getRealPath(), 'r');
         if (! $handle) {
             return [
+                'accepted' => false,
                 'created' => 0,
                 'updated' => 0,
                 'skipped' => 0,
@@ -75,6 +76,7 @@ class ProductImportService
             fclose($handle);
 
             return [
+                'accepted' => false,
                 'created' => 0,
                 'updated' => 0,
                 'skipped' => 0,
@@ -92,6 +94,7 @@ class ProductImportService
             fclose($handle);
 
             return [
+                'accepted' => false,
                 'created' => 0,
                 'updated' => 0,
                 'skipped' => 0,
@@ -103,6 +106,7 @@ class ProductImportService
             fclose($handle);
 
             return [
+                'accepted' => false,
                 'created' => 0,
                 'updated' => 0,
                 'skipped' => 0,
@@ -119,6 +123,7 @@ class ProductImportService
             fclose($handle);
 
             return [
+                'accepted' => false,
                 'created' => 0,
                 'updated' => 0,
                 'skipped' => 0,
@@ -136,6 +141,7 @@ class ProductImportService
         $seenCodes = [];
 
         $result = [
+            'accepted' => true,
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,
@@ -154,6 +160,7 @@ class ProductImportService
                 fclose($handle);
 
                 return [
+                    'accepted' => false,
                     'created' => 0,
                     'updated' => 0,
                     'skipped' => 0,
@@ -168,6 +175,7 @@ class ProductImportService
                 fclose($handle);
 
                 return [
+                    'accepted' => false,
                     'created' => 0,
                     'updated' => 0,
                     'skipped' => 0,

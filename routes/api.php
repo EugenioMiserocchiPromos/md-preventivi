@@ -24,8 +24,14 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
 
 Route::middleware('auth:sanctum')->post('/products/import', [ProductImportController::class, 'import']);
+Route::middleware('auth:sanctum')->get('/products/import/latest', [ProductImportController::class, 'latest']);
+Route::middleware('auth:sanctum')->get('/products/import/latest/download', [ProductImportController::class, 'downloadLatest']);
 Route::middleware('auth:sanctum')->post('/products/components/import', [ProductComponentsImportController::class, 'import']);
+Route::middleware('auth:sanctum')->get('/products/components/import/latest', [ProductComponentsImportController::class, 'latest']);
+Route::middleware('auth:sanctum')->get('/products/components/import/latest/download', [ProductComponentsImportController::class, 'downloadLatest']);
 Route::middleware('auth:sanctum')->post('/customers/import', [CustomerImportController::class, 'import']);
+Route::middleware('auth:sanctum')->get('/customers/import/latest', [CustomerImportController::class, 'latest']);
+Route::middleware('auth:sanctum')->get('/customers/import/latest/download', [CustomerImportController::class, 'downloadLatest']);
 Route::middleware('auth:sanctum')->get('/units', [UnitsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/quote-pricing-options', [QuotePricingOptionsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/products', [ProductsController::class, 'index']);

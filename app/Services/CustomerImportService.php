@@ -69,6 +69,7 @@ class CustomerImportService
         }
 
         $result = [
+            'accepted' => true,
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,
@@ -134,6 +135,7 @@ class CustomerImportService
     private function errorResult(string $message): array
     {
         return [
+            'accepted' => false,
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,
