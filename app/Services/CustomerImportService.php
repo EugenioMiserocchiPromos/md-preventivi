@@ -8,6 +8,9 @@ use Illuminate\Support\Str;
 
 class CustomerImportService
 {
+    private const MAX_ROWS = 5000;
+    private const MAX_COLUMNS = 8;
+
     private const REQUIRED_FIELDS = ['title', 'body'];
 
     private const HEADER_ALIASES = [
@@ -51,6 +54,12 @@ class CustomerImportService
             return $this->errorResult('Header CSV mancante.');
         }
 
+        if (count($headerRow) > self::MAX_COLUMNS) {
+            fclose($handle);
+
+            return $this->errorResult('Il file supera il numero massimo di colonne consentite.');
+        }
+
         $headerMap = $this->mapHeaders($headerRow);
         $missing = array_diff(self::REQUIRED_FIELDS, array_values($headerMap));
         if ($missing) {
@@ -60,17 +69,31 @@ class CustomerImportService
         }
 
         $result = [
+            'accepted' => true,
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,
             'errors' => [],
         ];
+        $rowsToPersist = [];
+        $importedRows = 0;
 
         $rowIndex = 1;
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowIndex++;
             if ($this->rowIsEmpty($row)) {
                 continue;
+            }
+            if (count($row) > self::MAX_COLUMNS) {
+                fclose($handle);
+
+                return $this->errorResult("La riga {$rowIndex} contiene troppe colonne.");
+            }
+            $importedRows++;
+            if ($importedRows > self::MAX_ROWS) {
+                fclose($handle);
+
+                return $this->errorResult('Il file supera il numero massimo di righe importabili.');
             }
 
             $mapped = $this->mapRow($row, $headerMap);
@@ -82,18 +105,20 @@ class CustomerImportService
                 continue;
             }
 
-            $title = $normalized['title'];
-            $payload = [
-                'title' => $title,
+            $rowsToPersist[] = [
+                'title' => $normalized['title'],
                 'body' => $normalized['body'],
                 'email' => $normalized['email'],
                 'updated_at' => now(),
             ];
+        }
 
+        fclose($handle);
+
+        foreach ($rowsToPersist as $payload) {
             $existing = DB::table('customers')
-                ->whereRaw('LOWER(title) = ?', [Str::lower($title)])
+                ->whereRaw('LOWER(title) = ?', [Str::lower($payload['title'])])
                 ->first();
-
             if ($existing) {
                 DB::table('customers')->where('id', $existing->id)->update($payload);
                 $result['updated']++;
@@ -104,14 +129,13 @@ class CustomerImportService
             }
         }
 
-        fclose($handle);
-
         return $result;
     }
 
     private function errorResult(string $message): array
     {
         return [
+            'accepted' => false,
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,

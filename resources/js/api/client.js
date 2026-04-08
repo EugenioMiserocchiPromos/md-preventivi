@@ -259,3 +259,15 @@ export async function uploadFile(path, file) {
 
   return parseResponse(response);
 }
+
+export async function fetchLatestImportFile(path) {
+  try {
+    return await request(path, { method: 'GET' });
+  } catch (error) {
+    if (error?.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
+}

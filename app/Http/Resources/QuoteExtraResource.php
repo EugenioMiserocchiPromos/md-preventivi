@@ -16,7 +16,6 @@ class QuoteExtraResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'quote_id' => $this->quote_id,
             'description' => $this->description,
             'unit' => $this->unit,
             'qty' => $this->qty,

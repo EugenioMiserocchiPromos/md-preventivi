@@ -16,7 +16,6 @@ class QuoteItemResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'quote_id' => $this->quote_id,
             'product_id' => $this->product_id,
             'category_name_snapshot' => $this->category_name_snapshot,
             'product_code_snapshot' => $this->product_code_snapshot,
