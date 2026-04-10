@@ -11,10 +11,13 @@ import {
   updateQuoteItemComponent,
   updateQuotePricing,
 } from '../api/client';
+import { EmptyState, ErrorAlert, LoadingState } from '../components/Feedback';
 import QuoteInfoModal from '../components/QuoteInfoModal';
 import TotalsPanel from '../components/TotalsPanel';
 import { protForUi } from '../lib/prot';
 import { formatMoney } from '../lib/formatters';
+import { defaultQuoteListPath } from '../lib/quoteTypes';
+import { setFlashMessage } from '../lib/flash';
 import { fallbackUnitOptions, normalizeUnitValue } from '../lib/units';
 
 const renderProductName = (item) => {
@@ -502,11 +505,19 @@ export default function QuoteBuilderPage() {
             : '',
       });
     } catch (err) {
+      if (err?.status === 404) {
+        setFlashMessage('Il preventivo richiesto non esiste o non è piu disponibile.', {
+          title: 'Preventivo non trovato',
+          variant: 'warning',
+        });
+        navigate(defaultQuoteListPath, { replace: true });
+        return;
+      }
       setError(err?.message || 'Errore nel caricamento preventivo.');
     } finally {
       setLoading(false);
     }
-  }, [quoteId]);
+  }, [navigate, quoteId]);
 
   useEffect(() => {
     loadQuote();
@@ -791,8 +802,15 @@ export default function QuoteBuilderPage() {
         </div>
       </div>
 
-      {loading ? <p className="text-sm text-slate-500">Caricamento preventivo...</p> : null}
-      {error ? <p className="text-sm text-amber-700">{error}</p> : null}
+      {loading ? <LoadingState label="Caricamento preventivo..." /> : null}
+      {error ? (
+        <ErrorAlert
+          title="Builder preventivo"
+          message={error}
+          variant="error"
+          actions={[{ label: 'Riprova', onClick: loadQuote }]}
+        />
+      ) : null}
 
       <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold">Aggiungi categoria</h2>
@@ -817,7 +835,7 @@ export default function QuoteBuilderPage() {
             </div>
           ) : null}
         </form>
-        {searchError ? <p className="mt-2 text-sm text-amber-700">{searchError}</p> : null}
+        {searchError ? <ErrorAlert className="mt-3" message={searchError} variant="error" /> : null}
       {searchResults.length ? (
         <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
             <table className="w-full text-sm">
@@ -864,7 +882,11 @@ export default function QuoteBuilderPage() {
             </table>
           </div>
         ) : searchQuery.trim() && !searchLoading ? (
-          <p className="mt-4 text-sm text-slate-500">Nessuna categoria trovata.</p>
+          <EmptyState
+            className="mt-4"
+            title="Nessuna categoria trovata."
+            description="Prova a modificare il termine di ricerca."
+          />
         ) : null}
       </section>
       <QuoteInfoModal
@@ -879,8 +901,11 @@ export default function QuoteBuilderPage() {
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Righe preventivo</h2>
-        {!loading && sortedItems.length === 0 ? (
-          <p className="text-sm text-slate-500">Nessuna riga presente.</p>
+        {!loading && !error && sortedItems.length === 0 ? (
+          <EmptyState
+            title="Nessuna riga presente."
+            description="Aggiungi una categoria per iniziare a comporre il preventivo."
+          />
         ) : null}
         {groupedItems.map((group) => (
           <div key={group.category} className="space-y-3">

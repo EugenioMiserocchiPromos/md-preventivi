@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
+import { ErrorAlert } from './Feedback';
 import { formatMoney } from '../lib/formatters';
 import { formatDateForUi } from '../lib/dates';
 import { protForUi } from '../lib/prot';
 
 function QuoteRow({ row, onOpen, onDelete, onDuplicate, deleting, duplicating }) {
   const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(null);
 
   const handleDownload = async () => {
     if (downloading) return;
     setDownloading(true);
+    setDownloadError(null);
     try {
       const response = await fetch(`/api/quotes/${row.id}/pdf/full`, {
+        credentials: 'include',
         headers: { Accept: 'application/pdf' },
       });
 
@@ -33,8 +37,8 @@ function QuoteRow({ row, onOpen, onDelete, onDuplicate, deleting, duplicating })
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setDownloadError('Impossibile scaricare il PDF. Riprova.');
     } finally {
       setDownloading(false);
     }
@@ -191,6 +195,15 @@ function QuoteRow({ row, onOpen, onDelete, onDuplicate, deleting, duplicating })
         </div>
       </div>
       </div>
+      {downloadError ? (
+        <div className="px-4 pb-4">
+          <ErrorAlert
+            message={downloadError}
+            variant="error"
+            actions={[{ label: 'Riprova', onClick: handleDownload }]}
+          />
+        </div>
+      ) : null}
     </>
   );
 }

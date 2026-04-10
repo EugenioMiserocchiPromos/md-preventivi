@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { fetchProductComponents, fetchProducts, updateProduct } from '../api/client';
+import { EmptyState, ErrorAlert, LoadingState } from '../components/Feedback';
 import { formatMoney } from '../lib/formatters';
 
 const initialState = {
@@ -140,8 +141,25 @@ export default function ProductsPage() {
         </button>
       </form>
 
-      {error ? <p className="text-sm text-amber-700">{error}</p> : null}
+      {error ? (
+        <ErrorAlert
+          title="Ricerca prodotti"
+          message={error}
+          variant="error"
+          actions={[{ label: 'Riprova', onClick: () => load(currentPage, query) }]}
+        />
+      ) : null}
 
+      {loading && state.data.length === 0 ? <LoadingState label="Caricamento prodotti..." /> : null}
+
+      {!loading && !error && state.data.length === 0 ? (
+        <EmptyState
+          title="Nessun prodotto trovato."
+          description="Prova a cambiare ricerca oppure importa un nuovo CSV."
+        />
+      ) : null}
+
+      {state.data.length > 0 ? (
       <div className="overflow-hidden rounded-2xl border border-slate-200/70">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
@@ -200,6 +218,7 @@ export default function ProductsPage() {
           </tbody>
         </table>
       </div>
+      ) : null}
 
       <div className="flex items-center gap-3 text-sm text-slate-500">
         <button
@@ -249,11 +268,11 @@ export default function ProductsPage() {
             </div>
             <div className="px-6 py-4">
               {componentsState.loading ? (
-                <p className="text-sm text-slate-500">Caricamento componenti...</p>
+                <LoadingState label="Caricamento componenti..." compact />
               ) : componentsState.error ? (
-                <p className="text-sm text-amber-700">{componentsState.error}</p>
+                <ErrorAlert message={componentsState.error} variant="error" />
               ) : componentsState.data.length === 0 ? (
-                <p className="text-sm text-slate-500">Nessun componente.</p>
+                <EmptyState title="Nessun componente." />
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-slate-200">
                   <table className="w-full text-sm">
@@ -340,7 +359,7 @@ export default function ProductsPage() {
                 onInput={(event) => setEditHtml(event.currentTarget.innerHTML)}
                 dangerouslySetInnerHTML={{ __html: editHtml }}
               />
-              {editError ? <p className="text-sm text-rose-600">{editError}</p> : null}
+              {editError ? <ErrorAlert message={editError} variant="error" /> : null}
               <div className="flex items-center justify-end gap-2">
                 <button
                   type="button"

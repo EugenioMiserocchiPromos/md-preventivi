@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { ErrorAlert } from './Feedback';
 import { fetchCustomers, updateQuoteInfo } from '../api/client';
 
 export default function QuoteInfoModal({ open, quote, onClose, onSaved }) {
@@ -222,11 +223,11 @@ export default function QuoteInfoModal({ open, quote, onClose, onSaved }) {
           </label>
 
           {customerServerErrors.length ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              {customerServerErrors.map((msg, index) => (
-                <div key={`${msg}-${index}`}>{msg}</div>
-              ))}
-            </div>
+            <ErrorAlert
+              title="Salvataggio non riuscito"
+              message={customerServerErrors.join(' ')}
+              variant="error"
+            />
           ) : null}
 
           <div className="flex items-center justify-end gap-2">

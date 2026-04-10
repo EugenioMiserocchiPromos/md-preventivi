@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import FlashMessageOutlet from '../components/FlashMessageOutlet';
+import { ErrorAlert } from '../components/Feedback';
 import { defaultQuoteListPath } from '../lib/quoteTypes';
 
 export default function LoginPage() {
@@ -32,6 +34,7 @@ export default function LoginPage() {
               className="max-h-16 w-auto"
             />
           </div>
+          <FlashMessageOutlet />
           <form className="space-y-4" onSubmit={handleSubmit} autoComplete="on">
             <label className="block text-sm">
               <span className="text-slate-600">Email</span>
@@ -57,11 +60,7 @@ export default function LoginPage() {
                 required
               />
             </label>
-            {error ? (
-              <p className="text-sm" style={{ color: '#45556c' }}>
-                {error}
-              </p>
-            ) : null}
+            {error ? <ErrorAlert message={error} variant="error" /> : null}
             <button
               type="submit"
               disabled={loading}

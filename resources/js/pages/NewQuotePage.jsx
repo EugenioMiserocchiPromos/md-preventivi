@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createCustomer, createQuote, fetchCustomers } from '../api/client';
+import { ErrorAlert, LoadingState } from '../components/Feedback';
 import { formatDateForUi, parseItalianDateInput } from '../lib/dates';
 import { defaultQuoteListPath, defaultQuoteType, quoteTypeOptions } from '../lib/quoteTypes';
 
@@ -196,8 +197,8 @@ export default function NewQuotePage() {
         <p className="text-sm text-slate-500">Compila i dati base per creare il preventivo.</p>
       </header>
 
-      {loading ? <p className="text-sm text-slate-500">Caricamento...</p> : null}
-      {error ? <p className="text-sm text-amber-700">{error}</p> : null}
+      {loading ? <LoadingState label="Preparazione nuovo preventivo..." /> : null}
+      {error ? <ErrorAlert title="Creazione preventivo" message={error} variant="error" /> : null}
 
       <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-slate-200/70 bg-white p-6 shadow-sm">
         <div className="grid gap-4 md:grid-cols-2">
@@ -428,11 +429,11 @@ export default function NewQuotePage() {
               </label>
 
               {customerServerErrors.length ? (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                  {customerServerErrors.map((msg, index) => (
-                    <p key={`${msg}-${index}`}>{msg}</p>
-                  ))}
-                </div>
+                <ErrorAlert
+                  title="Salvataggio cliente"
+                  message={customerServerErrors.join(' ')}
+                  variant="error"
+                />
               ) : null}
 
               <div className="flex justify-end gap-2">
