@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import FlashMessageOutlet from '../components/FlashMessageOutlet';
 import { quoteTypeOptions } from '../lib/quoteTypes';
 
 const navItems = [
@@ -69,6 +70,9 @@ export default function AppLayout({ children }) {
               </NavLink>
             ))}
           </nav>
+          <div className="mt-4">
+            <FlashMessageOutlet />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>

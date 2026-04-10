@@ -1,6 +1,14 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
+import AppErrorBoundary from './components/AppErrorBoundary';
+import { LoadingState } from './components/Feedback';
 import AppLayout from './layouts/AppLayout';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import AdminImportPage from './pages/AdminImportPage';
@@ -12,13 +20,22 @@ import QuoteExtrasPage from './pages/QuoteExtrasPage';
 import NewQuotePage from './pages/NewQuotePage';
 import LoginPage from './pages/LoginPage';
 import { defaultQuoteListPath, quoteTypeOptions } from './lib/quoteTypes';
+import { setFlashMessage } from './lib/flash';
+
+function RedirectWithFlash({ to, message, variant = 'warning' }) {
+  React.useEffect(() => {
+    setFlashMessage(message, { variant });
+  }, [message, variant]);
+
+  return <Navigate to={to} replace />;
+}
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return <div className="px-6 py-10 text-sm text-slate-500">Caricamento...</div>;
+    return <LoadingState label="Verifica sessione in corso..." className="mx-6 my-10" />;
   }
 
   if (!user) {
@@ -32,7 +49,7 @@ function LoginRoute() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="px-6 py-10 text-sm text-slate-500">Caricamento...</div>;
+    return <LoadingState label="Verifica sessione in corso..." className="mx-6 my-10" />;
   }
 
   if (user) {
@@ -129,7 +146,15 @@ function App() {
           </RequireAuth>
         }
       />
-      <Route path="*" element={<Navigate to={defaultQuoteListPath} replace />} />
+      <Route
+        path="*"
+        element={
+          <RedirectWithFlash
+            to={defaultQuoteListPath}
+            message="La pagina richiesta non esiste. Sei stato reindirizzato alla lista preventivi."
+          />
+        }
+      />
     </Routes>
   );
 }
@@ -137,10 +162,12 @@ function App() {
 const el = document.getElementById('app');
 if (el) {
   createRoot(el).render(
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    <AppErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
+    </AppErrorBoundary>
   );
 }

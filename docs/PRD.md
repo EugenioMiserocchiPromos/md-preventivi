@@ -21,7 +21,7 @@ L’app è destinata a pochi utenti interni (da 1 a pochi), con autenticazione s
 
 ## 4) Utenti e permessi
 - **User interno**: può creare/modificare preventivi, anagrafiche, esportare PDF.
-- **Admin** (opzionale): può importare il listino prodotti e gestire titoli template.
+- **Admin** (opzionale): può importare il listino prodotti.
 
 Autenticazione:
 - login/password (Laravel standard).
@@ -86,7 +86,7 @@ Nel builder:
 - `date`: default oggi, modificabile
 - cliente selezionato
 - `cantiere`: testo libero
-- `title_template`: titolo selezionato da dropdown preimpostato
+- `title_text`: titolo libero del preventivo salvato come snapshot testuale
 
 ## 9) PROT e revisioni (regola fondamentale)
 Formato PROT interno:
@@ -180,7 +180,7 @@ C) **Pagina clausole** (ultima)
 ## 15) Assunzioni MVP
 - DB: MySQL (Sail)
 - Export PDF: generazione server-side con template HTML -> PDF (scelta tecnica nel progetto)
-- Titoli preventivo: una lista predefinita gestita da config o tabella.
+- Titolo preventivo: testo libero gestito direttamente nel preventivo.
 
 ## 16) Future extensions (non ora)
 - Invio email preventivo

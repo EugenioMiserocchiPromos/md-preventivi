@@ -11,6 +11,7 @@ import {
   updateQuoteExtra,
   updateQuotePricing,
 } from '../api/client';
+import { EmptyState, ErrorAlert, LoadingState } from '../components/Feedback';
 import TotalsPanel from '../components/TotalsPanel';
 import QuoteInfoModal from '../components/QuoteInfoModal';
 import { protForUi } from '../lib/prot';
@@ -21,7 +22,8 @@ import {
   fallbackPaymentMethodOptions,
   shouldShowPaymentIban,
 } from '../lib/quotePricing';
-import { getQuoteListPath } from '../lib/quoteTypes';
+import { setFlashMessage } from '../lib/flash';
+import { defaultQuoteListPath, getQuoteListPath } from '../lib/quoteTypes';
 import { fallbackUnitOptions, normalizeUnitValue } from '../lib/units';
 
 const defaultNewExtra = {
@@ -116,11 +118,19 @@ export default function QuoteExtrasPage() {
         })
       );
     } catch (err) {
+      if (err?.status === 404) {
+        setFlashMessage('Il preventivo richiesto non esiste o non è piu disponibile.', {
+          title: 'Preventivo non trovato',
+          variant: 'warning',
+        });
+        navigate(defaultQuoteListPath, { replace: true });
+        return;
+      }
       setError(err?.message || 'Errore nel caricamento righe extra.');
     } finally {
       setLoading(false);
     }
-  }, [quoteId, unitOptions]);
+  }, [navigate, quoteId, unitOptions]);
 
   useEffect(() => {
     loadData();
@@ -558,8 +568,16 @@ export default function QuoteExtrasPage() {
         </div>
       </div>
 
-      {loading ? <p className="text-sm text-slate-500">Caricamento...</p> : null}
-      {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+      {loading ? <LoadingState label="Caricamento righe extra..." /> : null}
+      {error ? (
+        <ErrorAlert
+          title="Righe extra"
+          message={error}
+          variant="error"
+          actions={[{ label: 'Riprova', onClick: loadData }]}
+        />
+      ) : null}
+      {closeError ? <ErrorAlert message={closeError} variant="error" /> : null}
 
       {!loading && !error ? (
         <div className="space-y-4">
@@ -611,11 +629,14 @@ export default function QuoteExtrasPage() {
               >
                 {pricingSaving ? 'Salvataggio...' : 'Salva pagamenti'}
               </button>
-              {pricingError ? <p className="mt-2 text-xs text-rose-600">{pricingError}</p> : null}
+              {pricingError ? <ErrorAlert className="mt-3" message={pricingError} variant="error" /> : null}
             </div>
           </div>
           {extras.length === 0 ? (
-            <p className="text-sm text-slate-500">Nessuna riga extra presente.</p>
+            <EmptyState
+              title="Nessuna riga extra presente."
+              description="Aggiungi una riga extra oppure continua con i totali attuali."
+            />
           ) : null}
           <div className="space-y-4">
             {extras.map((extra) => {
@@ -870,13 +891,8 @@ export default function QuoteExtrasPage() {
                 Aggiungi
               </button>
             </div>
-            {createError ? <p className="mt-2 text-sm text-rose-600">{createError}</p> : null}
+            {createError ? <ErrorAlert className="mt-2" message={createError} variant="error" /> : null}
           </form>
-        </div>
-      ) : null}
-      {closeError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
-          <p className="text-sm font-medium text-rose-700">{closeError}</p>
         </div>
       ) : null}
 

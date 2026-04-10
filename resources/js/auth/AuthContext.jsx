@@ -54,8 +54,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    if (window.location.pathname === '/login') {
+      setLoading(false);
+      return;
+    }
+
     refreshMe();
   }, [refreshMe]);
+
+  useEffect(() => {
+    const handleInvalidation = () => {
+      setUser(null);
+      setError(null);
+      setLoading(false);
+    };
+
+    window.addEventListener('app:auth-invalidated', handleInvalidation);
+
+    return () => {
+      window.removeEventListener('app:auth-invalidated', handleInvalidation);
+    };
+  }, []);
 
   const value = useMemo(
     () => ({

@@ -16,7 +16,7 @@ use App\Http\Controllers\Api\QuoteExtrasController;
 use App\Http\Controllers\Api\UnitsController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('auth')->group(function () {
+Route::middleware('web')->prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 });

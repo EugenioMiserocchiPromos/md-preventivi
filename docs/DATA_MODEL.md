@@ -100,18 +100,7 @@ Uso:
 
 ---
 
-### 3.6 quote_title_templates (opzionale ma consigliata)
-Titoli preventivo selezionabili da dropdown.
-
-Campi:
-- id
-- label VARCHAR(255) NOT NULL
-- is_active BOOLEAN NOT NULL DEFAULT 1
-- sort_index INT NOT NULL DEFAULT 0
-
----
-
-### 3.7 quotes
+### 3.6 quotes
 Preventivi (testata + totali).
 
 Campi:
@@ -130,8 +119,7 @@ Campi:
 
 - date DATE NOT NULL
 - cantiere VARCHAR(255) NOT NULL
-- title_template_id (FK quote_title_templates.id) NULL
-- title_text VARCHAR(255) NOT NULL   -- label selezionata al momento (snapshot)
+- title_text VARCHAR(255) NOT NULL   -- titolo libero del preventivo (snapshot)
 
 - discount_type VARCHAR(16) NULL     -- percent|amount
 - discount_value DECIMAL(12,2) NULL  -- percent in 0..100 o importo
@@ -155,7 +143,7 @@ Indici:
 
 ---
 
-### 3.8 quote_items
+### 3.7 quote_items
 Righe prodotto.
 
 Campi:
@@ -186,7 +174,7 @@ Indici:
 
 ---
 
-### 3.9 quote_item_components
+### 3.8 quote_item_components
 Sottovoci clonate e modificabili per riga.
 
 Campi:
@@ -209,7 +197,7 @@ Indici:
 
 ---
 
-### 3.10 quote_extras
+### 3.9 quote_extras
 Righe extra finali fuori listino.
 
 Campi:

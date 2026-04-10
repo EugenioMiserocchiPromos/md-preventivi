@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createCustomer, deleteCustomer, fetchCustomers, updateCustomer } from '../api/client';
+import { EmptyState, ErrorAlert, LoadingState } from '../components/Feedback';
 
 const initialState = {
   data: [],
@@ -174,8 +175,26 @@ export default function CustomersPage() {
         </button>
       </form>
 
-      {error ? <p className="text-sm text-amber-700">{error}</p> : null}
+      {error ? (
+        <ErrorAlert
+          title="Gestione clienti"
+          message={error}
+          variant="error"
+          actions={[{ label: 'Riprova', onClick: () => load(currentPage, query) }]}
+        />
+      ) : null}
 
+      {loading && state.data.length === 0 ? <LoadingState label="Caricamento clienti..." /> : null}
+
+      {!loading && !error && state.data.length === 0 ? (
+        <EmptyState
+          title="Nessun cliente trovato."
+          description="Prova una ricerca diversa oppure crea una nuova anagrafica."
+          action={{ label: 'Nuovo cliente', onClick: openCreate }}
+        />
+      ) : null}
+
+      {state.data.length > 0 ? (
       <div className="overflow-hidden rounded-2xl border border-slate-200/70">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
@@ -221,6 +240,7 @@ export default function CustomersPage() {
           </tbody>
         </table>
       </div>
+      ) : null}
 
       <div className="flex items-center gap-3 text-sm text-slate-500">
         <button
@@ -354,11 +374,11 @@ export default function CustomersPage() {
               </label>
 
               {serverErrors.length ? (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                  {serverErrors.map((msg, index) => (
-                    <p key={`${msg}-${index}`}>{msg}</p>
-                  ))}
-                </div>
+                <ErrorAlert
+                  title="Salvataggio cliente"
+                  message={serverErrors.join(' ')}
+                  variant="error"
+                />
               ) : null}
 
               <div className="flex justify-end gap-2">

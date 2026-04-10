@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchLatestImportFile, uploadFile } from '../api/client';
+import { ErrorAlert } from '../components/Feedback';
 
 const initialState = {
   loading: false,
@@ -54,6 +55,7 @@ function ImportSection({ title, description, endpoint, latestEndpoint, downloadP
   const [file, setFile] = useState(null);
   const [state, setState] = useState(initialState);
   const [latestFile, setLatestFile] = useState(null);
+  const [latestFileError, setLatestFileError] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -62,11 +64,13 @@ function ImportSection({ title, description, endpoint, latestEndpoint, downloadP
       .then((data) => {
         if (active) {
           setLatestFile(data);
+          setLatestFileError(null);
         }
       })
       .catch(() => {
         if (active) {
           setLatestFile(null);
+          setLatestFileError('Impossibile recuperare l’ultimo file importato.');
         }
       });
 
@@ -143,7 +147,8 @@ function ImportSection({ title, description, endpoint, latestEndpoint, downloadP
         </div>
       </form>
       {latestFileLabel ? <p className="text-xs text-slate-500">Ultimo file: {latestFileLabel}</p> : null}
-      {state.error ? <p className="text-sm text-amber-700">{state.error}</p> : null}
+      {latestFileError ? <ErrorAlert message={latestFileError} variant="warning" /> : null}
+      {state.error ? <ErrorAlert message={state.error} variant="error" /> : null}
       <ResultSummary result={state.result} />
     </section>
   );

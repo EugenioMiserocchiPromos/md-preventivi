@@ -1,4 +1,5 @@
 import React from 'react';
+import { ErrorAlert } from './Feedback';
 import { formatMoney } from '../lib/formatters';
 import {
   discountTypeOptions,
@@ -138,7 +139,7 @@ export default function TotalsPanel({
             ) : null}
           </form>
         ) : null}
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {error ? <ErrorAlert message={error} variant="error" /> : null}
       </div>
     </div>
   );

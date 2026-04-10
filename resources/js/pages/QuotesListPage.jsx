@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deleteQuote, duplicateQuote, fetchQuotes } from '../api/client';
+import { EmptyState, ErrorAlert, LoadingState } from '../components/Feedback';
 import QuoteList from '../components/QuoteList';
 import { quoteTypeOptions } from '../lib/quoteTypes';
 
@@ -144,12 +145,24 @@ export default function QuotesListPage({ type, label }) {
           className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm"
         />
       </form>
-      {error ? <p className="text-sm text-amber-700">{error}</p> : null}
-      {rows.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200/70 bg-white px-4 py-6 text-slate-500">
-          {loading ? 'Caricamento...' : 'Nessun preventivo trovato.'}
-        </div>
-      ) : (
+      {error ? (
+        <ErrorAlert
+          title="Caricamento preventivi"
+          message={error}
+          variant="error"
+          actions={[{ label: 'Riprova', onClick: () => load(currentPage, query) }]}
+        />
+      ) : null}
+      {loading && rows.length === 0 ? (
+        <LoadingState label="Caricamento preventivi..." />
+      ) : null}
+      {!loading && !error && rows.length === 0 ? (
+        <EmptyState
+          title="Nessun preventivo trovato."
+          description="Prova a cambiare ricerca oppure crea un nuovo preventivo."
+        />
+      ) : null}
+      {rows.length > 0 ? (
         <QuoteList
           rows={rows}
           onOpen={(id) => navigate(`/builder/${id}`)}
@@ -158,7 +171,7 @@ export default function QuotesListPage({ type, label }) {
           deletingId={deletingId}
           duplicatingId={duplicatingId}
         />
-      )}
+      ) : null}
 
       {confirmRow ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
