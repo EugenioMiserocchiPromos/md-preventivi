@@ -132,4 +132,34 @@ class QuoteItemsController extends Controller
             'totals' => $totalsService->totalsPayload($updatedQuote),
         ]);
     }
+
+    public function moveCategory(
+        Quote $quote,
+        Request $request,
+        QuoteItemService $service
+    ) {
+        $validated = $request->validate([
+            'category_name' => ['required', 'string', 'max:255'],
+            'direction' => ['required', 'in:up,down'],
+        ]);
+
+        $categoryName = trim((string) $validated['category_name']);
+        if ($categoryName === '') {
+            return response()->json(['message' => 'Categoria non valida.'], 422);
+        }
+
+        $exists = $quote->items()
+            ->where('category_name_snapshot', $categoryName)
+            ->exists();
+
+        if (! $exists) {
+            return response()->json(['message' => 'Categoria non trovata nel preventivo.'], 404);
+        }
+
+        $moved = $service->moveCategory($quote, $categoryName, (string) $validated['direction']);
+
+        return response()->json([
+            'moved' => $moved,
+        ]);
+    }
 }

@@ -6,6 +6,7 @@ import {
   duplicateQuoteItem,
   fetchProductCategories,
   fetchQuote,
+  moveQuoteCategory,
   fetchUnits,
   updateQuoteItem,
   updateQuoteItemComponent,
@@ -469,6 +470,7 @@ export default function QuoteBuilderPage() {
   const [searchError, setSearchError] = useState(null);
   const isFirstSearch = useRef(true);
   const [adding, setAdding] = useState(false);
+  const [movingCategoryKey, setMovingCategoryKey] = useState(null);
   const [openItemId, setOpenItemId] = useState(null);
   const [duplicatingId, setDuplicatingId] = useState(null);
   const itemRefs = useRef({});
@@ -666,6 +668,32 @@ export default function QuoteBuilderPage() {
     }
   };
 
+  const handleMoveCategory = async (categoryName, direction) => {
+    if (!quote) return;
+
+    const opKey = `${categoryName}:${direction}`;
+    setMovingCategoryKey(opKey);
+
+    try {
+      if (openItemId !== null) {
+        const saveHandler = saveHandlersRef.current[openItemId];
+        if (saveHandler) {
+          await saveHandler('save');
+        }
+      }
+
+      await moveQuoteCategory(quote.id, {
+        category_name: categoryName,
+        direction,
+      });
+      await loadQuote();
+    } catch (err) {
+      setError(err?.message || 'Errore durante riordino categoria.');
+    } finally {
+      setMovingCategoryKey(null);
+    }
+  };
+
   const saveAll = async (itemId, payload, mode, setLocalError) => {
     try {
       await updateQuoteItem(itemId, payload.item);
@@ -711,16 +739,12 @@ export default function QuoteBuilderPage() {
     categories.forEach((category) => {
       colorMap.set(category, '#95817b');
     });
-    return Array.from(map.entries()).map(([category, items]) => ({
+    return Array.from(map.entries()).map(([category, items], index, entries) => ({
       category,
-      items: [...items].sort((a, b) =>
-        String(a.product_code_snapshot || '').localeCompare(
-          String(b.product_code_snapshot || ''),
-          'it',
-          { numeric: true }
-        )
-      ),
+      items,
       color: colorMap.get(category),
+      isFirst: index === 0,
+      isLast: index === entries.length - 1,
     }));
   }, [sortedItems]);
 
@@ -910,10 +934,54 @@ export default function QuoteBuilderPage() {
         {groupedItems.map((group) => (
           <div key={group.category} className="space-y-3">
             <div
-              className="flex items-center gap-3 rounded-xl px-3 py-2"
+              className="flex items-center justify-between gap-3 rounded-xl px-3 py-2"
               style={{ backgroundColor: group.color }}
             >
               <h3 className="text-lg font-regular text-white">{group.category}</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label={`Sposta in alto ${group.category}`}
+                  title="Sposta in alto"
+                  onClick={() => handleMoveCategory(group.category, 'up')}
+                  disabled={group.isFirst || movingCategoryKey !== null}
+                  className="rounded-lg border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="m18 15-6-6-6 6" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Sposta in basso ${group.category}`}
+                  title="Sposta in basso"
+                  onClick={() => handleMoveCategory(group.category, 'down')}
+                  disabled={group.isLast || movingCategoryKey !== null}
+                  className="rounded-lg border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+              </div>
             </div>
             {group.items.map((item) => (
               <div

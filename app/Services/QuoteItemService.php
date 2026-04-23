@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Support\QuoteTypes;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class QuoteItemService
@@ -126,6 +127,71 @@ class QuoteItemService
             }
 
             return $newItem->load(['components']);
+        });
+    }
+
+    public function moveCategory(Quote $quote, string $categoryName, string $direction): bool
+    {
+        return DB::transaction(function () use ($quote, $categoryName, $direction) {
+            $items = QuoteItem::query()
+                ->where('quote_id', $quote->id)
+                ->orderBy('sort_index')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            if ($items->isEmpty()) {
+                return false;
+            }
+
+            $grouped = [];
+            $categoryOrder = [];
+
+            foreach ($items as $item) {
+                $key = (string) ($item->category_name_snapshot ?: 'Senza categoria');
+
+                if (! array_key_exists($key, $grouped)) {
+                    $grouped[$key] = [];
+                    $categoryOrder[] = $key;
+                }
+
+                $grouped[$key][] = $item;
+            }
+
+            if (! array_key_exists($categoryName, $grouped)) {
+                return false;
+            }
+
+            $currentIndex = array_search($categoryName, $categoryOrder, true);
+            if ($currentIndex === false) {
+                return false;
+            }
+
+            $targetIndex = match ($direction) {
+                'up' => $currentIndex - 1,
+                'down' => $currentIndex + 1,
+                default => $currentIndex,
+            };
+
+            if ($targetIndex < 0 || $targetIndex >= count($categoryOrder)) {
+                return false;
+            }
+
+            [$categoryOrder[$currentIndex], $categoryOrder[$targetIndex]] = [
+                $categoryOrder[$targetIndex],
+                $categoryOrder[$currentIndex],
+            ];
+
+            $orderedItems = collect($categoryOrder)
+                ->flatMap(fn (string $category): Collection => collect($grouped[$category]));
+
+            foreach ($orderedItems->values() as $sortIndex => $item) {
+                QuoteItem::query()
+                    ->whereKey($item->id)
+                    ->update(['sort_index' => $sortIndex]);
+            }
+
+            return true;
         });
     }
 }

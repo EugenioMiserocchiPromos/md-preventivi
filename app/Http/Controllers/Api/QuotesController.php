@@ -175,8 +175,7 @@ class QuotesController extends Controller
     {
         $quote->load([
             'items' => function ($query) {
-                $query->orderBy('category_name_snapshot')
-                    ->orderBy('sort_index')
+                $query->orderBy('sort_index')
                     ->orderBy('id');
             },
             'items.components' => function ($query) {

@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->get('/quotes', [QuotesController::class, 'ind
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/revision', [QuotesController::class, 'revision']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/items', [QuoteItemsController::class, 'store']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/items/category', [QuoteItemsController::class, 'storeCategory']);
+Route::middleware('auth:sanctum')->post('/quotes/{quote}/items/category/move', [QuoteItemsController::class, 'moveCategory']);
 Route::middleware('auth:sanctum')->patch('/quotes/{quote}/pricing', [QuotePricingController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/quotes/{quote}/extras', [QuoteExtrasController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/quotes/{quote}/extras', [QuoteExtrasController::class, 'store']);

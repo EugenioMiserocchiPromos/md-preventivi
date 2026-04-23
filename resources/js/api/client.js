@@ -233,6 +233,13 @@ export async function createQuoteCategoryItems(quoteId, payload) {
   });
 }
 
+export async function moveQuoteCategory(quoteId, payload) {
+  return request(`/api/quotes/${quoteId}/items/category/move`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function updateQuoteItem(itemId, payload) {
   return request(`/api/quote-items/${itemId}`, {
     method: 'PATCH',

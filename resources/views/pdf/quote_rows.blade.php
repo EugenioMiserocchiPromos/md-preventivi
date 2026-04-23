@@ -467,27 +467,10 @@
       });
 
       $grouped = $groupedRaw->map(function ($groupItems, $category) {
-        $sorted = $groupItems->sortBy(function ($item) {
-          $code = (string) ($item->product_code_snapshot ?? '');
-          $numeric = preg_replace('/\\D+/', '', $code);
-          $numericValue = $numeric !== '' ? (int) $numeric : PHP_INT_MAX;
-          return sprintf('%010d-%s', $numericValue, $code);
-        })->values();
-
-        $minCode = $sorted->first()?->product_code_snapshot ?? '';
-        $minNumeric = preg_replace('/\\D+/', '', (string) $minCode);
-        $minNumericValue = $minNumeric !== '' ? (int) $minNumeric : PHP_INT_MAX;
-
         return [
           'category' => $category,
-          'items' => $sorted,
-          'min_code' => $minCode,
-          'min_numeric' => $minNumericValue,
+          'items' => $groupItems->values(),
         ];
-      })->values();
-
-      $grouped = $grouped->sortBy(function ($group) {
-        return sprintf('%010d-%s-%s', $group['min_numeric'], (string) $group['min_code'], (string) $group['category']);
       })->values();
       $extras = $quote->extras ?? collect();
     @endphp
