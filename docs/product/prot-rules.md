@@ -21,7 +21,7 @@ Esempio:
   - VM = Vendita Materiale
 - PROGRESSIVO: numero a 4 cifre (0001..9999)
 - ANNO: ultime 2 cifre dell’anno (es: 2026 -> 26)
-- REV: revisione incrementale (solo backend)
+- REV: revisione incrementale (solo backend), visibile solo dopo la prima revisione utile
 
 ## 3) Contatore progressivo annuo globale
 Il progressivo:
@@ -43,7 +43,7 @@ In fase creazione preventivo:
 4. salva quote con:
    - prot_year = anno corrente
    - prot_number = current_number
-   - revision_number = 1
+   - revision_number = -1
 5. `COMMIT`
 
 Render:
@@ -55,8 +55,9 @@ La revisione serve SOLO per differenziare internamente le modifiche nel tempo.
 Non è richiesto storico revisioni o differenze.
 
 Regole:
-- Alla creazione: `revision_number = 1` -> REV1
-- Ad ogni modifica “effettiva” controllata -> incrementa `revision_number += 1`
+- Alla creazione: `revision_number = -1` e `prot_internal = prot_display`
+- Primo salvataggio revisione esplicito: `revision_number = 0`, ancora senza suffisso `REV`
+- Dai salvataggi revisione successivi: `revision_number += 1` e il PROT interno mostra `REV1`, `REV2`, ...
 
 ### Importante: evitare incremento su autosave
 La revisione deve incrementare solo su un’azione esplicita, ad esempio:
@@ -71,9 +72,9 @@ Scelta consigliata MVP:
 ## 5) Campi quote consigliati
 - prot_year (2026)
 - prot_number (1)
-- revision_number (1)
+- revision_number (-1 in creazione, poi 0..N)
 - prot_display ("MD/FP 0001-26")
-- prot_internal ("MD/FP 0001-26-REV1")
+- prot_internal ("MD/FP 0001-26" in creazione, poi "MD/FP 0001-26-REV1")
 
 Nota:
 `prot_display` è derivabile, ma salvarlo semplifica export PDF e UI.

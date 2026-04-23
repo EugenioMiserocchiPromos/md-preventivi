@@ -45,7 +45,7 @@ I due punti ancora aperti nel piano restano reali:
 - `12. Verificare manualmente headers e compatibilita frontend`
 - `14. Verificare regressioni sui flussi frontend principali`
 
-Sono tracciati in [SECURITY_REMEDIATION.md](/Users/promos15/Desktop/CODING/Web App MD ITALIA/md-preventivi/docs/SECURITY_REMEDIATION.md). Non sono bug certi del codice, ma senza questa verifica non chiuderei il deploy.
+Sono tracciati in [security-remediation.md](security-remediation.md). Non sono bug certi del codice, ma senza questa verifica non chiuderei il deploy.
 
 ### Basso/Medio: resta rendering HTML controllato nel frontend e nel PDF
 

@@ -52,27 +52,39 @@ async function parseResponse(response, options = {}) {
 
 async function request(path, options = {}) {
   const method = (options.method || 'GET').toUpperCase();
-  const xsrfToken = getCookie('XSRF-TOKEN');
   const needsXsrf = !['GET', 'HEAD'].includes(method);
   const { suppressUnauthorizedRedirect = false, ...fetchOptions } = options;
 
-  let response;
+  const performRequest = async () => {
+    const xsrfToken = getCookie('XSRF-TOKEN');
 
-  try {
-    response = await fetch(path, {
-      credentials: 'include',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(needsXsrf && xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
-        ...(fetchOptions.headers || {}),
-      },
-      ...fetchOptions,
-    });
-  } catch {
-    throw createError('Connessione al server non riuscita. Riprova.', {
-      code: 'network_error',
-    });
+    try {
+      return await fetch(path, {
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...(needsXsrf && xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+          ...(fetchOptions.headers || {}),
+        },
+        ...fetchOptions,
+      });
+    } catch {
+      throw createError('Connessione al server non riuscita. Riprova.', {
+        code: 'network_error',
+      });
+    }
+  };
+
+  if (needsXsrf && !getCookie('XSRF-TOKEN')) {
+    await getCsrfCookie();
+  }
+
+  let response = await performRequest();
+
+  if (needsXsrf && response.status === 419) {
+    await getCsrfCookie();
+    response = await performRequest();
   }
 
   return parseResponse(response, { suppressUnauthorizedRedirect });

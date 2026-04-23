@@ -20,8 +20,8 @@ L’app è destinata a pochi utenti interni (da 1 a pochi), con autenticazione s
 - Gestione evoluta listino (CRUD completo, versioni listino, validazioni business avanzate) oltre a import iniziale.
 
 ## 4) Utenti e permessi
-- **User interno**: può creare/modificare preventivi, anagrafiche, esportare PDF.
-- **Admin** (opzionale): può importare il listino prodotti.
+- **User interno**: può creare/modificare preventivi, anagrafiche, esportare PDF, gestire prodotti e usare gli import CSV.
+- Non è previsto, allo stato attuale, un ruolo separato `Admin`: tutti gli utenti interni registrati hanno accesso completo alle funzioni dell'app.
 
 Autenticazione:
 - login/password (Laravel standard).
@@ -82,7 +82,7 @@ Nel builder:
 - `quote_type`: FP / AS / VM
 - `prot_display`: es. "MD/FP 0001-26" (stampato in PDF)
 - `prot_internal`: es. "MD/FP 0001-26-REV1" (solo backend)
-- `revision_number`: 1..N
+- `revision_number`: `-1` in creazione; poi `0..N` dopo i salvataggi revisione espliciti
 - `date`: default oggi, modificabile
 - cliente selezionato
 - `cantiere`: testo libero
@@ -96,10 +96,15 @@ Formato PROT interno:
 - Sigla: FP/AS/VM
 - Progressivo: 4 cifre, unico per anno, condiviso tra tutte le macro-categorie
 - Anno: 2 cifre
-- REV: incrementa ad ogni “salvataggio revisione” controllato (no autosave)
+- REV: compare solo dopo i salvataggi revisione espliciti successivi al primo (no autosave)
 
 Nel PDF si stampa **senza REV**:
 `INIZIALI/SIGLA 0001-26`
+
+Comportamento voluto:
+- alla creazione il preventivo nasce senza suffisso `REV`
+- il primo salvataggio revisione esplicito non genera ancora `REV`
+- dai salvataggi revisione successivi il PROT interno mostra `REV1`, `REV2`, ...
 
 ## 10) Builder righe preventivo
 Nel preventivo esistono:
@@ -181,6 +186,7 @@ C) **Pagina clausole** (ultima)
 - DB: MySQL (Sail)
 - Export PDF: generazione server-side con template HTML -> PDF (scelta tecnica nel progetto)
 - Titolo preventivo: testo libero gestito direttamente nel preventivo.
+- Timezone applicativa: `Europe/Rome`, coerente con operatività italiana e numerazione PROT.
 
 ## 16) Future extensions (non ora)
 - Invio email preventivo

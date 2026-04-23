@@ -41,8 +41,8 @@ Riferimento implementativo:
 
 ### Documentazione
 
-- PRD: [docs/PRD.md](/Users/promos15/Desktop/CODING/Web App MD ITALIA/md-preventivi/docs/PRD.md)
-- Data model: [docs/DATA_MODEL.md](/Users/promos15/Desktop/CODING/Web App MD ITALIA/md-preventivi/docs/DATA_MODEL.md)
+- PRD: [../../product/prd.md](../../product/prd.md)
+- Data model: [../../architecture/data-model.md](../../architecture/data-model.md)
 
 ### Schema database
 

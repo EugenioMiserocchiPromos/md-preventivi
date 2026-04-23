@@ -172,6 +172,7 @@ Modifica i parametri:
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://tuodominio.it
+APP_TIMEZONE=Europe/Rome
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
