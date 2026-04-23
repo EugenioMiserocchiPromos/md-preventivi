@@ -64,7 +64,8 @@ export default function QuoteExtrasPage() {
   });
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState(null);
-  const [closing, setClosing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [revising, setRevising] = useState(false);
   const [closeError, setCloseError] = useState(null);
   const [infoModalOpen, setInfoModalOpen] = useState(false);
   const [unitOptions, setUnitOptions] = useState(fallbackUnitOptions);
@@ -467,54 +468,96 @@ export default function QuoteExtrasPage() {
     });
   };
 
-  const handleSaveAndClose = async () => {
+  const flushBeforeExit = async () => {
     if (!quote) return;
-    setClosing(true);
     setCloseError(null);
     setRowErrors({});
 
-    try {
-      for (const extra of extras) {
-        const isWarranty = extra.fixed_key === 'warranty_10y';
-        if (isWarranty) {
-          const validationError = getWarrantyValidationError(extra);
-          if (validationError) {
-            setRowErrors((prev) => ({ ...prev, [extra.id]: validationError }));
-            throw new Error(
-              'Non puoi salvare e chiudere: la garanzia decennale e\' inclusa ma il prezzo e\' ancora 0.'
-            );
-          }
-        }
-        const payload = {
-          unit: normalizeUnitValue(extra.unit, unitOptions),
-          qty: Number(extra.qty),
-          unit_price: Number(extra.unit_price),
-          notes: extra.notes || '',
-          is_included: Boolean(extra.is_included),
-        };
-        if (!extra.is_fixed) {
-          payload.description = extra.description;
-        }
-        const response = await updateQuoteExtra(extra.id, payload);
-        const data = response.data ?? response;
-        if (data.extra) {
-          setExtras((prev) =>
-            prev.map((item) => (item.id === extra.id ? data.extra : item))
+    for (const extra of extras) {
+      const isWarranty = extra.fixed_key === 'warranty_10y';
+      if (isWarranty) {
+        const validationError = getWarrantyValidationError(extra);
+        if (validationError) {
+          setRowErrors((prev) => ({ ...prev, [extra.id]: validationError }));
+          throw new Error(
+            'Non puoi completare il salvataggio: la garanzia decennale e\' inclusa ma il prezzo e\' ancora 0.'
           );
-        }
-        if (data.totals) {
-          setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
         }
       }
 
-      const pricingPayload = {
-        discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
-        discount_value:
-          pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
+      const payload = {
+        unit: normalizeUnitValue(extra.unit, unitOptions),
+        qty: Number(extra.qty),
+        unit_price: Number(extra.unit_price),
+        notes: extra.notes || '',
+        is_included: Boolean(extra.is_included),
       };
-      const pricingResponse = await updateQuotePricing(quote.id, pricingPayload);
-      const pricingData = pricingResponse.data ?? pricingResponse;
-      setQuote((prev) => (prev ? { ...prev, ...pricingData } : prev));
+      if (!extra.is_fixed) {
+        payload.description = extra.description;
+      }
+
+      const response = await updateQuoteExtra(extra.id, payload);
+      const data = response.data ?? response;
+      if (data.extra) {
+        setExtras((prev) =>
+          prev.map((item) => (item.id === extra.id ? data.extra : item))
+        );
+      }
+      if (data.totals) {
+        setQuote((prev) => (prev ? { ...prev, ...data.totals } : prev));
+      }
+    }
+
+    setDirtyIds(new Set());
+
+    const pricingPayload = {
+      discount_type: pricingForm.discount_type === 'none' ? null : pricingForm.discount_type,
+      discount_value:
+        pricingForm.discount_value === '' ? null : Number(pricingForm.discount_value),
+      payment_method: pricingForm.payment_method || defaultPaymentMethod,
+      payment_iban:
+        shouldShowPaymentIban(pricingForm.payment_method, noIbanPaymentMethod)
+          ? pricingForm.payment_iban || ''
+          : '',
+    };
+    const pricingResponse = await updateQuotePricing(quote.id, pricingPayload);
+    const pricingData = pricingResponse.data ?? pricingResponse;
+    setQuote((prev) => (prev ? { ...prev, ...pricingData } : prev));
+    setPricingForm({
+      discount_type: pricingData.discount_type ?? 'none',
+      discount_value:
+        pricingData.discount_type === null || pricingData.discount_type === 'none'
+          ? '0'
+          : pricingData.discount_value !== null && pricingData.discount_value !== undefined
+            ? String(pricingData.discount_value)
+            : '',
+      payment_method: pricingData.payment_method || defaultPaymentMethod,
+      payment_iban: pricingData.payment_iban || '',
+    });
+  };
+
+  const handleSave = async () => {
+    if (!quote) return;
+
+    setSaving(true);
+    try {
+      await flushBeforeExit();
+      navigate(getQuoteListPath(quote.quote_type));
+    } catch (err) {
+      const message =
+        err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
+      setCloseError(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAndRevise = async () => {
+    if (!quote) return;
+
+    setRevising(true);
+    try {
+      await flushBeforeExit();
 
       const revisionResponse = await saveQuoteRevision(quote.id);
       const revisionData = revisionResponse.data ?? revisionResponse;
@@ -526,7 +569,7 @@ export default function QuoteExtrasPage() {
         err?.data?.errors?.unit_price?.[0] || err?.message || 'Errore durante salvataggio.';
       setCloseError(message);
     } finally {
-      setClosing(false);
+      setRevising(false);
     }
   };
 
@@ -542,28 +585,36 @@ export default function QuoteExtrasPage() {
             </p>
           ) : null}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setInfoModalOpen(true)}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+            className="shrink-0 whitespace-nowrap rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
           >
             Modifica info
           </button>
           <button
             type="button"
             onClick={() => navigate(`/builder/${quoteId}`)}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+            className="shrink-0 whitespace-nowrap rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
           >
             Indietro
           </button>
           <button
             type="button"
-            onClick={handleSaveAndClose}
-            disabled={closing}
-            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            onClick={handleSave}
+            disabled={saving || revising}
+            className="min-w-[8.5rem] shrink-0 whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
           >
-            {closing ? 'Salvataggio...' : 'Salva e chiudi'}
+            {saving ? 'Salvataggio...' : 'Salva'}
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAndRevise}
+            disabled={saving || revising}
+            className="min-w-[10.5rem] shrink-0 whitespace-nowrap rounded-xl bg-[#cd1619] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+          >
+            {revising ? 'Salvataggio...' : 'Salva e revisiona'}
           </button>
         </div>
       </div>

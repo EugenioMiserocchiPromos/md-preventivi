@@ -82,7 +82,7 @@ Nel builder:
 - `quote_type`: FP / AS / VM
 - `prot_display`: es. "MD/FP 0001-26" (stampato in PDF)
 - `prot_internal`: es. "MD/FP 0001-26-REV1" (solo backend)
-- `revision_number`: `-1` in creazione; poi `0..N` dopo i salvataggi revisione espliciti
+- `revision_number`: `-1` in creazione; poi `1..N` dopo i salvataggi revisione espliciti
 - `date`: default oggi, modificabile
 - cliente selezionato
 - `cantiere`: testo libero
@@ -103,8 +103,8 @@ Nel PDF si stampa **senza REV**:
 
 Comportamento voluto:
 - alla creazione il preventivo nasce senza suffisso `REV`
-- il primo salvataggio revisione esplicito non genera ancora `REV`
-- dai salvataggi revisione successivi il PROT interno mostra `REV1`, `REV2`, ...
+- il primo salvataggio revisione esplicito genera subito `REV1`
+- dai salvataggi revisione successivi il PROT interno mostra `REV2`, `REV3`, ...
 
 ## 10) Builder righe preventivo
 Nel preventivo esistono:

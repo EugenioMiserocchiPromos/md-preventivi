@@ -142,7 +142,8 @@ class QuotesController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $locked->revision_number = (int) $locked->revision_number + 1;
+            $currentRevision = (int) $locked->revision_number;
+            $locked->revision_number = $currentRevision <= 0 ? 1 : ($currentRevision + 1);
             $locked->prot_internal = $formatter->makeInternalWithInitials(
                 $locked->prot_display,
                 (int) $locked->revision_number

@@ -56,8 +56,8 @@ Non è richiesto storico revisioni o differenze.
 
 Regole:
 - Alla creazione: `revision_number = -1` e `prot_internal = prot_display`
-- Primo salvataggio revisione esplicito: `revision_number = 0`, ancora senza suffisso `REV`
-- Dai salvataggi revisione successivi: `revision_number += 1` e il PROT interno mostra `REV1`, `REV2`, ...
+- Primo salvataggio revisione esplicito: `revision_number = 1` e il PROT interno mostra `REV1`
+- Dai salvataggi revisione successivi: `revision_number += 1` e il PROT interno mostra `REV2`, `REV3`, ...
 
 ### Importante: evitare incremento su autosave
 La revisione deve incrementare solo su un’azione esplicita, ad esempio:
@@ -72,9 +72,9 @@ Scelta consigliata MVP:
 ## 5) Campi quote consigliati
 - prot_year (2026)
 - prot_number (1)
-- revision_number (-1 in creazione, poi 0..N)
+- revision_number (-1 in creazione, poi 1..N alle revisioni esplicite; eventuali `0` legacy vanno normalizzati a `1` alla revisione successiva)
 - prot_display ("MD/FP 0001-26")
-- prot_internal ("MD/FP 0001-26" in creazione, poi "MD/FP 0001-26-REV1")
+- prot_internal ("MD/FP 0001-26" in creazione, poi "MD/FP 0001-26-REV1", "…-REV2", ...)
 
 Nota:
 `prot_display` è derivabile, ma salvarlo semplifica export PDF e UI.
